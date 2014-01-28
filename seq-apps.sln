@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3FC57D53-9F60-4FAB-AFD8-8CB23EE3B9D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.FileArchive", "src\Seq.App.FileArchive\Seq.App.FileArchive.csproj", "{828A13A9-108C-4F0D-A65D-744884A2BDB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.Thresholds", "src\Seq.App.Thresholds\Seq.App.Thresholds.csproj", "{715102FE-A617-4FEA-A8B6-01CDB866EE91}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{828A13A9-108C-4F0D-A65D-744884A2BDB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{828A13A9-108C-4F0D-A65D-744884A2BDB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{828A13A9-108C-4F0D-A65D-744884A2BDB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{828A13A9-108C-4F0D-A65D-744884A2BDB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{715102FE-A617-4FEA-A8B6-01CDB866EE91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{715102FE-A617-4FEA-A8B6-01CDB866EE91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{715102FE-A617-4FEA-A8B6-01CDB866EE91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{715102FE-A617-4FEA-A8B6-01CDB866EE91}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{828A13A9-108C-4F0D-A65D-744884A2BDB4} = {3FC57D53-9F60-4FAB-AFD8-8CB23EE3B9D9}
+		{715102FE-A617-4FEA-A8B6-01CDB866EE91} = {3FC57D53-9F60-4FAB-AFD8-8CB23EE3B9D9}
+	EndGlobalSection
+EndGlobal

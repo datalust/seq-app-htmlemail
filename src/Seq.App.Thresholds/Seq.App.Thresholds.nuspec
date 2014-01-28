@@ -1,0 +1,14 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Seq.App.Thresholds</id>
+    <version>0.1.0</version>
+    <authors>Nicholas Blumhardt</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>The thresholds app for Seq (http://getseq.net) triggers when the number of events sent to it over a set time period exceeds a threshold.</description>
+  </metadata>
+  <files>
+    <file src="bin\Release\Seq.App.Thresholds.dll" target="lib\net45" />
+    <file src="bin\Release\Seq.App.Thresholds.pdb" target="lib\net45" />
+  </files>
+</package>
