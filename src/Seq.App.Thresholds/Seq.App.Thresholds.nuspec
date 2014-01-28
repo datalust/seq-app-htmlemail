@@ -3,9 +3,14 @@
   <metadata>
     <id>Seq.App.Thresholds</id>
     <version>0.1.0</version>
-    <authors>Nicholas Blumhardt</authors>
+    <authors>Continuous IT</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>The thresholds app for Seq (http://getseq.net) triggers when the number of events sent to it over a set time period exceeds a threshold.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <iconUrl>http://raw2.github.com/continuousit/seq-apps/master/asset/seq-app-thresholds.png</iconUrl>
+    <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>
     <file src="bin\Release\Seq.App.Thresholds.dll" target="lib\net45" />
