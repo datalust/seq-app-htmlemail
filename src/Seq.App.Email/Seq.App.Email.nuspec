@@ -1,19 +1,20 @@
 ﻿<?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>Seq.App.FileArchive</id>
+    <id>Seq.App.Email</id>
     <version>0.1.0</version>
     <authors>Continuous IT</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>The file archive app for Seq (http://getseq.net) writes incoming events to a set rolling disc files for long-term archival storage.</description>
+    <description>The email app for Seq (http://getseq.net) formats events as text and sends them via SMTP email.</description>
     <language>en-US</language>
     <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>http://raw2.github.com/continuousit/seq-apps/master/asset/seq-app-file-archive.png</iconUrl>
+    <iconUrl>http://raw2.github.com/continuousit/seq-apps/master/asset/seq-app-email.png</iconUrl>
     <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>
-    <file src="bin\Release\Seq.App.FileArchive.dll" target="lib\net45" />
-    <file src="bin\Release\Seq.App.FileArchive.pdb" target="lib\net45" />
+    <file src="bin\Release\Seq.App.Email.dll" target="lib\net45" />
+    <file src="bin\Release\Seq.App.Email.pdb" target="lib\net45" />
+    <file src="bin\Release\Sprache.dll" target="lib\net45" />
   </files>
 </package>
