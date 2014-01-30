@@ -13,7 +13,7 @@ namespace Seq.App.FileArchive
     [SeqApp(
         "File Archive",
         Description = "Writes events to a set of rolling log files for long-term archival storage.")]
-    public class ArchiveWriterReactor : Reactor, ISubscribeTo<LogEventData>
+    public class ArchiveWriterReactor : Reactor, ISubscribeTo<LogEventData>, IDisposable
     {
         ILogger _archiveLogger;
 
@@ -33,6 +33,13 @@ namespace Seq.App.FileArchive
                     retainedFileCountLimit: null,
                     outputTemplate: "{Timestamp} [{Level}] {Message:l}{NewLine:l}{ArchiveWriterException:l}")
                 .CreateLogger();
+        }
+
+        public void Dispose()
+        {
+            var disp = _archiveLogger as IDisposable;
+            if (disp != null)
+                disp.Dispose();
         }
 
         public void On(Event<LogEventData> evt)
