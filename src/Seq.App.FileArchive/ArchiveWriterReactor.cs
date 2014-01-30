@@ -40,7 +40,7 @@ namespace Seq.App.FileArchive
             var mtp = new MessageTemplateParser();
 
             var properties = (evt.Data.Properties ?? new Dictionary<string, object>())
-                .Concat(new[]{ new KeyValuePair<string,object>("ArchiveWriterException", evt.Data.Exception)})
+                .Concat(new[]{ new KeyValuePair<string,object>("ArchiveWriterException", evt.Data.Exception ?? "")})
                 .Select(kvp => CreateProperty(kvp.Key, kvp.Value));
 
             var sle = new LogEvent(
