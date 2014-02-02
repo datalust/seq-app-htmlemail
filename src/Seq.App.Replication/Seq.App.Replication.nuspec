@@ -1,0 +1,20 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Seq.App.Replication</id>
+    <version>0.1.0</version>
+    <authors>Continuous IT</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A simple hot/cold replicator for Seq (http://getseq.net) that forwards incoming events to a second server. Replication is not
+    transactional - this package helps with failover but doesn't guarantee 100% redundancy under all possibl failure scenarios.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <iconUrl>http://raw2.github.com/continuousit/seq-apps/master/asset/seq-app-replication.png</iconUrl>
+    <tags>seq-app seq serilog events</tags>
+  </metadata>
+  <files>
+    <file src="bin\Release\Seq.App.Replication.dll" target="lib\net45" />
+    <file src="bin\Release\Seq.App.Replication.pdb" target="lib\net45" />
+  </files>
+</package>

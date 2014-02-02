@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="Seq-repl.svg">
+  <defs
+     id="defs4">
+    <filter
+       id="filter3158"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3160"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3162"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3164"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3166"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3168"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3170"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3172"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3158-1"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3160-7"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3162-4"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3164-0"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3166-9"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3168-4"
+         type="saturate"
+         values="0" />
+    </filter>
+    <filter
+       id="filter3170-8"
+       inkscape:label="Desaturate"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       inkscape:menu="Color"
+       inkscape:menu-tooltip="Render in shades of gray by reducing saturation to zero"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3172-8"
+         type="saturate"
+         values="0" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.90028971"
+     inkscape:cx="801.13193"
+     inkscape:cy="633.90585"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1646"
+     inkscape:window-height="969"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3.32112408000000010;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3.32112411999999990, 9.96337235000000020;stroke-dashoffset:0"
+       id="rect4021"
+       width="138.94041"
+       height="138.94041"
+       x="366.68362"
+       y="101.55862"
+       inkscape:export-filename="C:\Development\Continuous IT\seq-apps\asset\seq-app-replication.png"
+       inkscape:export-xdpi="82.910004"
+       inkscape:export-ydpi="82.910004" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Castellar;-inkscape-font-specification:Castellar"
+       x="-689.09088"
+       y="1619.6349"
+       id="text3176"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3178"
+         x="-689.09088"
+         y="1619.6349" /></text>
+    <rect
+       inkscape:export-ydpi="13.766008"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       y="109.19556"
+       x="368.67944"
+       height="55"
+       width="9.2435913"
+       id="rect3004"
+       style="fill:#000000;fill-opacity:1;stroke:none" />
+    <rect
+       inkscape:export-ydpi="13.766008"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       style="fill:#ff005b;fill-opacity:1;stroke:none"
+       id="rect3006"
+       width="12.243591"
+       height="55"
+       x="385.93158"
+       y="109.19556" />
+    <rect
+       inkscape:export-ydpi="13.766008"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       y="109.19556"
+       x="406.18378"
+       height="55"
+       width="17.243591"
+       id="rect3008"
+       style="fill:#b900ff;fill-opacity:1;stroke:none" />
+    <rect
+       inkscape:export-ydpi="13.766008"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       style="fill:#007bff;fill-opacity:1;stroke:none"
+       id="rect3010"
+       width="23.243591"
+       height="55"
+       x="432.43591"
+       y="109.19556" />
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:none;filter:url(#filter3170-8)"
+       id="rect3012"
+       width="9.2435913"
+       height="55"
+       x="695.66663"
+       y="1177.4546"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-ydpi="13.766008"
+       transform="matrix(-1,0,0,1,1201.3461,-1003.5924)" />
+    <rect
+       y="1177.4546"
+       x="712.91876"
+       height="55"
+       width="12.243591"
+       id="rect3014"
+       style="fill:#ff005b;fill-opacity:1;stroke:none;filter:url(#filter3166-9)"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-ydpi="13.766008"
+       transform="matrix(-1,0,0,1,1201.3461,-1003.5924)" />
+    <rect
+       style="fill:#b900ff;fill-opacity:1;stroke:none;filter:url(#filter3162-4)"
+       id="rect3016"
+       width="17.243591"
+       height="55"
+       x="733.17096"
+       y="1177.4546"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-ydpi="13.766008"
+       transform="matrix(-1,0,0,1,1201.3461,-1003.5924)" />
+    <rect
+       y="1177.4546"
+       x="759.4231"
+       height="55"
+       width="23.243591"
+       id="rect3018"
+       style="fill:#007bff;fill-opacity:1;stroke:none;filter:url(#filter3158-1)"
+       inkscape:export-filename="C:\Users\nblumhardt\Desktop\favicon.png"
+       inkscape:export-xdpi="13.766008"
+       inkscape:export-ydpi="13.766008"
+       transform="matrix(-1,0,0,1,1201.3461,-1003.5924)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:3.79999995;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3.8, 11.4;stroke-dashoffset:0"
+       d="m 374.42306,174.41079 38.46154,46.1539"
+       id="path3180"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:3.79999995;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3.8, 11.4;stroke-dashoffset:0"
+       d="m 460.3205,118.00059 39.7436,48.7179"
+       id="path3182"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
