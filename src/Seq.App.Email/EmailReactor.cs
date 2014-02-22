@@ -48,6 +48,12 @@ namespace Seq.App.Email
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "Body is HTML",
+            HelpText = "Check this box if the email body is an HTML document. Otherwise, the email will be sent as plain text.")]
+        public bool? IsBodyHtml { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             HelpText = "The username to use when authenticating to the SMTP server, if required.")]
         public string Username { get; set; }
 
@@ -69,7 +75,11 @@ namespace Seq.App.Email
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
 
-            client.Send(From, To, subject, body);
+            var message = new MailMessage(From, To, subject, body);
+            if (IsBodyHtml == true && !string.IsNullOrWhiteSpace(BodyTemplate))
+                message.IsBodyHtml = true;
+
+            client.Send(message);
         }
 
         string FormatDefaultBody(Event<LogEventData> evt)
