@@ -30,7 +30,7 @@ namespace Seq.App.FirstOfType
             if (!_filter.MayContain(evt.EventType))
             {
                 Log.Information("First of {DetectedEventType}: {DetectedEventMessage} ({DetectedEventId})",
-                    evt.EventType,
+                    "$" + evt.EventType.ToString("X8"),
                     evt.Data.RenderedMessage,
                     evt.Id);
 
