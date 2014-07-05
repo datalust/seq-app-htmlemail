@@ -44,7 +44,11 @@ namespace Seq.App.FirstOfType
                     File.Delete(backupFile);
 
                 File.WriteAllBytes(writeFile, _filter.Bytes);
-                File.Replace(writeFile, stateFile, backupFile);
+
+                if (File.Exists(stateFile))
+                    File.Replace(writeFile, stateFile, backupFile);
+                else
+                    File.Move(writeFile, stateFile);
             }
         }
     }
