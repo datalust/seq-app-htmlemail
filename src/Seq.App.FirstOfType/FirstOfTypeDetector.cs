@@ -22,7 +22,7 @@ namespace Seq.App.FirstOfType
             {
                 var stateFile = Path.Combine(StoragePath, StateFilename);
                 if (File.Exists(stateFile))
-                    _filter = new UInt32BloomFilter(File.ReadAllBytes(StateFilename));
+                    _filter = new UInt32BloomFilter(File.ReadAllBytes(stateFile));
                 else
                     _filter = new UInt32BloomFilter();
             }
