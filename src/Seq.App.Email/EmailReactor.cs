@@ -39,6 +39,12 @@ namespace Seq.App.Email
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "Enable SSL",
+            HelpText = "Check this box if SSL is required to send email messages.")]
+        public bool? EnableSsl { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body. You can use Mustache-style {{PropertyName}} syntax " + 
@@ -74,6 +80,11 @@ namespace Seq.App.Email
             var client = new SmtpClient(Host, Port ?? 25);
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
+
+            if (EnableSsl.HasValue)
+            {
+                client.EnableSsl = EnableSsl.Value;
+            }
 
             var message = new MailMessage(From, To, subject, body);
             if (IsBodyHtml == true && !string.IsNullOrWhiteSpace(BodyTemplate))
