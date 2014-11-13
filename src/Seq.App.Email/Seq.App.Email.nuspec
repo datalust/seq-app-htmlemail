@@ -9,7 +9,7 @@
     <language>en-US</language>
     <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>http://raw2.github.com/continuousit/seq-apps/master/asset/seq-app-email.png</iconUrl>
+    <iconUrl>http://getseq.net/images/apps/seq-app-email.png</iconUrl>
     <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>
