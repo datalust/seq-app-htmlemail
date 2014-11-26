@@ -30,7 +30,7 @@ namespace Seq.App.Email
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
-        public string Host { get; set; }
+        new public string Host { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,

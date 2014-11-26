@@ -24,6 +24,8 @@ namespace Seq.App.Email.QuickStache
             {
                 if (_identifier == "Timestamp")
                     value = evt.Data.LocalTimestamp;
+                else if (_identifier == "Id")
+                    value = evt.Data.Id;
                 else if (_identifier == "Level")
                     value = evt.Data.Level;
                 else if (_identifier == "RenderedMessage")

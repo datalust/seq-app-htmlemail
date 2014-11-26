@@ -20,7 +20,7 @@ namespace Seq.App.FirstOfType
 
             if (_filter == null)
             {
-                var stateFile = Path.Combine(StoragePath, StateFilename);
+                var stateFile = Path.Combine(App.StoragePath, StateFilename);
                 if (File.Exists(stateFile))
                     _filter = new UInt32BloomFilter(File.ReadAllBytes(stateFile));
                 else
@@ -36,9 +36,9 @@ namespace Seq.App.FirstOfType
 
                 _filter.Add(evt.EventType);
 
-                var stateFile = Path.Combine(StoragePath, StateFilename);
-                var writeFile = Path.Combine(StoragePath, StateWriteFilename);
-                var backupFile = Path.Combine(StoragePath, StateBackupFilename);
+                var stateFile = Path.Combine(App.StoragePath, StateFilename);
+                var writeFile = Path.Combine(App.StoragePath, StateWriteFilename);
+                var backupFile = Path.Combine(App.StoragePath, StateBackupFilename);
 
                 if (File.Exists(backupFile))
                     File.Delete(backupFile);
