@@ -1,0 +1,33 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>[{{$Level}}] {{$Message}} (via Seq)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+        {{$Message}}
+    <div class="seq-event-detail seq-level-{{$Level}}">
+        <div class="seq-event-tools">
+            <span class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</span>
+        </div>
+        <div class="seq-event-data">
+            <div ng-click="toggleDetail()" class="clickable">
+                <span class="seq-level-indicator seq-level-{{$Level}}" title="{{$Level}}"></span>
+                <span class="seq-message-template">{{$Message}}</span>
+            </div>
+                <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action">View in Seq</a>
+            </div>
+        <div class="seq-event-properties">
+            {{#each $Properties}}
+                <div class="seq-event-property">
+                    <div class="seq-property-name" title="{{Name}}">{{Name}}</div>
+                    <div class="seq-property-value">{{Value}}</div>
+                </div>
+            {{/each}}
+            {{#if $Exception}}
+                <div class="seq-event-exception">{{$Exception}}</div>
+            {{/if}}
+        </div>
+    </div>
+</body>
+</html>
