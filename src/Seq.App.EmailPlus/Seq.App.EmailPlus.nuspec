@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Seq.App.EmailPlus</id>
+    <version>0.1.0</version>
+    <authors>Continuous IT</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>An improved SMTP email app for Seq (http://getseq.net) that uses Handlebars.NET for templating.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <iconUrl>http://getseq.net/images/apps/seq-app-email-plus.png</iconUrl>
+    <tags>seq-app seq serilog events</tags>
+  </metadata>
+  <files>
+    <file src="bin\Release\Seq.App.EmailPlus.dll" target="lib\net45" />
+    <file src="bin\Release\Handlebars.dll" target="lib\net45" />
+  </files>
+</package>
