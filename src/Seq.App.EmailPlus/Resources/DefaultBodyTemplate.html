@@ -3,30 +3,181 @@
 <head>
     <title>[{{$Level}}] {{$Message}} (via Seq)</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        body {
+          margin: 10px;
+          font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+          font-size: 14px;
+          line-height: 20px;
+          color: #333;
+          background-color: #fff;
+        }
+        .seq-event-tools {
+          float: left;
+          margin-right: 5px;
+        }
+        .seq-event-data {
+          margin-top: 2px;
+          margin-left: 170px;
+          overflow: visible;
+          white-space: normal;
+        }
+        .seq-event-properties {
+          margin-top: 5px;
+        }
+        .seq-property {
+          width: 100%;
+        }
+        .seq-property-name {
+          float: left;
+          width: 200px;
+          overflow: hidden;
+          font-family: monospace;
+          font-size: 13px;
+          font-weight: bold;
+          text-overflow: ellipsis;
+        }
+        .seq-property-value {
+          margin-left: 245px;
+          font-family: monospace;
+          font-size: 13px;
+          word-wrap: break-word;
+          white-space: pre-wrap;
+        }
+        .seq-event-actions {
+          margin-top: 5px;
+        }
+        .seq-event-actions a.action {
+          padding-right: 10px;
+          font-size: 12px;
+        }
+        a {
+          color: #007acc;
+          text-decoration: none;
+        }
+        .seq-event-timestamp {
+          margin-right: 5px;
+          color: white;
+        }
+        .seq-event-timestamp .datetime {
+          display: inline-block;
+          width: 152px;
+          padding: 2px 4px;
+          font-size: 11.844px;
+          font-weight: bold;
+          line-height: 14px;
+          color: #fff;
+          text-shadow: none;
+          white-space: nowrap;
+          vertical-align: baseline;
+          background-color: #aaa;
+          -webkit-border-radius: 3px;
+          -moz-border-radius: 3px;
+          border-radius: 2px;
+          margin-top: 2px;
+        }
+        .seq-event-data {
+          margin-top: 2px;
+          margin-left: 170px;
+          overflow: visible;
+          white-space: normal;
+        }
+        .seq-event-detail.seq-level-Verbose, .seq-event-detail.seq-level-Debug {
+          background-color: #f3f3f3;
+          border-color: lightgray;
+        }
+        .seq-event-detail.seq-level-Information {
+          background-color: #eff9ff;
+          border-color: #54afcc;
+        }
+        .seq-event-detail.seq-level-Warning {
+          background-color: #fff3e2;
+          border-color: #ee9c29;
+        }
+        .seq-event-detail.seq-level-Error, .seq-event-detail.seq-level-indicator-Fatal {
+          background-color: #fff1f0;
+          border-color: #ffa1a0;
+        }
+        .seq-event-detail {
+          width: 100%;
+          padding: 0 2px 2px 2px;
+          margin: 2px -3px 0 -3px;
+          overflow: visible;
+          white-space: nowrap;
+          border-style: solid;
+          border-width: 1px;
+          border-radius: 2px;
+        }
+        .seq-event-exception {
+          padding: 2px;
+          margin-top: 5px;
+          overflow: auto;
+          font-family: monospace;
+          font-size: 9pt;
+          color: white;
+          white-space: pre;
+          background-color: #e03836;
+        }
+        .seq-level-indicator.seq-level-Verbose, .seq-level-indicator.seq-level-Debug {
+          background-color: lightgray;
+        }
+        .seq-level-indicator.seq-level-Information {
+          display: none;
+        }
+        .seq-level-indicator.seq-level-Warning {
+          background-color: #f9c019;
+        }
+        .seq-level-indicator.seq-level-Error, .seq-level-indicator.seq-level-Fatal {
+          background-color: #e03836;
+        }
+        .seq-level-indicator {
+          display: inline-block;
+          width: 9px;
+          height: 9px;
+          margin-right: 5px;
+          border-radius: 4.5px;
+        }
+        footer {
+          margin-top: 20px;
+          font-size: 9pt;
+          font-style: italic;
+          color: #ddd;
+        }
+        footer a {
+          color: #ddd;
+          font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <div class="seq-event-detail seq-level-{{$Level}}">
         <div class="seq-event-tools">
-            <span class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</span>
+            <span class="seq-event-timestamp" title="{{$UtcTimestamp}}"><span class="datetime">{{$LocalTimestamp}}</span></span>
         </div>
         <div class="seq-event-data">
-            <div ng-click="toggleDetail()" class="clickable">
+            <div>
                 <span class="seq-level-indicator seq-level-{{$Level}}" title="{{$Level}}"></span>
                 <span class="seq-message-template">{{$Message}}</span>
             </div>
+            <div class="seq-event-actions">
                 <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action">View in Seq</a>
             </div>
-        <div class="seq-event-properties">
-            {{#each $Properties}}
-                <div class="seq-event-property">
-                    <div class="seq-property-name" title="{{Name}}">{{Name}}</div>
-                    <div class="seq-property-value">{{Value}}</div>
-                </div>
-            {{/each}}
-            {{#if $Exception}}
-                <div class="seq-event-exception">{{$Exception}}</div>
-            {{/if}}
+            <div class="seq-event-properties">
+                {{#each $Properties}}
+                    <div class="seq-event-property">
+                        <div class="seq-property-name" title="{{Name}}">{{Name}}</div>
+                        <div class="seq-property-value">{{Value}}</div>
+                    </div>
+                {{/each}}
+                {{#if $Exception}}
+                    <div class="seq-event-exception">{{$Exception}}</div>
+                {{/if}}
+            </div>
         </div>
     </div>
+    <footer>
+        Sent from <a href="https://getseq.net">Seq</a> &mdash; structured log server for .NET &mdash; installed
+        at <a href='{{{$ServerUri}}}'>{{$ServerUri}}</a>.
+    </footer>
 </body>
 </html>
