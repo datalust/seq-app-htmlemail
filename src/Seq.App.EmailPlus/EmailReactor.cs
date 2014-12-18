@@ -24,7 +24,7 @@ namespace Seq.App.EmailPlus
                 var subjectTemplate = SubjectTemplate;
                 if (string.IsNullOrEmpty(subjectTemplate))
                     subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Handlebars.Compile(subjectTemplate);
+                return Handlebars.Handlebars.Compile(subjectTemplate);                
             });
 
             _bodyTemplate = new Lazy<Func<object, string>>(() =>
@@ -89,7 +89,9 @@ namespace Seq.App.EmailPlus
         public void On(Event<LogEventData> evt)
         {
             var body = FormatTemplate(_bodyTemplate.Value, evt);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt);
+            var subject = FormatTemplate(_subjectTemplate.Value, evt).Trim().Replace("\r", "").Replace("\n", "");
+            if (subject.Length > 130)
+                subject = subject.Substring(0, 255);
 
             var client = new SmtpClient(Host, Port ?? 25);
             if (!string.IsNullOrWhiteSpace(Username))

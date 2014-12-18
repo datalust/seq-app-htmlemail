@@ -175,35 +175,35 @@
     </style>
 </head>
 <body>
-    <div class="email-body" style="margin-top:10px;margin-bottom:10px;margin-right:10px;margin-left:10px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#333;background-color:#fff;">
-        <div class="seq-event-detail seq-level-{{$Level}}" style="width:100%;padding-top:0;padding-bottom:2px;padding-right:2px;padding-left:2px;margin-top:2px;margin-bottom:0;margin-right:-3px;margin-left:-3px;overflow:visible;white-space:nowrap;border-style:solid;border-width:1px;border-radius:2px;">
-            <div class="seq-event-tools" style="float:left;margin-right:5px;">
-                <span class="seq-event-timestamp" title="{{$UtcTimestamp}}" style="margin-right:5px;color:white;"><span class="datetime" style="display:inline-block;width:152px;padding-top:2px;padding-bottom:2px;padding-right:4px;padding-left:4px;font-size:11.844px;font-weight:bold;line-height:14px;color:#fff;text-shadow:none;white-space:nowrap;vertical-align:baseline;background-color:#aaa;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:2px;margin-top:2px;">{{$LocalTimestamp}}</span></span>
+    <div class="email-body">
+        <div class="seq-event-detail seq-level-{{$Level}}">
+            <div class="seq-event-tools">
+                <span class="seq-event-timestamp" title="{{$UtcTimestamp}}"><span class="datetime">{{$LocalTimestamp}}</span></span>
             </div>
-            <div class="seq-event-data" style="margin-top:2px;margin-left:170px;overflow:visible;white-space:normal;">
+            <div class="seq-event-data">
                 <div>
-                    <span class="seq-level-indicator seq-level-{{$Level}}" title="{{$Level}}" style="display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:4.5px;"></span>
+                    <span class="seq-level-indicator seq-level-{{$Level}}" title="{{$Level}}"></span>
                     <span class="seq-message-template">{{$Message}}</span>
                 </div>
-                <div class="seq-event-actions" style="margin-top:5px;">
-                    <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action" style="color:#007acc;text-decoration:none;padding-right:10px;font-size:12px;">View in Seq</a>
+                <div class="seq-event-actions">
+                    <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action">View in Seq</a>
                 </div>
-                <div class="seq-event-properties" style="margin-top:5px;">
+                <div class="seq-event-properties">
                     {{#each $Properties}}
                     <div class="seq-event-property">
-                        <div class="seq-property-name" title="{{Name}}" style="float:left;width:200px;overflow:hidden;font-family:monospace;font-size:13px;font-weight:bold;text-overflow:ellipsis;">{{Name}}</div>
-                        <div class="seq-property-value" style="margin-left:245px;font-family:monospace;font-size:13px;word-wrap:break-word;white-space:pre-wrap;">{{Value}}</div>
+                        <div class="seq-property-name" title="{{Name}}">{{Name}}</div>
+                        <div class="seq-property-value">{{Value}}</div>
                     </div>
                     {{/each}}
                     {{#if $Exception}}
-                    <div class="seq-event-exception" style="padding-top:2px;padding-bottom:2px;padding-right:2px;padding-left:2px;margin-top:5px;overflow:auto;font-family:monospace;font-size:9pt;color:white;white-space:pre;background-color:#e03836;">{{$Exception}}</div>
+                    <div class="seq-event-exception">{{$Exception}}</div>
                     {{/if}}
                 </div>
             </div>
         </div>
-        <div class="email-footer" style="margin-top:20px;font-size:9pt;font-style:italic;color:#ddd;">
-            Sent from <a href="https://getseq.net" style="text-decoration:none;color:#ddd;font-weight:bold;">Seq</a> &mdash; structured log server for .NET &mdash; installed
-            at <a href='{{{$ServerUri}}}' style="text-decoration:none;color:#ddd;font-weight:bold;">{{$ServerUri}}</a>.
+        <div class="email-footer">
+            Sent from <a href="https://getseq.net">Seq</a> &mdash; structured log server for .NET &mdash; installed
+            at <a href='{{{$ServerUri}}}'>{{$ServerUri}}</a>.
         </div>
     </div>
 </body>
