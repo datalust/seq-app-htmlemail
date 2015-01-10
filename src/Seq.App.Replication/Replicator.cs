@@ -26,11 +26,13 @@ namespace Seq.App.Replication
         [SeqAppSetting(
             DisplayName = "API key",
             InputType = SettingInputType.Password,
+            IsOptional = true,
             HelpText = "The API key to use when writing to the second server, if required.")]
         public string ApiKey { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Use durable log shipping",
+            IsOptional = true,
             HelpText = "If set, logs will be buffered durably (local disk) before forwarding;" +
                        " otherwise only memory buffering is used and message loss may be more common.")]
         public bool IsDurable { get; set; }
