@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -22,11 +23,32 @@ namespace Seq.App.Replication
             HelpText = "The URL of the second Seq server instance, e.g. http://backup-seq.")]
         public string ServerUrl { get; set; }
 
+        [SeqAppSetting(
+            DisplayName = "API key",
+            InputType = SettingInputType.Password,
+            HelpText = "The API key to use when writing to the second server, if required.")]
+        public string ApiKey { get; set; }
+
+        [SeqAppSetting(
+            DisplayName = "Use durable log shipping",
+            HelpText = "If set, logs will be buffered durably (local disk) before forwarding;" +
+                       " otherwise only memory buffering is used and message loss may be more common.")]
+        public bool IsDurable { get; set; }
+
         protected override void OnAttached()
         {
+            var apiKey = string.IsNullOrWhiteSpace(ApiKey) ? null : ApiKey.Trim();
+
+            var bufferBase = IsDurable ? Path.Combine(App.StoragePath, "Buffer", "replicate") : null;
+
             _replicaLogger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.Seq(ServerUrl, batchPostingLimit: 1000, period: TimeSpan.FromMilliseconds(100))
+                .WriteTo.Seq(
+                    ServerUrl,
+                    batchPostingLimit: 1000,
+                    period: TimeSpan.FromMilliseconds(100),
+                    apiKey: apiKey,
+                    bufferBaseFilename: bufferBase)
                 .CreateLogger();
         }
 
