@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using Handlebars;
+using Newtonsoft.Json;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
@@ -19,6 +22,8 @@ namespace Seq.App.EmailPlus
 
         public EmailReactor()
         {
+            Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrint);
+
             _subjectTemplate = new Lazy<Func<object, string>>(() =>
             {
                 var subjectTemplate = SubjectTemplate;
@@ -124,6 +129,34 @@ namespace Seq.App.EmailPlus
             });
             
             return template(payload);
+        }
+
+        void PrettyPrint(TextWriter output, object context, object[] arguments)
+        {
+            var value = arguments.FirstOrDefault();
+            if (value == null)
+                output.WriteSafeString("null");
+            else if (value is IEnumerable<object> || value is IEnumerable<KeyValuePair<string, object>>)
+                output.WriteSafeString(JsonConvert.SerializeObject(FromDynamic(value)));
+            else
+                output.WriteSafeString(value.ToString());
+        }
+
+        static object FromDynamic(object o)
+        {
+            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
+            if (dictionary != null)
+            {
+                return dictionary.ToDictionary(kvp => kvp.Key, kvp => FromDynamic(kvp.Value));
+            }
+
+            var enumerable = o as IEnumerable<object>;
+            if (enumerable != null)
+            {
+                return enumerable.Select(FromDynamic).ToArray();
+            }
+
+            return o;
         }
 
         static object ToDynamic(object o)

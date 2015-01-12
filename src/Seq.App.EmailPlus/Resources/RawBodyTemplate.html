@@ -20,7 +20,7 @@
 
         .seq-event-data {
             margin-top: 2px;
-            margin-left: 170px;
+            margin-left: 190px;
             overflow: visible;
             white-space: normal;
         }
@@ -72,7 +72,7 @@
 
             .seq-event-timestamp .datetime {
                 display: inline-block;
-                width: 152px;
+                width: 172px;
                 padding: 2px 4px;
                 font-size: 11.844px;
                 font-weight: bold;
@@ -143,7 +143,7 @@
             </div>
             <div class="seq-event-data">
                 <div>
-                    <span class="seq-message-template">[{{$Level}}] {{$Message}}</span>
+                    <span class="seq-message-template">[<strong>{{$Level}}</strong>] {{$Message}}</span>
                 </div>
                 <div class="seq-event-actions">
                     <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action">View in Seq</a>
@@ -152,7 +152,7 @@
                     {{#each $Properties}}
                     <div class="seq-event-property">
                         <div class="seq-property-name" title="{{Name}}">{{Name}}</div>
-                        <div class="seq-property-value">{{Value}}</div>
+                        <div class="seq-property-value">{{pretty Value}}</div>
                     </div>
                     {{/each}}
                     {{#if $Exception}}

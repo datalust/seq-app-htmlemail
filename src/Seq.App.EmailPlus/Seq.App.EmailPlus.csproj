@@ -35,6 +35,9 @@
     <Reference Include="Handlebars">
       <HintPath>..\..\packages\Handlebars.Net.1.0.2\lib\Handlebars.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Seq.Apps, Version=1.6.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Seq.Apps.1.6.4\lib\net45\Seq.Apps.dll</HintPath>
