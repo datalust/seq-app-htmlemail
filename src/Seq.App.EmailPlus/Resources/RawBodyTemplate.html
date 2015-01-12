@@ -95,26 +95,6 @@
             white-space: normal;
         }
 
-        .seq-event-detail.seq-level-Verbose, .seq-event-detail.seq-level-Debug {
-            background-color: #f3f3f3;
-            border-color: lightgray;
-        }
-
-        .seq-event-detail.seq-level-Information {
-            background-color: #eff9ff;
-            border-color: #54afcc;
-        }
-
-        .seq-event-detail.seq-level-Warning {
-            background-color: #fff3e2;
-            border-color: #ee9c29;
-        }
-
-        .seq-event-detail.seq-level-Error, .seq-event-detail.seq-level-indicator-Fatal {
-            background-color: #fff1f0;
-            border-color: #ffa1a0;
-        }
-
         .seq-event-detail {
             width: 100%;
             padding: 0 2px 2px 2px;
@@ -124,6 +104,11 @@
             border-style: solid;
             border-width: 1px;
             border-radius: 2px;
+
+            /* Not dynamically controlled at this point; we always show all events in
+               the "information" color scheme */
+            background-color: #eff9ff;
+            border-color: #54afcc;
         }
 
         .seq-event-exception {
@@ -135,30 +120,6 @@
             color: white;
             white-space: pre;
             background-color: #e03836;
-        }
-
-        .seq-level-indicator.seq-level-Verbose, .seq-level-indicator.seq-level-Debug {
-            background-color: lightgray;
-        }
-
-        .seq-level-indicator.seq-level-Information {
-            display: none;
-        }
-
-        .seq-level-indicator.seq-level-Warning {
-            background-color: #f9c019;
-        }
-
-        .seq-level-indicator.seq-level-Error, .seq-level-indicator.seq-level-Fatal {
-            background-color: #e03836;
-        }
-
-        .seq-level-indicator {
-            display: inline-block;
-            width: 9px;
-            height: 9px;
-            margin-right: 5px;
-            border-radius: 4.5px;
         }
 
         .email-footer {
@@ -176,14 +137,13 @@
 </head>
 <body>
     <div class="email-body">
-        <div class="seq-event-detail seq-level-{{$Level}}">
+        <div class="seq-event-detail">
             <div class="seq-event-tools">
                 <span class="seq-event-timestamp" title="{{$UtcTimestamp}}"><span class="datetime">{{$LocalTimestamp}}</span></span>
             </div>
             <div class="seq-event-data">
                 <div>
-                    <span class="seq-level-indicator seq-level-{{$Level}}" title="{{$Level}}"></span>
-                    <span class="seq-message-template">{{$Message}}</span>
+                    <span class="seq-message-template">[{{$Level}}] {{$Message}}</span>
                 </div>
                 <div class="seq-event-actions">
                     <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action">View in Seq</a>
@@ -196,7 +156,7 @@
                     </div>
                     {{/each}}
                     {{#if $Exception}}
-                    <div class="seq-event-exception">{{$Exception}}</div>
+                    <pre class="seq-event-exception">{{$Exception}}</pre>
                     {{/if}}
                 </div>
             </div>
