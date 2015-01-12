@@ -18,7 +18,7 @@ namespace Seq.App.EmailPlus
     {
         readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
 
-        const string DefaultSubjectTemplate = @"[{{$Level}}] {{$Message}} (via Seq)";
+        const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
 
         public EmailReactor()
         {
