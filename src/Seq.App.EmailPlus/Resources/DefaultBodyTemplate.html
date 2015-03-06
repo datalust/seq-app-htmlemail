@@ -141,8 +141,8 @@
                 <div class="seq-event-properties" style="margin-top:5px;">
                     {{#each $Properties}}
                     <div class="seq-event-property">
-                        <div class="seq-property-name" title="{{Name}}" style="float:left;width:200px;overflow:hidden;font-family:monospace;font-size:13px;font-weight:bold;text-overflow:ellipsis;">{{Name}}</div>
-                        <div class="seq-property-value" style="margin-left:245px;font-family:monospace;font-size:13px;word-wrap:break-word;white-space:pre-wrap;">{{pretty Value}}</div>
+                        <div class="seq-property-name" title="{{@key}}" style="float:left;width:200px;overflow:hidden;font-family:monospace;font-size:13px;font-weight:bold;text-overflow:ellipsis;">{{@key}}</div>
+                        <div class="seq-property-value" style="margin-left:245px;font-family:monospace;font-size:13px;word-wrap:break-word;white-space:pre-wrap;">{{pretty this}}</div>
                     </div>
                     {{/each}}
                     {{#if $Exception}}

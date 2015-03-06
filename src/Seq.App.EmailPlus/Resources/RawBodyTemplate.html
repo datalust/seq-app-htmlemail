@@ -144,8 +144,8 @@
                 <div class="seq-event-properties">
                     {{#each $Properties}}
                     <div class="seq-event-property">
-                        <div class="seq-property-name" title="{{Name}}">{{Name}}</div>
-                        <div class="seq-property-value">{{pretty Value}}</div>
+                        <div class="seq-property-name" title="{{@key}}">{{@key}}</div>
+                        <div class="seq-property-value">{{pretty this}}</div>
                     </div>
                     {{/each}}
                     {{#if $Exception}}
