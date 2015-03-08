@@ -109,10 +109,6 @@ namespace Seq.App.EmailPlus
 
         string FormatTemplate(Func<object, string> template, Event<LogEventData> evt)
         {
-            var properties = evt.Data.Properties
-                .Select(prop => new {Name = prop.Key, Value = ToDynamic(prop.Value)})
-                .ToArray();
-
             var payload = ToDynamic(new Dictionary<string, object>
             {
                 { "$Id",                  evt.Id },
@@ -122,7 +118,7 @@ namespace Seq.App.EmailPlus
                 { "$MessageTemplate",     evt.Data.MessageTemplate },
                 { "$Message",             evt.Data.RenderedMessage },
                 { "$Exception",           evt.Data.Exception },
-                { "$Properties",          properties },
+                { "$Properties",          ToDynamic(evt.Data.Properties) },
                 { "$EventType",           "$" + evt.EventType.ToString("X8") },
                 { "$Instance",            base.Host.InstanceName },
                 { "$ServerUri",           base.Host.ListenUris.FirstOrDefault() }

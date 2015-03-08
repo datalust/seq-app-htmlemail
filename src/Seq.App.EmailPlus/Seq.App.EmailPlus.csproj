@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Handlebars">
-      <HintPath>..\..\packages\Handlebars.Net.1.0.2\lib\Handlebars.dll</HintPath>
+      <HintPath>..\..\packages\Handlebars.Net.1.2.9\lib\Handlebars.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
