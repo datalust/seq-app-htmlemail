@@ -98,7 +98,7 @@ namespace Seq.App.EmailPlus
             if (subject.Length > 130)
                 subject = subject.Substring(0, 255);
 
-            var client = new SmtpClient(Host, Port ?? 25);
+            var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
 
