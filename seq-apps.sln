@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.FirstOfType", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.EmailPlus", "src\Seq.App.EmailPlus\Seq.App.EmailPlus.csproj", "{35ABF152-CDE5-4E8A-86AA-5E47CBAAD9F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.EmailPlus.Tests", "test\Seq.App.EmailPlus.Tests\Seq.App.EmailPlus.Tests.csproj", "{756873CC-1042-4D7F-BBE0-8FBD3107F311}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{35ABF152-CDE5-4E8A-86AA-5E47CBAAD9F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35ABF152-CDE5-4E8A-86AA-5E47CBAAD9F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35ABF152-CDE5-4E8A-86AA-5E47CBAAD9F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{756873CC-1042-4D7F-BBE0-8FBD3107F311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{756873CC-1042-4D7F-BBE0-8FBD3107F311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{756873CC-1042-4D7F-BBE0-8FBD3107F311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{756873CC-1042-4D7F-BBE0-8FBD3107F311}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,5 +78,6 @@ Global
 		{47DBBC2D-0EF4-415C-B65C-B0779B0D534B} = {3FC57D53-9F60-4FAB-AFD8-8CB23EE3B9D9}
 		{BBF8EFB1-BAEA-40A8-A7AC-30C81C45FEA0} = {3FC57D53-9F60-4FAB-AFD8-8CB23EE3B9D9}
 		{35ABF152-CDE5-4E8A-86AA-5E47CBAAD9F9} = {3FC57D53-9F60-4FAB-AFD8-8CB23EE3B9D9}
+		{756873CC-1042-4D7F-BBE0-8FBD3107F311} = {775EF423-0A25-485A-BFA0-BAE59F580C9A}
 	EndGlobalSection
 EndGlobal

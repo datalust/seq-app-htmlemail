@@ -16,11 +16,13 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
+        private readonly IMailClientFactory _mailClientFactory;
+
         readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
 
-        public EmailReactor()
+        public EmailReactor(IMailClientFactory mailClientFactory = null)
         {
             Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrint);
 
@@ -39,6 +41,9 @@ namespace Seq.App.EmailPlus
                     bodyTemplate = Resources.DefaultBodyTemplate;
                 return Handlebars.Handlebars.Compile(bodyTemplate);
             });
+
+            _mailClientFactory = mailClientFactory ?? new SmtpMailClientFactory();
+
         }
 
         [SeqAppSetting(
@@ -98,13 +103,15 @@ namespace Seq.App.EmailPlus
             if (subject.Length > 130)
                 subject = subject.Substring(0, 255);
 
-            var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
-            if (!string.IsNullOrWhiteSpace(Username))
-                client.Credentials = new NetworkCredential(Username, Password);
+            using (var client = _mailClientFactory.Create(Host, Port ?? 25, EnableSsl ?? false))
+            {
+                if (!string.IsNullOrWhiteSpace(Username))
+                    client.Credentials = new NetworkCredential(Username, Password);
 
-            var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
+                var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
 
-            client.Send(message);
+                client.Send(message);
+            }
         }
 
         string FormatTemplate(Func<object, string> template, Event<LogEventData> evt)
