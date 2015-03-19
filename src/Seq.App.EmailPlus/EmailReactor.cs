@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading;
 using Handlebars;
 using Newtonsoft.Json;
 using Seq.Apps;
@@ -20,7 +24,9 @@ namespace Seq.App.EmailPlus
 
         readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
 
-        const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
+        readonly Lazy<Subject<Event<LogEventData>>> _messages;
+
+        const string DefaultSubjectTemplate = @"[{{$Events.[0].$Level}}] {{{$Events.[0].$Message}}} (via Seq){{#if $MultipleEvents}} ({{$EventCount}}){{/if}}";
 
         public EmailReactor(IMailClientFactory mailClientFactory = null)
         {
@@ -44,6 +50,43 @@ namespace Seq.App.EmailPlus
 
             _mailClientFactory = mailClientFactory ?? new SmtpMailClientFactory();
 
+            _messages = new Lazy<Subject<Event<LogEventData>>>(() =>
+            {
+                var messageSubject = new Subject<Event<LogEventData>>();
+                var sendDelay = TimeSpan.FromSeconds(BatchDuplicateSubjectsDelay ?? 0);
+
+                messageSubject.GroupByUntil(evt => FormatSubject(new[] {evt}).GetHashCode(),
+                    group =>
+                    {
+                        var maxAmount = BatchMaxAmount ?? int.MaxValue;
+                        Debug.WriteLine("Starting group [{0}] at [{1:O}] with max [{2}] events and [{3}]s delay.",
+                            group.Key, DateTime.UtcNow, maxAmount, sendDelay.TotalSeconds);
+                        return group.Skip(maxAmount - 1).Merge(group.Throttle(sendDelay)).Take(1).Do(
+                            _ =>
+                                Debug.WriteLine("Ending group [{0}] at [{1:O}].",
+                                    group.Key,
+                                    DateTime.UtcNow));
+                    })
+                    .Subscribe(group =>
+                    {
+                        var tokenSource = new CancellationTokenSource();
+                        var events = new List<Event<LogEventData>>();
+
+                        group.Subscribe(evt =>
+                        {
+                            Debug.WriteLine("Event [{0}] received on group [{1}] at [{2:O}].",
+                                evt.Id, group.Key, DateTime.UtcNow);
+                            events.Add(evt);
+                        }, () =>
+                        {
+                            Debug.WriteLine("Sending [{0}] events from group [{1}].", events.Count, group.Key);
+                            Send(events);
+                            tokenSource.Cancel();
+                        }, tokenSource.Token);
+                    });
+
+                return messageSubject;
+            });
         }
 
         [SeqAppSetting(
@@ -96,39 +139,77 @@ namespace Seq.App.EmailPlus
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string Password { get; set; }
 
+        [SeqAppSetting(
+            IsOptional = true,
+            HelpText = "The amount of time in seconds to wait for a subsequent event with the same subject to send as a single batch email.")]
+        public double? BatchDuplicateSubjectsDelay { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            HelpText = "The maximum number of events to include in a batch.")]
+        public int? BatchMaxAmount { get; set; }
+
         public void On(Event<LogEventData> evt)
         {
-            var body = FormatTemplate(_bodyTemplate.Value, evt);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt).Trim().Replace("\r", "").Replace("\n", "");
-            if (subject.Length > 130)
-                subject = subject.Substring(0, 255);
+            _messages.Value.OnNext(evt);
+        }
 
+        void Send(ICollection<Event<LogEventData>> events)
+        {
+            if (events.Count < 1)
+                return;
+
+            var message = BuildMessage(events);
             using (var client = _mailClientFactory.Create(Host, Port ?? 25, EnableSsl ?? false))
             {
                 if (!string.IsNullOrWhiteSpace(Username))
                     client.Credentials = new NetworkCredential(Username, Password);
 
-                var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
-
+                Debug.WriteLine("Sending message with subject: " + message.Subject);
                 client.Send(message);
             }
         }
 
-        string FormatTemplate(Func<object, string> template, Event<LogEventData> evt)
+        MailMessage BuildMessage(ICollection<Event<LogEventData>> events)
+        {
+            var subject = FormatSubject(events);
+            if (subject.Length > 130)
+                subject = subject.Substring(0, 130);
+
+            return new MailMessage(From, To)
+            {
+                Subject = subject,
+                Body = FormatTemplate(_bodyTemplate.Value, events)
+            };
+        }
+
+        string FormatSubject(ICollection<Event<LogEventData>> events)
+        {
+            return FormatTemplate(_subjectTemplate.Value, events).Trim().Replace("\r", "").Replace("\n", "");
+        }
+
+        string FormatTemplate(Func<object, string> template, ICollection<Event<LogEventData>> events)
         {
             var payload = ToDynamic(new Dictionary<string, object>
             {
-                { "$Id",                  evt.Id },
-                { "$UtcTimestamp",        evt.TimestampUtc },
-                { "$LocalTimestamp",      evt.Data.LocalTimestamp },
-                { "$Level",               evt.Data.Level },
-                { "$MessageTemplate",     evt.Data.MessageTemplate },
-                { "$Message",             evt.Data.RenderedMessage },
-                { "$Exception",           evt.Data.Exception },
-                { "$Properties",          ToDynamic(evt.Data.Properties) },
-                { "$EventType",           "$" + evt.EventType.ToString("X8") },
-                { "$Instance",            base.Host.InstanceName },
-                { "$ServerUri",           base.Host.ListenUris.FirstOrDefault() }
+                {"$Instance", base.Host.InstanceName},
+                {"$ServerUri", base.Host.ListenUris.FirstOrDefault()},
+                {"$MultipleEvents", events.Count > 1},
+                {"$EventCount", events.Count},
+                {
+                    "$Events", events.Select(evt => new Dictionary<string, object>
+                    {
+                        {"$Id", evt.Id},
+                        {"$UtcTimestamp", evt.TimestampUtc},
+                        {"$LocalTimestamp", evt.Data.LocalTimestamp},
+                        {"$Level", evt.Data.Level},
+                        {"$MessageTemplate", evt.Data.MessageTemplate},
+                        {"$Message", evt.Data.RenderedMessage},
+                        {"$Exception", evt.Data.Exception},
+                        {"$Properties", ToDynamic(evt.Data.Properties)},
+                        {"$EventType", "$" + evt.EventType.ToString("X8")}
+                    })
+                }
             });
             
             return template(payload);

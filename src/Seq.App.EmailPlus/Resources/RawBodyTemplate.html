@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>[{{$Level}}] {{$Message}} (via Seq)</title>
+    <title>[{{$Events.[0].$Level}}] {{{$Events.[0].$Message}}} (via Seq){{#if $MultipleEvents}} ({{$EventCount}}){{/if}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
         .email-body {
@@ -129,6 +129,7 @@
     </style>
 </head>
 <body>
+    {{#each $Events}}
     <div class="email-body">
         <div class="seq-event-detail">
             <div class="seq-event-tools">
@@ -158,6 +159,7 @@
             Sent from <a href="https://getseq.net">Seq</a> &mdash; structured log server for .NET &mdash; installed
             at <a href='{{{$ServerUri}}}'>{{$ServerUri}}</a>.
         </div>
-    </div>
+    {{/each}}
+</div>
 </body>
 </html>
