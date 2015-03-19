@@ -58,10 +58,23 @@ namespace Seq.App.EmailPlus
                 messageSubject.GroupByUntil(evt => FormatSubject(new[] {evt}).GetHashCode(),
                     group =>
                     {
-                        var maxAmount = BatchMaxAmount ?? int.MaxValue;
-                        Debug.WriteLine("Starting group [{0}] at [{1:O}] with max [{2}] events and [{3}]s delay.",
-                            group.Key, DateTime.UtcNow, maxAmount, sendDelay.TotalSeconds);
-                        return group.Skip(maxAmount - 1).Merge(group.Throttle(sendDelay)).Take(1).Do(
+                        Debug.WriteLine("Starting group [{0}] at [{1:O}] with [{2}]s delay.", group.Key, DateTime.UtcNow, sendDelay.TotalSeconds);
+                        var durationSelector = group.Throttle(sendDelay).Select(evt => default(long));  // Convert to IObservable<long> so it can be merged with Observable<Timer> below. The particular value has no effect, it is just a signal.
+
+                        if (BatchMaxAmount.HasValue)
+                        {
+                            Debug.WriteLine("Limiting group [{0}] to max [{1}] events.", group.Key, BatchMaxAmount.Value);
+                            durationSelector = durationSelector.Merge(group.Skip(BatchMaxAmount.Value - 1).Select(evt => default(long)));
+                        }
+
+                        if (BatchMaxDelay.HasValue)
+                        {
+                            var maxDelay = TimeSpan.FromSeconds(BatchMaxDelay.Value);
+                            Debug.WriteLine("Limiting group [{0}] to max [{1}]s delay.", group.Key, maxDelay.TotalSeconds);
+                            durationSelector = durationSelector.Merge(Observable.Timer(maxDelay));
+                        }
+
+                        return durationSelector.Take(1).Do(
                             _ =>
                                 Debug.WriteLine("Ending group [{0}] at [{1:O}].",
                                     group.Key,
@@ -146,8 +159,13 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
-            HelpText = "The maximum number of events to include in a batch.")]
+            HelpText = "The maximum number of events to include in a batch. This setting requires the BatchDuplicateSubjectsDelay setting to be set.")]
         public int? BatchMaxAmount { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            HelpText = "The maximum amount of time in seconds to wait while building a batch email. This setting requires the BatchDuplicateSubjectsDelay setting to be set.")]
+        public double? BatchMaxDelay { get; set; }
 
         public void On(Event<LogEventData> evt)
         {

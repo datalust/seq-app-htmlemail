@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text.RegularExpressions;
@@ -67,6 +68,18 @@ namespace Seq.App.EmailPlus.Tests
             {
                 reactor.BatchDuplicateSubjectsDelay = 0.25;
                 reactor.BatchMaxAmount = 2;
+            });
+        }
+
+        [Test]
+        // This test is fairly slow, but does not run reliably due to the events getting emitted and bunched together before they are consumed.
+        public void WillHonorBatchMaxDelay()
+        {
+            var events = Observable.Interval(TimeSpan.FromSeconds(1)).Zip(Observable.Range(1, 6), (_, id) => GetLogEvent(id));
+            Process(events, 6, 2, reactor =>
+            {
+                reactor.BatchDuplicateSubjectsDelay = 1.5;
+                reactor.BatchMaxDelay = 3;
             });
         }
 
@@ -139,7 +152,7 @@ namespace Seq.App.EmailPlus.Tests
         private static void MessageCallback(MailMessage message, ISubject<int, int> received, int expectedCount)
         {
             received.OnNext(GetEventsInMessage(message));
-            if (received.TakeUntil(DateTimeOffset.UtcNow).Sum().Timeout(TimeSpan.FromSeconds(5)).Wait() >= expectedCount)
+            if (received.TakeUntil(DateTimeOffset.UtcNow).Sum().Timeout(TimeSpan.FromSeconds(15)).Wait() >= expectedCount)
             {
                 received.OnCompleted();
             }
@@ -168,7 +181,7 @@ namespace Seq.App.EmailPlus.Tests
                 });
 
             events.Subscribe(evt => reactor.On(evt));
-            Assert.AreEqual(eventCount, received.Sum().Timeout(TimeSpan.FromSeconds(10)).Wait());
+            Assert.AreEqual(eventCount, received.Sum().Timeout(TimeSpan.FromSeconds(20)).Wait());
             mailFactory.Verify();
             mailClient.Verify(mc => mc.Send(It.IsAny<MailMessage>()), Times.Exactly(messageCount));
         }
