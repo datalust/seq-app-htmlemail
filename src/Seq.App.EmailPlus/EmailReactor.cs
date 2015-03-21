@@ -19,6 +19,7 @@ namespace Seq.App.EmailPlus
         readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
+        const int MaxSubjectLength = 130;
 
         public EmailReactor()
         {
@@ -95,8 +96,8 @@ namespace Seq.App.EmailPlus
         {
             var body = FormatTemplate(_bodyTemplate.Value, evt);
             var subject = FormatTemplate(_subjectTemplate.Value, evt).Trim().Replace("\r", "").Replace("\n", "");
-            if (subject.Length > 130)
-                subject = subject.Substring(0, 255);
+            if (subject.Length > MaxSubjectLength)
+                subject = subject.Substring(0, MaxSubjectLength);
 
             var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
             if (!string.IsNullOrWhiteSpace(Username))
