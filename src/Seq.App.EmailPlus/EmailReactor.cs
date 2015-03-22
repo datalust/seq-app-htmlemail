@@ -1,105 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Threading;
-using Handlebars;
-using Newtonsoft.Json;
+using System.Reactive.Concurrency;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
 namespace Seq.App.EmailPlus
 {
-    [SeqApp("Email+",
-        Description = "Uses a Handlebars template to send events as SMTP email.")]
+    [SeqApp("Email+", Description = "Uses a Handlebars template to send events as SMTP email, optionally batching multiple events into single messages.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
-        private readonly IMailClientFactory _mailClientFactory;
+        private readonly IScheduler _scheduler;
+        readonly IMailClientFactory _mailClientFactory;
+        readonly IEmailFormatterFactory _emailFormatterFactory;
+        readonly IBatchingStreamFactory<string,Event<LogEventData>> _eventStreamFactory;
+        
+        IEmailFormatter _formatter;
+        IBatchingStream<Event<LogEventData>> _eventStream;
+        int? _maxSubjectLength = 130;
 
-        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
-
-        readonly Lazy<Subject<Event<LogEventData>>> _messages;
-
-        const string DefaultSubjectTemplate = @"[{{$Events.[0].$Level}}] {{{$Events.[0].$Message}}} (via Seq){{#if $MultipleEvents}} ({{$EventCount}}){{/if}}";
-
-        public EmailReactor(IMailClientFactory mailClientFactory = null)
+        public EmailReactor(IMailClientFactory mailClientFactory = null, IEmailFormatterFactory emailFormatterFactory = null, IBatchingStreamFactory<string,Event<LogEventData>> batchingStreamFactory = null, IScheduler scheduler = null)
         {
-            Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrint);
-
-            _subjectTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var subjectTemplate = SubjectTemplate;
-                if (string.IsNullOrEmpty(subjectTemplate))
-                    subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Handlebars.Compile(subjectTemplate);                
-            });
-
-            _bodyTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var bodyTemplate = BodyTemplate;
-                if (string.IsNullOrEmpty(bodyTemplate))
-                    bodyTemplate = Resources.DefaultBodyTemplate;
-                return Handlebars.Handlebars.Compile(bodyTemplate);
-            });
-
+            _scheduler = scheduler;
             _mailClientFactory = mailClientFactory ?? new SmtpMailClientFactory();
-
-            _messages = new Lazy<Subject<Event<LogEventData>>>(() =>
-            {
-                var messageSubject = new Subject<Event<LogEventData>>();
-                var sendDelay = TimeSpan.FromSeconds(BatchDuplicateSubjectsDelay ?? 0);
-
-                messageSubject.GroupByUntil(evt => FormatSubject(new[] {evt}).GetHashCode(),
-                    group =>
-                    {
-                        Debug.WriteLine("Starting group [{0}] at [{1:O}] with [{2}]s delay.", group.Key, DateTime.UtcNow, sendDelay.TotalSeconds);
-                        var durationSelector = group.Throttle(sendDelay).Select(evt => default(long));  // Convert to IObservable<long> so it can be merged with Observable<Timer> below. The particular value has no effect, it is just a signal.
-
-                        if (BatchMaxAmount.HasValue)
-                        {
-                            Debug.WriteLine("Limiting group [{0}] to max [{1}] events.", group.Key, BatchMaxAmount.Value);
-                            durationSelector = durationSelector.Merge(group.Skip(BatchMaxAmount.Value - 1).Select(evt => default(long)));
-                        }
-
-                        if (BatchMaxDelay.HasValue)
-                        {
-                            var maxDelay = TimeSpan.FromSeconds(BatchMaxDelay.Value);
-                            Debug.WriteLine("Limiting group [{0}] to max [{1}]s delay.", group.Key, maxDelay.TotalSeconds);
-                            durationSelector = durationSelector.Merge(Observable.Timer(maxDelay));
-                        }
-
-                        return durationSelector.Take(1).Do(
-                            _ =>
-                                Debug.WriteLine("Ending group [{0}] at [{1:O}].",
-                                    group.Key,
-                                    DateTime.UtcNow));
-                    })
-                    .Subscribe(group =>
-                    {
-                        var tokenSource = new CancellationTokenSource();
-                        var events = new List<Event<LogEventData>>();
-
-                        group.Subscribe(evt =>
-                        {
-                            Debug.WriteLine("Event [{0}] received on group [{1}] at [{2:O}].",
-                                evt.Id, group.Key, DateTime.UtcNow);
-                            events.Add(evt);
-                        }, () =>
-                        {
-                            Debug.WriteLine("Sending [{0}] events from group [{1}].", events.Count, group.Key);
-                            Send(events);
-                            tokenSource.Cancel();
-                        }, tokenSource.Token);
-                    });
-
-                return messageSubject;
-            });
+            _emailFormatterFactory = emailFormatterFactory ?? new EmailFormatterFactory();
+            _eventStreamFactory = batchingStreamFactory ?? new BatchingStreamFactory<string, Event<LogEventData>>();
         }
 
         [SeqAppSetting(
@@ -117,6 +45,16 @@ namespace Seq.App.EmailPlus
             DisplayName = "Subject template",
             HelpText = "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
         public string SubjectTemplate { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            DisplayName = "Max subject length",
+            HelpText = "Limits the length of email subjects.")]
+        public int? MaxSubjectLength
+        {
+            get { return _maxSubjectLength; }
+            set { _maxSubjectLength = value; }
+        }
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
@@ -155,21 +93,35 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             HelpText = "The amount of time in seconds to wait for a subsequent event with the same subject to send as a single batch email.")]
-        public double? BatchDuplicateSubjectsDelay { get; set; }
+        public double? BatchDelay { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
-            HelpText = "The maximum number of events to include in a batch. This setting requires the BatchDuplicateSubjectsDelay setting to be set.")]
+            HelpText = "The maximum number of events to include in a batch. This setting requires the BatchDelay setting to be set.")]
         public int? BatchMaxAmount { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
-            HelpText = "The maximum amount of time in seconds to wait while building a batch email. This setting requires the BatchDuplicateSubjectsDelay setting to be set.")]
+            HelpText = "The maximum amount of time in seconds to wait while building a batch email. This setting requires the BatchDelay setting to be set.")]
         public double? BatchMaxDelay { get; set; }
+
+        protected override void OnAttached()
+        {
+            base.OnAttached();
+
+            _formatter = _emailFormatterFactory.Create(
+                base.Host.InstanceName, base.Host.ListenUris.FirstOrDefault(), BodyTemplate, SubjectTemplate, MaxSubjectLength);
+
+            var delay = BatchDelay.HasValue ? TimeSpan.FromSeconds(BatchDelay.Value) : (TimeSpan?) null;
+            var maxDelay = BatchMaxDelay.HasValue ? TimeSpan.FromSeconds(BatchMaxDelay.Value) : (TimeSpan?) null;
+            _eventStream = _eventStreamFactory.Create(
+                evt => _formatter.FormatSubject(new[] {evt}), _scheduler ?? Scheduler.Default, delay, maxDelay, BatchMaxAmount);
+            _eventStream.Batches.Subscribe(Send, ex => Debug.WriteLine(ex));
+        }
 
         public void On(Event<LogEventData> evt)
         {
-            _messages.Value.OnNext(evt);
+            _eventStream.Add(evt);
         }
 
         void Send(ICollection<Event<LogEventData>> events)
@@ -177,109 +129,18 @@ namespace Seq.App.EmailPlus
             if (events.Count < 1)
                 return;
 
-            var message = BuildMessage(events);
             using (var client = _mailClientFactory.Create(Host, Port ?? 25, EnableSsl ?? false))
             {
                 if (!string.IsNullOrWhiteSpace(Username))
                     client.Credentials = new NetworkCredential(Username, Password);
 
-                Debug.WriteLine("Sending message with subject: " + message.Subject);
-                client.Send(message);
+                client.Send(BuildMessage(events));
             }
         }
 
         MailMessage BuildMessage(ICollection<Event<LogEventData>> events)
         {
-            var subject = FormatSubject(events);
-            if (subject.Length > 130)
-                subject = subject.Substring(0, 130);
-
-            return new MailMessage(From, To)
-            {
-                Subject = subject,
-                Body = FormatTemplate(_bodyTemplate.Value, events)
-            };
-        }
-
-        string FormatSubject(ICollection<Event<LogEventData>> events)
-        {
-            return FormatTemplate(_subjectTemplate.Value, events).Trim().Replace("\r", "").Replace("\n", "");
-        }
-
-        string FormatTemplate(Func<object, string> template, ICollection<Event<LogEventData>> events)
-        {
-            var payload = ToDynamic(new Dictionary<string, object>
-            {
-                {"$Instance", base.Host.InstanceName},
-                {"$ServerUri", base.Host.ListenUris.FirstOrDefault()},
-                {"$MultipleEvents", events.Count > 1},
-                {"$EventCount", events.Count},
-                {
-                    "$Events", events.Select(evt => new Dictionary<string, object>
-                    {
-                        {"$Id", evt.Id},
-                        {"$UtcTimestamp", evt.TimestampUtc},
-                        {"$LocalTimestamp", evt.Data.LocalTimestamp},
-                        {"$Level", evt.Data.Level},
-                        {"$MessageTemplate", evt.Data.MessageTemplate},
-                        {"$Message", evt.Data.RenderedMessage},
-                        {"$Exception", evt.Data.Exception},
-                        {"$Properties", ToDynamic(evt.Data.Properties)},
-                        {"$EventType", "$" + evt.EventType.ToString("X8")}
-                    })
-                }
-            });
-            
-            return template(payload);
-        }
-
-        void PrettyPrint(TextWriter output, object context, object[] arguments)
-        {
-            var value = arguments.FirstOrDefault();
-            if (value == null)
-                output.WriteSafeString("null");
-            else if (value is IEnumerable<object> || value is IEnumerable<KeyValuePair<string, object>>)
-                output.WriteSafeString(JsonConvert.SerializeObject(FromDynamic(value)));
-            else
-                output.WriteSafeString(value.ToString());
-        }
-
-        static object FromDynamic(object o)
-        {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
-            {
-                return dictionary.ToDictionary(kvp => kvp.Key, kvp => FromDynamic(kvp.Value));
-            }
-
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
-            {
-                return enumerable.Select(FromDynamic).ToArray();
-            }
-
-            return o;
-        }
-
-        static object ToDynamic(object o)
-        {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
-            {
-                var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object>) result;
-                foreach (var kvp in dictionary)
-                    asDict.Add(kvp.Key, ToDynamic(kvp.Value));
-                return result;
-            }
-
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
-            {
-                return enumerable.Select(ToDynamic).ToArray();
-            }
-
-            return o;
+            return new MailMessage(From, To) {Subject = _formatter.FormatSubject(events), Body = _formatter.FormatBody(events)};
         }
     }
 }

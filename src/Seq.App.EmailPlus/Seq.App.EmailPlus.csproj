@@ -68,7 +68,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchingStream.cs" />
+    <Compile Include="BatchingStreamFactory.cs" />
+    <Compile Include="EmailFormatter.cs" />
+    <Compile Include="EmailFormatterFactory.cs" />
     <Compile Include="EmailReactor.cs" />
+    <Compile Include="IBatchingStream.cs" />
+    <Compile Include="IBatchingStreamFactory.cs" />
+    <Compile Include="IEmailFormatter.cs" />
+    <Compile Include="IEmailFormatterFactory.cs" />
     <Compile Include="IMailClient.cs" />
     <Compile Include="IMailClientFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -93,6 +101,7 @@
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

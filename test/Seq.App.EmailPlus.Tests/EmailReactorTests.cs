@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text.RegularExpressions;
+using Microsoft.Reactive.Testing;
 using Moq;
+using Moq.Language.Flow;
 using NUnit.Framework;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -14,176 +14,181 @@ using Seq.Apps.LogEvents;
 namespace Seq.App.EmailPlus.Tests
 {
     [TestFixture]
-    public class EmailReactorTests
+    public class EmailReactorTests : EventTestsBase
     {
-        [Test]
-        public void CanHavePropertyInSubject()
+        private TestScheduler _scheduler;
+
+        private Mock<IMailClient> _mailClient;
+        private Mock<IEmailFormatter> _emailFormatter;
+        private Mock<IBatchingStream<Event<LogEventData>>> _eventStream;
+
+        private Mock<IMailClientFactory> _mailClientFactory;
+        private Mock<IEmailFormatterFactory> _emailFormatterFactory;
+        private Mock<IBatchingStreamFactory<string,Event<LogEventData>>> _eventStreamFactory;
+        private IReturnsResult<IBatchingStreamFactory<string, Event<LogEventData>>> _eventStreamFactorySetup;
+
+        [SetUp]
+        public void SetUp()
         {
-            var events = Observable.Return(GetLogEvent());
-            Process(events,
-                setup: reactor => reactor.SubjectTemplate = "[{{$Events.[0].$Properties.Category}}]",
-                callback: message => Assert.IsTrue(message.Subject.Contains("[Security]")));
+            _scheduler = new TestScheduler();
+
+            _mailClient = new Mock<IMailClient>();
+            _mailClientFactory = new Mock<IMailClientFactory>();
+            _mailClientFactory.Setup(f => f.Create(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(() => _mailClient.Object);
+
+            _emailFormatter = new Mock<IEmailFormatter>();
+            _emailFormatterFactory = new Mock<IEmailFormatterFactory>();
+            _emailFormatterFactory.Setup(f => f.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>()))
+                .Returns(() => _emailFormatter.Object);
+
+            _eventStream = new Mock<IBatchingStream<Event<LogEventData>>>();
+            _eventStream.Setup(es => es.Batches).Returns(new Mock<IObservable<IList<Event<LogEventData>>>>().Object);
+
+            _eventStreamFactory = new Mock<IBatchingStreamFactory<string, Event<LogEventData>>>();
+            _eventStreamFactorySetup = _eventStreamFactory.Setup(
+                f =>
+                    f.Create(It.IsAny<Func<Event<LogEventData>, string>>(), It.IsAny<IScheduler>(), It.IsAny<TimeSpan?>(), It.IsAny<TimeSpan?>(),
+                        It.IsAny<int?>()))
+                .Returns(() => _eventStream.Object);
         }
 
         [Test]
         public void SendsFromCorrectAddress()
         {
-            var events = Observable.Return(GetLogEvent());
-            Process(events, callback: message => Assert.AreEqual("baz@qux.com", message.From.Address));
+            var actual = string.Empty;
+
+            _mailClient.Setup(mc => mc.Send(It.IsAny<MailMessage>()))
+                .Callback<MailMessage>(message => actual = message.From.Address);
+
+            var eventSubject = new Subject<List<Event<LogEventData>>>();
+            _eventStream.SetupGet(es => es.Batches).Returns(eventSubject);
+            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> {GetLogEvent()}));
+
+            GetEmailReactor();
+            _scheduler.Start();
+
+            Assert.AreEqual("baz@qux.com", actual, "Email from address was not the configured value.");
         }
 
         [Test]
         public void SendsToCorrectAddress()
         {
-            var events = Observable.Return(GetLogEvent());
-            Process(events, callback: message => Assert.Contains("foo@bar.com", message.To.Select(ma => ma.Address).ToList()));
+            var actual = new List<string>();
+
+            _mailClient.Setup(mc => mc.Send(It.IsAny<MailMessage>()))
+                .Callback<MailMessage>(message => actual = message.To.Select(ma => ma.Address).ToList());
+
+            var eventSubject = new Subject<List<Event<LogEventData>>>();
+            _eventStream.SetupGet(es => es.Batches).Returns(eventSubject);
+            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> { GetLogEvent() }));
+
+            GetEmailReactor();
+            _scheduler.Start();
+
+            Assert.Contains("foo@bar.com", actual, "Email to address list did not contain the configured value.");
         }
 
         [Test]
-        public void WillBatchSendsWhenDelayIsSet()
+        public void AddsEventsToEventStream()
         {
-            var events = Observable.Range(1, 3).Select(id => GetLogEvent(id));
-            Process(events, 3, 1, reactor => reactor.BatchDuplicateSubjectsDelay = 0.25);
+            var @event = GetLogEvent();
+
+            var reactor = GetEmailReactor();
+            reactor.On(@event);
+
+            _eventStream.Verify(es => es.Add(It.Is<Event<LogEventData>>(evt => evt == @event)), Times.Once, "Event was not added to the event stream.");
         }
 
         [Test]
-        public void WillNotBatchSendsWhenDelayIsNotSet()
+        public void UsesDelaySetting()
         {
-            var events = Observable.Range(1, 3).Select(id => GetLogEvent(id));
-            Process(events, 3, 3);
+            TimeSpan? actual = null;
+            _eventStreamFactorySetup.Callback<Func<Event<LogEventData>, string>, IScheduler, TimeSpan?, TimeSpan?, int?>(
+                (func, scheduler, delay, maxDelay, maxSize) =>
+                {
+                    actual = delay;
+                }).Verifiable();
+
+            GetEmailReactor(30);
+
+            _eventStreamFactory.Verify();
+            Assert.NotNull(actual, "Delay setting was not used.");
+            Assert.AreEqual(30, actual.Value.TotalSeconds, "Incorrect delay setting was used.");
         }
 
         [Test]
-        public void WillNotBatchSendsWithDifferentSubjects()
+        public void UsesMaxDelaySetting()
         {
-            var events = Observable.Range(1, 3).Select(id => GetLogEvent(id, id == 1 ? LogEventLevel.Warning : LogEventLevel.Information));
-            Process(events, 3, 2, reactor => reactor.BatchDuplicateSubjectsDelay = 0.25);
+            TimeSpan? actual = null;
+            _eventStreamFactorySetup.Callback<Func<Event<LogEventData>, string>, IScheduler, TimeSpan?, TimeSpan?, int?>(
+                (func, scheduler, delay, maxDelay, maxSize) =>
+                {
+                    actual = maxDelay;
+                }).Verifiable();
+
+            GetEmailReactor(maxDelay: 300);
+
+            _eventStreamFactory.Verify();
+            Assert.NotNull(actual, "Max delay setting was not used.");
+            Assert.AreEqual(300, actual.Value.TotalSeconds, "Incorrect max delay setting was used.");
         }
 
         [Test]
-        public void WillHonorBatchMaxAmount()
+        public void UsesMaxSizeSetting()
         {
-            var events = Observable.Range(1, 3).Select(id => GetLogEvent(id));
-            Process(events, 3, 2, reactor =>
-            {
-                reactor.BatchDuplicateSubjectsDelay = 0.25;
-                reactor.BatchMaxAmount = 2;
-            });
+            int? actual = null;
+            _eventStreamFactorySetup.Callback<Func<Event<LogEventData>, string>, IScheduler, TimeSpan?, TimeSpan?, int?>(
+                (func, scheduler, delay, maxDelay, maxSize) =>
+                {
+                    actual = maxSize;
+                }).Verifiable();
+
+            GetEmailReactor(maxSize: 50);
+
+            _eventStreamFactory.Verify();
+            Assert.NotNull(actual, "Max size was not used.");
+            Assert.AreEqual(50, actual.Value, "Incorrect max size setting was used.");
         }
 
         [Test]
-        // This test is fairly slow, but does not run reliably due to the events getting emitted and bunched together before they are consumed.
-        public void WillHonorBatchMaxDelay()
+        public void DefaultsToSaneMaxSubjectLength()
         {
-            var events = Observable.Interval(TimeSpan.FromSeconds(1)).Zip(Observable.Range(1, 6), (_, id) => GetLogEvent(id));
-            Process(events, 6, 2, reactor =>
-            {
-                reactor.BatchDuplicateSubjectsDelay = 1.5;
-                reactor.BatchMaxDelay = 3;
-            });
+            var reactor = new EmailReactor();
+            Assert.IsNotNull(reactor.MaxSubjectLength, "Max subject length was not defaulted.");
+            Assert.IsTrue(reactor.MaxSubjectLength.Value > 0, "Default max subject length was negative.");
         }
 
         [Test]
-        public void DefaultTemplateBodyContainsAllBatchedEvents()
+        public void UsesMaxSubjectLength()
         {
-            var events = Observable.Range(1, 3).Select(id => GetLogEvent(id));
-            Process(events, 3, 1, reactor => reactor.BatchDuplicateSubjectsDelay = 0.25, message => Assert.AreEqual(3, CountSubstrings(message.Body, "div class=\"email-body\"")));
+            var reactor = new EmailReactor {MaxSubjectLength = 123};
+            Assert.AreEqual(123, reactor.MaxSubjectLength);
         }
 
         [Test]
-        public void DefaultTemplateSubjectEndsWithCountOnBatchedEvents()
+        public void MaxSubjectLengthCanBeDisabled()
         {
-            var events = Observable.Range(1, 3).Select(id => GetLogEvent(id));
-            Process(events, 3, 1, reactor => reactor.BatchDuplicateSubjectsDelay = 0.25, message => Assert.IsTrue(message.Subject.EndsWith("(3)")));
+            var reactor = new EmailReactor {MaxSubjectLength = null};
+            Assert.IsNull(reactor.MaxSubjectLength);
         }
 
-        [Test]
-        public void DefaultTemplateSubjectDoesNotEndWithCountOnNormalEvents()
-        {
-            var events = Observable.Return(GetLogEvent());
-            Process(events, callback: message => Assert.IsFalse(message.Subject.EndsWith("(1)")));
-        }
-
-        private static int CountSubstrings(string source, string substring)
-        {
-            return (source.Length - source.Replace(substring, string.Empty).Length)/substring.Length;
-        }
-
-        private static Event<LogEventData> GetLogEvent(int id = 0, LogEventLevel level = LogEventLevel.Information)
-        {
-            var logEventData = new LogEventData
-            {
-                Id = id.ToString(),
-                Level = level,
-                LocalTimestamp = DateTimeOffset.Now,
-                RenderedMessage = "Test",
-                Properties = new Dictionary<string, object> { { "Category", "Security" } }
-            };
-            return new Event<LogEventData>(logEventData.Id, 1, DateTime.UtcNow, logEventData);
-        }
-
-        private static EmailReactor GetEmailReactor(IMailClientFactory mailClientFactory)
+        private EmailReactor GetEmailReactor(double? delay = null, double? maxDelay = null, int? maxSize = null, int? maxSubjectLength = null)
         {
             var appHost = new Mock<IAppHost>();
             appHost.SetupGet(h => h.Host).Returns(new Host(new[] { "localhost" }, "test"));
 
-            var reactor = new EmailReactor(mailClientFactory)
+            var reactor = new EmailReactor(_mailClientFactory.Object, _emailFormatterFactory.Object, _eventStreamFactory.Object, _scheduler)
             {
                 From = "baz@qux.com",
                 To = "foo@bar.com",
+                BatchDelay = delay,
+                BatchMaxDelay = maxDelay,
+                BatchMaxAmount = maxSize,
+                MaxSubjectLength = maxSubjectLength
             };
             reactor.Attach(appHost.Object);
 
             return reactor;
-        }
-
-        private static int GetEventsInMessage(MailMessage message)
-        {
-            var regex = new Regex(@"\((\d+)\)$");
-            var eventsInMessage = 1;
-            var regexGroups = regex.Match(message.Subject).Groups;
-            if (regexGroups.Count > 1)
-            {
-                int.TryParse(regexGroups[1].Value, out eventsInMessage);
-            }
-            return eventsInMessage;
-        }
-
-        private static void MessageCallback(MailMessage message, ISubject<int, int> received, int expectedCount)
-        {
-            received.OnNext(GetEventsInMessage(message));
-            if (received.TakeUntil(DateTimeOffset.UtcNow).Sum().Timeout(TimeSpan.FromSeconds(15)).Wait() >= expectedCount)
-            {
-                received.OnCompleted();
-            }
-        }
-
-        private static void Process(IObservable<Event<LogEventData>> events, int eventCount = 1, int messageCount = 1, Action<EmailReactor> setup = null, Action<MailMessage> callback = null)
-        {
-            var mailClient = new Mock<IMailClient>();
-            var mailFactory = new Mock<IMailClientFactory>();
-
-            mailFactory.Setup(mf => mf.Create(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<bool>()))
-                .Returns(mailClient.Object)
-                .Verifiable();
-
-            var reactor = GetEmailReactor(mailFactory.Object);
-            if (setup != null)
-                setup(reactor);
-
-            var received = new ReplaySubject<int>();
-            mailClient.Setup(mc => mc.Send(It.IsAny<MailMessage>()))
-                .Callback<MailMessage>(message =>
-                {
-                    MessageCallback(message, received, eventCount);
-                    if (callback != null)
-                        callback(message);
-                });
-
-            events.Subscribe(evt => reactor.On(evt));
-            Assert.AreEqual(eventCount, received.Sum().Timeout(TimeSpan.FromSeconds(20)).Wait());
-            mailFactory.Verify();
-            mailClient.Verify(mc => mc.Send(It.IsAny<MailMessage>()), Times.Exactly(messageCount));
         }
     }
 }
