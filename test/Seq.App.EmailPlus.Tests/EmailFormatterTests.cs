@@ -45,6 +45,14 @@ namespace Seq.App.EmailPlus.Tests
             Assert.IsTrue(subject.Length == 5, "Subject was the wrong length.");
         }
 
+        [Test]
+        public void FormatsSubjectCorrectlyWhenMaxLengthIsLonger()
+        {
+            var formatter = new EmailFormatter("foo", "bar", maxSubjectLength: 130);
+            var subject = formatter.FormatSubject(new[] { GetLogEvent() });
+            Assert.IsTrue(subject.EndsWith("(via Seq)"), "Subject was truncated when it should not have been.");
+        }
+
         private static int CountSubstrings(string source, string substring)
         {
             return (source.Length - source.Replace(substring, string.Empty).Length) / substring.Length;

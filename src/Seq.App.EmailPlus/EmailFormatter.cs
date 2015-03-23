@@ -33,7 +33,7 @@ namespace Seq.App.EmailPlus
         public string FormatSubject(ICollection<Event<LogEventData>> events)
         {
             var subject = FormatTemplate(_subjectTemplate, events).Trim().Replace("\r", "").Replace("\n", "");
-            return _maxSubjectLength.HasValue ? subject.Substring(0, _maxSubjectLength.Value) : subject;
+            return _maxSubjectLength.HasValue && subject.Length > _maxSubjectLength.Value ? subject.Substring(0, _maxSubjectLength.Value) : subject;
         }
 
         public string FormatBody(ICollection<Event<LogEventData>> events)
