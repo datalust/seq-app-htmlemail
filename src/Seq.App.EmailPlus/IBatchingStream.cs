@@ -5,7 +5,7 @@ namespace Seq.App.EmailPlus
 {
     public interface IBatchingStream<TValue>
     {
-        void Add(TValue value);
         IObservable<IList<TValue>> Batches { get; }
+        void Add(TValue value);
     }
 }

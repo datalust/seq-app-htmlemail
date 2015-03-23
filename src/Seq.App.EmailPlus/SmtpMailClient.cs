@@ -5,11 +5,11 @@ namespace Seq.App.EmailPlus
 {
     public class SmtpMailClient : IMailClient
     {
-        private SmtpClient _smtpClient;
+        private readonly SmtpClient _smtpClient;
 
         public SmtpMailClient(string host, int port, bool enableSsl)
         {
-            _smtpClient = new SmtpClient(host, port) { EnableSsl = enableSsl };
+            _smtpClient = new SmtpClient(host, port) {EnableSsl = enableSsl};
         }
 
         public void Dispose()
@@ -19,54 +19,30 @@ namespace Seq.App.EmailPlus
 
         public ICredentialsByHost Credentials
         {
-            get
-            {
-                return _smtpClient.Credentials;
-            }
+            get { return _smtpClient.Credentials; }
 
-            set
-            {
-                _smtpClient.Credentials = value;
-            }
+            set { _smtpClient.Credentials = value; }
         }
 
         public bool EnableSsl
         {
-            get
-            {
-                return _smtpClient.EnableSsl;
-            }
+            get { return _smtpClient.EnableSsl; }
 
-            set
-            {
-                _smtpClient.EnableSsl = value;
-            }
+            set { _smtpClient.EnableSsl = value; }
         }
 
         public string Host
         {
-            get
-            {
-                return _smtpClient.Host;
-            }
+            get { return _smtpClient.Host; }
 
-            set
-            {
-                _smtpClient.Host = value;
-            }
+            set { _smtpClient.Host = value; }
         }
 
         public int Port
         {
-            get
-            {
-                return _smtpClient.Port;
-            }
+            get { return _smtpClient.Port; }
 
-            set
-            {
-                _smtpClient.Port = value;
-            }
+            set { _smtpClient.Port = value; }
         }
 
         public void Send(MailMessage message)

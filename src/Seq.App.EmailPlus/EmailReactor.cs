@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -13,20 +12,21 @@ namespace Seq.App.EmailPlus
     [SeqApp("Email+", Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
+        private const int MaxSubjectLength = 130;
+        private readonly IEmailFormatterFactory _emailFormatterFactory;
+        private readonly IBatchingStreamFactory<string, Event<LogEventData>> _eventStreamFactory;
+        private readonly IMailClientFactory _mailClientFactory;
         private readonly IScheduler _scheduler;
-        readonly IMailClientFactory _mailClientFactory;
-        readonly IEmailFormatterFactory _emailFormatterFactory;
-        readonly IBatchingStreamFactory<string,Event<LogEventData>> _eventStreamFactory;
-        
-        IEmailFormatter _formatter;
-        IBatchingStream<Event<LogEventData>> _eventStream;
-        const int MaxSubjectLength = 130;
+        private IBatchingStream<Event<LogEventData>> _eventStream;
+        private IEmailFormatter _formatter;
 
         public EmailReactor()
             : this(new SmtpMailClientFactory(), new EmailFormatterFactory(), new BatchingStreamFactory<string, Event<LogEventData>>(), Scheduler.Default)
-        {}
+        {
+        }
 
-        public EmailReactor(IMailClientFactory mailClientFactory = null, IEmailFormatterFactory emailFormatterFactory = null, IBatchingStreamFactory<string,Event<LogEventData>> batchingStreamFactory = null, IScheduler scheduler = null)
+        public EmailReactor(IMailClientFactory mailClientFactory = null, IEmailFormatterFactory emailFormatterFactory = null,
+            IBatchingStreamFactory<string, Event<LogEventData>> batchingStreamFactory = null, IScheduler scheduler = null)
         {
             _mailClientFactory = mailClientFactory;
             _emailFormatterFactory = emailFormatterFactory;
@@ -38,7 +38,7 @@ namespace Seq.App.EmailPlus
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
         public string From { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent.")]
@@ -52,7 +52,7 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
-        new public string Host { get; set; }
+        public new string Host { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -70,7 +70,8 @@ namespace Seq.App.EmailPlus
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
-                       "the default template that includes the message and properties (https://github.com/continuousit/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
+                       "the default template that includes the message and properties (https://github.com/continuousit/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html)."
+            )]
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
@@ -99,6 +100,11 @@ namespace Seq.App.EmailPlus
             HelpText = "The maximum amount of time in seconds to wait while building a batch email. This setting requires the BatchDelay setting to be set.")]
         public double? BatchMaxDelay { get; set; }
 
+        public void On(Event<LogEventData> evt)
+        {
+            _eventStream.Add(evt);
+        }
+
         protected override void OnAttached()
         {
             base.OnAttached();
@@ -110,15 +116,10 @@ namespace Seq.App.EmailPlus
             var maxDelay = BatchMaxDelay.HasValue ? TimeSpan.FromSeconds(BatchMaxDelay.Value) : (TimeSpan?) null;
             _eventStream = _eventStreamFactory.Create(
                 evt => _formatter.FormatSubject(new[] {evt}), _scheduler ?? Scheduler.Default, delay, maxDelay, BatchMaxAmount);
-            _eventStream.Batches.Subscribe(Send, ex => Debug.WriteLine(ex));
+            _eventStream.Batches.Subscribe(Send);
         }
 
-        public void On(Event<LogEventData> evt)
-        {
-            _eventStream.Add(evt);
-        }
-
-        void Send(ICollection<Event<LogEventData>> events)
+        private void Send(ICollection<Event<LogEventData>> events)
         {
             if (events.Count < 1)
                 return;
@@ -132,7 +133,7 @@ namespace Seq.App.EmailPlus
             }
         }
 
-        MailMessage BuildMessage(ICollection<Event<LogEventData>> events)
+        private MailMessage BuildMessage(ICollection<Event<LogEventData>> events)
         {
             return new MailMessage(From, To) {Subject = _formatter.FormatSubject(events), Body = _formatter.FormatBody(events), IsBodyHtml = true};
         }

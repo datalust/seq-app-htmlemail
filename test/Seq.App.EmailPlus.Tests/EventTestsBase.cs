@@ -15,9 +15,9 @@ namespace Seq.App.EmailPlus.Tests
                 Level = level,
                 LocalTimestamp = DateTimeOffset.Now,
                 RenderedMessage = "Test",
-                Properties = new Dictionary<string, object> { { "Category", "Security" } }
+                Properties = new Dictionary<string, object> {{"Category", "Security"}}
             };
             return new Event<LogEventData>(logEventData.Id, 1, DateTime.UtcNow, logEventData);
-        } 
+        }
     }
 }

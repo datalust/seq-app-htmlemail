@@ -25,7 +25,7 @@ namespace Seq.App.EmailPlus.Tests
         public void DefaultTemplateSubjectEndsWithCountOnBatchedEvents()
         {
             var formatter = new EmailFormatter("foo", "bar");
-            var subject = formatter.FormatSubject(new[] { GetLogEvent(), GetLogEvent(1) });
+            var subject = formatter.FormatSubject(new[] {GetLogEvent(), GetLogEvent(1)});
             Assert.IsTrue(subject.EndsWith("(2)"));
         }
 
@@ -33,7 +33,7 @@ namespace Seq.App.EmailPlus.Tests
         public void DefaultTemplateSubjectDoesNotEndWithCountSingleEvents()
         {
             var formatter = new EmailFormatter("foo", "bar");
-            var subject = formatter.FormatSubject(new[] { GetLogEvent(), GetLogEvent(1) });
+            var subject = formatter.FormatSubject(new[] {GetLogEvent(), GetLogEvent(1)});
             Assert.IsFalse(subject.EndsWith("(1)"));
         }
 
@@ -41,7 +41,7 @@ namespace Seq.App.EmailPlus.Tests
         public void MaxSubjectLengthIsEnforced()
         {
             var formatter = new EmailFormatter("foo", "bar", maxSubjectLength: 5);
-            var subject = formatter.FormatSubject(new[] { GetLogEvent() });
+            var subject = formatter.FormatSubject(new[] {GetLogEvent()});
             Assert.IsTrue(subject.Length == 5, "Subject was the wrong length.");
         }
 
@@ -49,13 +49,13 @@ namespace Seq.App.EmailPlus.Tests
         public void FormatsSubjectCorrectlyWhenMaxLengthIsLonger()
         {
             var formatter = new EmailFormatter("foo", "bar", maxSubjectLength: 130);
-            var subject = formatter.FormatSubject(new[] { GetLogEvent() });
+            var subject = formatter.FormatSubject(new[] {GetLogEvent()});
             Assert.IsTrue(subject.EndsWith("(via Seq)"), "Subject was truncated when it should not have been.");
         }
 
         private static int CountSubstrings(string source, string substring)
         {
-            return (source.Length - source.Replace(substring, string.Empty).Length) / substring.Length;
+            return (source.Length - source.Replace(substring, string.Empty).Length)/substring.Length;
         }
     }
 }

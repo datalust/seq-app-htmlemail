@@ -12,12 +12,14 @@ namespace Seq.App.EmailPlus
 {
     public class EmailFormatter : IEmailFormatter
     {
+        private const string DefaultSubjectTemplate =
+            @"[{{$Events.[0].$Level}}] {{{$Events.[0].$Message}}} (via Seq){{#if $MultipleEvents}} ({{$EventCount}}){{/if}}";
+
+        private readonly Func<object, string> _bodyTemplate;
         private readonly string _instanceName;
-        private readonly string _serverUri;
         private readonly int? _maxSubjectLength;
-        private readonly Func<object,string> _subjectTemplate;
-        private readonly Func<object,string> _bodyTemplate;
-        const string DefaultSubjectTemplate = @"[{{$Events.[0].$Level}}] {{{$Events.[0].$Message}}} (via Seq){{#if $MultipleEvents}} ({{$EventCount}}){{/if}}";
+        private readonly string _serverUri;
+        private readonly Func<object, string> _subjectTemplate;
 
         public EmailFormatter(string instanceName, string serverUri, string bodyTemplate = null, string subjectTemplate = null, int? maxSubjectLength = null)
         {
@@ -41,7 +43,7 @@ namespace Seq.App.EmailPlus
             return FormatTemplate(_bodyTemplate, events);
         }
 
-        string FormatTemplate(Func<object, string> template, ICollection<Event<LogEventData>> events)
+        private string FormatTemplate(Func<object, string> template, ICollection<Event<LogEventData>> events)
         {
             var payload = ToDynamic(new Dictionary<string, object>
             {
@@ -68,7 +70,7 @@ namespace Seq.App.EmailPlus
             return template(payload);
         }
 
-        static void PrettyPrint(TextWriter output, object context, object[] arguments)
+        private static void PrettyPrint(TextWriter output, object context, object[] arguments)
         {
             var value = arguments.FirstOrDefault();
             if (value == null)
@@ -79,7 +81,7 @@ namespace Seq.App.EmailPlus
                 output.WriteSafeString(value.ToString());
         }
 
-        static object FromDynamic(object o)
+        private static object FromDynamic(object o)
         {
             var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
             if (dictionary != null)
@@ -96,13 +98,13 @@ namespace Seq.App.EmailPlus
             return o;
         }
 
-        static object ToDynamic(object o)
+        private static object ToDynamic(object o)
         {
             var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
             if (dictionary != null)
             {
                 var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object>)result;
+                var asDict = (IDictionary<string, object>) result;
                 foreach (var kvp in dictionary)
                     asDict.Add(kvp.Key, ToDynamic(kvp.Value));
                 return result;

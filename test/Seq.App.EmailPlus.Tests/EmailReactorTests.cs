@@ -16,16 +16,14 @@ namespace Seq.App.EmailPlus.Tests
     [TestFixture]
     public class EmailReactorTests : EventTestsBase
     {
-        private TestScheduler _scheduler;
-
-        private Mock<IMailClient> _mailClient;
         private Mock<IEmailFormatter> _emailFormatter;
-        private Mock<IBatchingStream<Event<LogEventData>>> _eventStream;
-
-        private Mock<IMailClientFactory> _mailClientFactory;
         private Mock<IEmailFormatterFactory> _emailFormatterFactory;
-        private Mock<IBatchingStreamFactory<string,Event<LogEventData>>> _eventStreamFactory;
+        private Mock<IBatchingStream<Event<LogEventData>>> _eventStream;
+        private Mock<IBatchingStreamFactory<string, Event<LogEventData>>> _eventStreamFactory;
         private IReturnsResult<IBatchingStreamFactory<string, Event<LogEventData>>> _eventStreamFactorySetup;
+        private Mock<IMailClient> _mailClient;
+        private Mock<IMailClientFactory> _mailClientFactory;
+        private TestScheduler _scheduler;
 
         [SetUp]
         public void SetUp()
@@ -80,7 +78,7 @@ namespace Seq.App.EmailPlus.Tests
 
             var eventSubject = new Subject<List<Event<LogEventData>>>();
             _eventStream.SetupGet(es => es.Batches).Returns(eventSubject);
-            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> { GetLogEvent() }));
+            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> {GetLogEvent()}));
 
             GetEmailReactor();
             _scheduler.Start();
@@ -98,7 +96,7 @@ namespace Seq.App.EmailPlus.Tests
 
             var eventSubject = new Subject<List<Event<LogEventData>>>();
             _eventStream.SetupGet(es => es.Batches).Returns(eventSubject);
-            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> { GetLogEvent() }));
+            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> {GetLogEvent()}));
 
             GetEmailReactor();
             _scheduler.Start();
@@ -122,10 +120,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             TimeSpan? actual = null;
             _eventStreamFactorySetup.Callback<Func<Event<LogEventData>, string>, IScheduler, TimeSpan?, TimeSpan?, int?>(
-                (func, scheduler, delay, maxDelay, maxSize) =>
-                {
-                    actual = delay;
-                }).Verifiable();
+                (func, scheduler, delay, maxDelay, maxSize) => { actual = delay; }).Verifiable();
 
             GetEmailReactor(30);
 
@@ -139,10 +134,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             TimeSpan? actual = null;
             _eventStreamFactorySetup.Callback<Func<Event<LogEventData>, string>, IScheduler, TimeSpan?, TimeSpan?, int?>(
-                (func, scheduler, delay, maxDelay, maxSize) =>
-                {
-                    actual = maxDelay;
-                }).Verifiable();
+                (func, scheduler, delay, maxDelay, maxSize) => { actual = maxDelay; }).Verifiable();
 
             GetEmailReactor(maxDelay: 300);
 
@@ -156,10 +148,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             int? actual = null;
             _eventStreamFactorySetup.Callback<Func<Event<LogEventData>, string>, IScheduler, TimeSpan?, TimeSpan?, int?>(
-                (func, scheduler, delay, maxDelay, maxSize) =>
-                {
-                    actual = maxSize;
-                }).Verifiable();
+                (func, scheduler, delay, maxDelay, maxSize) => { actual = maxSize; }).Verifiable();
 
             GetEmailReactor(maxSize: 50);
 
@@ -171,7 +160,7 @@ namespace Seq.App.EmailPlus.Tests
         private EmailReactor GetEmailReactor(double? delay = null, double? maxDelay = null, int? maxSize = null)
         {
             var appHost = new Mock<IAppHost>();
-            appHost.SetupGet(h => h.Host).Returns(new Host(new[] { "localhost" }, "test"));
+            appHost.SetupGet(h => h.Host).Returns(new Host(new[] {"localhost"}, "test"));
 
             var reactor = new EmailReactor(_mailClientFactory.Object, _emailFormatterFactory.Object, _eventStreamFactory.Object, _scheduler)
             {
