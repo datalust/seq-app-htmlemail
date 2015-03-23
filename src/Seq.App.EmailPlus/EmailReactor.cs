@@ -20,7 +20,7 @@ namespace Seq.App.EmailPlus
         
         IEmailFormatter _formatter;
         IBatchingStream<Event<LogEventData>> _eventStream;
-        int? _maxSubjectLength = 130;
+        const int MaxSubjectLength = 130;
 
         public EmailReactor()
             : this(new SmtpMailClientFactory(), new EmailFormatterFactory(), new BatchingStreamFactory<string, Event<LogEventData>>(), Scheduler.Default)
@@ -49,16 +49,6 @@ namespace Seq.App.EmailPlus
             DisplayName = "Subject template",
             HelpText = "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
         public string SubjectTemplate { get; set; }
-
-        [SeqAppSetting(
-            IsOptional = true,
-            DisplayName = "Max subject length",
-            HelpText = "Limits the length of email subjects.")]
-        public int? MaxSubjectLength
-        {
-            get { return _maxSubjectLength; }
-            set { _maxSubjectLength = value; }
-        }
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]

@@ -150,29 +150,7 @@ namespace Seq.App.EmailPlus.Tests
             Assert.AreEqual(50, actual.Value, "Incorrect max size setting was used.");
         }
 
-        [Test]
-        public void DefaultsToSaneMaxSubjectLength()
-        {
-            var reactor = new EmailReactor();
-            Assert.IsNotNull(reactor.MaxSubjectLength, "Max subject length was not defaulted.");
-            Assert.IsTrue(reactor.MaxSubjectLength.Value > 0, "Default max subject length was negative.");
-        }
-
-        [Test]
-        public void UsesMaxSubjectLength()
-        {
-            var reactor = new EmailReactor {MaxSubjectLength = 123};
-            Assert.AreEqual(123, reactor.MaxSubjectLength);
-        }
-
-        [Test]
-        public void MaxSubjectLengthCanBeDisabled()
-        {
-            var reactor = new EmailReactor {MaxSubjectLength = null};
-            Assert.IsNull(reactor.MaxSubjectLength);
-        }
-
-        private EmailReactor GetEmailReactor(double? delay = null, double? maxDelay = null, int? maxSize = null, int? maxSubjectLength = null)
+        private EmailReactor GetEmailReactor(double? delay = null, double? maxDelay = null, int? maxSize = null)
         {
             var appHost = new Mock<IAppHost>();
             appHost.SetupGet(h => h.Host).Returns(new Host(new[] { "localhost" }, "test"));
@@ -183,8 +161,7 @@ namespace Seq.App.EmailPlus.Tests
                 To = "foo@bar.com",
                 BatchDelay = delay,
                 BatchMaxDelay = maxDelay,
-                BatchMaxAmount = maxSize,
-                MaxSubjectLength = maxSubjectLength
+                BatchMaxAmount = maxSize
             };
             reactor.Attach(appHost.Object);
 
