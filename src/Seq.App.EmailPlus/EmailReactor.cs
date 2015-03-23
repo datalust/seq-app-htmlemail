@@ -10,7 +10,7 @@ using Seq.Apps.LogEvents;
 
 namespace Seq.App.EmailPlus
 {
-    [SeqApp("Email+", Description = "Uses a Handlebars template to send events as SMTP email, optionally batching multiple events into single messages.")]
+    [SeqApp("Email+", Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
         private readonly IScheduler _scheduler;
