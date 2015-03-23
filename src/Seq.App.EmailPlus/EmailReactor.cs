@@ -22,12 +22,16 @@ namespace Seq.App.EmailPlus
         IBatchingStream<Event<LogEventData>> _eventStream;
         int? _maxSubjectLength = 130;
 
+        public EmailReactor()
+            : this(new SmtpMailClientFactory(), new EmailFormatterFactory(), new BatchingStreamFactory<string, Event<LogEventData>>(), Scheduler.Default)
+        {}
+
         public EmailReactor(IMailClientFactory mailClientFactory = null, IEmailFormatterFactory emailFormatterFactory = null, IBatchingStreamFactory<string,Event<LogEventData>> batchingStreamFactory = null, IScheduler scheduler = null)
         {
+            _mailClientFactory = mailClientFactory;
+            _emailFormatterFactory = emailFormatterFactory;
+            _eventStreamFactory = batchingStreamFactory;
             _scheduler = scheduler;
-            _mailClientFactory = mailClientFactory ?? new SmtpMailClientFactory();
-            _emailFormatterFactory = emailFormatterFactory ?? new EmailFormatterFactory();
-            _eventStreamFactory = batchingStreamFactory ?? new BatchingStreamFactory<string, Event<LogEventData>>();
         }
 
         [SeqAppSetting(
