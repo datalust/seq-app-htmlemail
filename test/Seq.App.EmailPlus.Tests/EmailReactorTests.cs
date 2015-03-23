@@ -89,6 +89,24 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Test]
+        public void SendsMessagesAsHtml()
+        {
+            var actual = false;
+
+            _mailClient.Setup(mc => mc.Send(It.IsAny<MailMessage>()))
+                .Callback<MailMessage>(message => actual = message.IsBodyHtml);
+
+            var eventSubject = new Subject<List<Event<LogEventData>>>();
+            _eventStream.SetupGet(es => es.Batches).Returns(eventSubject);
+            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> { GetLogEvent() }));
+
+            GetEmailReactor();
+            _scheduler.Start();
+
+            Assert.IsTrue(actual, "Message body was not configured as HTML.");
+        }
+
+        [Test]
         public void AddsEventsToEventStream()
         {
             var @event = GetLogEvent();

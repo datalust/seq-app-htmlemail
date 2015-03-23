@@ -134,7 +134,7 @@ namespace Seq.App.EmailPlus
 
         MailMessage BuildMessage(ICollection<Event<LogEventData>> events)
         {
-            return new MailMessage(From, To) {Subject = _formatter.FormatSubject(events), Body = _formatter.FormatBody(events)};
+            return new MailMessage(From, To) {Subject = _formatter.FormatSubject(events), Body = _formatter.FormatBody(events), IsBodyHtml = true};
         }
     }
 }
