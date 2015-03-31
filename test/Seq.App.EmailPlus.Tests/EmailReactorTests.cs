@@ -10,6 +10,7 @@ using Moq.Language.Flow;
 using NUnit.Framework;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
+using Serilog;
 
 namespace Seq.App.EmailPlus.Tests
 {
@@ -23,6 +24,7 @@ namespace Seq.App.EmailPlus.Tests
         private IReturnsResult<IBatchingStreamFactory<string, Event<LogEventData>>> _eventStreamFactorySetup;
         private Mock<IMailClient> _mailClient;
         private Mock<IMailClientFactory> _mailClientFactory;
+        private Mock<ILogger> _logger; 
         private TestScheduler _scheduler;
 
         [SetUp]
@@ -48,6 +50,8 @@ namespace Seq.App.EmailPlus.Tests
                     f.Create(It.IsAny<Func<Event<LogEventData>, string>>(), It.IsAny<IScheduler>(), It.IsAny<TimeSpan?>(), It.IsAny<TimeSpan?>(),
                         It.IsAny<int?>()))
                 .Returns(() => _eventStream.Object);
+
+            _logger = new Mock<ILogger>();
         }
 
         [Test]
@@ -157,10 +161,26 @@ namespace Seq.App.EmailPlus.Tests
             Assert.AreEqual(50, actual.Value, "Incorrect max size setting was used.");
         }
 
+        [Test]
+        public void SmtpExceptionIsHandled()
+        {
+            _mailClient.Setup(mc => mc.Send(It.IsAny<MailMessage>())).Throws<SmtpException>();
+
+            var eventSubject = new Subject<List<Event<LogEventData>>>();
+            _eventStream.SetupGet(es => es.Batches).Returns(eventSubject);
+            _scheduler.Schedule(() => eventSubject.OnNext(new List<Event<LogEventData>> { GetLogEvent() }));
+
+            GetEmailReactor();
+            _scheduler.Start();
+
+            _logger.Verify(l => l.Warning(It.IsAny<SmtpException>(), It.IsAny<string>()), Times.Once());
+        }
+
         private EmailReactor GetEmailReactor(double? delay = null, double? maxDelay = null, int? maxSize = null)
         {
             var appHost = new Mock<IAppHost>();
             appHost.SetupGet(h => h.Host).Returns(new Host(new[] {"localhost"}, "test"));
+            appHost.SetupGet(h => h.Logger).Returns(_logger.Object);
 
             var reactor = new EmailReactor(_mailClientFactory.Object, _emailFormatterFactory.Object, _eventStreamFactory.Object, _scheduler)
             {

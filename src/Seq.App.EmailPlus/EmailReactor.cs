@@ -129,7 +129,14 @@ namespace Seq.App.EmailPlus
                 if (!string.IsNullOrWhiteSpace(Username))
                     client.Credentials = new NetworkCredential(Username, Password);
 
-                client.Send(BuildMessage(events));
+                try
+                {
+                    client.Send(BuildMessage(events));
+                }
+                catch (SmtpException ex)
+                {
+                    Log.Warning(ex, "Exception while sending email.");
+                }
             }
         }
 
