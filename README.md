@@ -11,4 +11,3 @@ Currently in this repository you'll find:
  * **Replication** - forward incoming events to another Seq server
  * **Thresholds** - raise an event if the frequency of matched events exceeds a threshold
 
-**Please raise issues** for this project in the [main issue tracker](https://github.com/continuousit/seq-releases/issues).
