@@ -21,10 +21,13 @@ namespace Seq.App.EmailPlus
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
 
-        public EmailReactor()
+        static EmailReactor()
         {
             Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrint);
+        }
 
+        public EmailReactor()
+        {
             _subjectTemplate = new Lazy<Func<object, string>>(() =>
             {
                 var subjectTemplate = SubjectTemplate;
@@ -94,8 +97,8 @@ namespace Seq.App.EmailPlus
 
         public void On(Event<LogEventData> evt)
         {
-            var body = FormatTemplate(_bodyTemplate.Value, evt);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt).Trim().Replace("\r", "").Replace("\n", "");
+            var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
+            var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "").Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
@@ -108,9 +111,11 @@ namespace Seq.App.EmailPlus
             client.Send(message);
         }
 
-        string FormatTemplate(Func<object, string> template, Event<LogEventData> evt)
+        public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
         {
-            var payload = ToDynamic(new Dictionary<string, object>
+            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties);
+
+            var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
             {
                 { "$Id",                  evt.Id },
                 { "$UtcTimestamp",        evt.TimestampUtc },
@@ -119,16 +124,21 @@ namespace Seq.App.EmailPlus
                 { "$MessageTemplate",     evt.Data.MessageTemplate },
                 { "$Message",             evt.Data.RenderedMessage },
                 { "$Exception",           evt.Data.Exception },
-                { "$Properties",          ToDynamic(evt.Data.Properties) },
+                { "$Properties",          properties },
                 { "$EventType",           "$" + evt.EventType.ToString("X8") },
-                { "$Instance",            base.Host.InstanceName },
-                { "$ServerUri",           base.Host.ListenUris.FirstOrDefault() }
+                { "$Instance",            host.InstanceName },
+                { "$ServerUri",           host.ListenUris.FirstOrDefault() }
             });
+
+            foreach (var property in properties)
+            {
+                payload[property.Key] = property.Value;
+            }
             
             return template(payload);
         }
 
-        void PrettyPrint(TextWriter output, object context, object[] arguments)
+        static void PrettyPrint(TextWriter output, object context, object[] arguments)
         {
             var value = arguments.FirstOrDefault();
             if (value == null)
