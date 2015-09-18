@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>[{{$Level}}] {{$Message}} (via Seq)</title>
+    <title>[{{$Events.[0].$Level}}] {{{$Events.[0].$Message}}} (via Seq){{#if $MultipleEvents}} ({{$EventCount}}){{/if}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
         .email-body {
@@ -126,35 +126,37 @@
     </style>
 </head>
 <body>
-    <div class="email-body" style="margin-top:10px;margin-bottom:10px;margin-right:10px;margin-left:10px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#333;background-color:#fff;">
-        <div class="seq-event-detail" style="width:100%;padding-top:0;padding-bottom:2px;padding-right:2px;padding-left:2px;margin-top:2px;margin-bottom:0;margin-right:-3px;margin-left:-3px;overflow:visible;white-space:nowrap;border-style:solid;border-width:1px;border-radius:2px;background-color:#eff9ff;border-color:#54afcc;">
-            <div class="seq-event-tools" style="float:left;margin-right:5px;">
-                <span class="seq-event-timestamp" title="{{$UtcTimestamp}}" style="margin-right:5px;color:white;"><span class="datetime" style="display:inline-block;width:172px;padding-top:2px;padding-bottom:2px;padding-right:4px;padding-left:4px;font-size:11.844px;font-weight:bold;line-height:14px;color:#fff;text-shadow:none;white-space:nowrap;vertical-align:baseline;background-color:#aaa;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:2px;margin-top:2px;">{{$LocalTimestamp}}</span></span>
-            </div>
-            <div class="seq-event-data" style="margin-top:2px;margin-left:190px;overflow:visible;white-space:normal;">
-                <div>
-                    <span class="seq-message-template">[<strong>{{$Level}}</strong>] {{$Message}}</span>
-                </div>
-                <div class="seq-event-actions" style="margin-top:5px;">
-                    <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action" style="color:#007acc;text-decoration:none;padding-right:10px;font-size:12px;">View in Seq</a>
-                </div>
-                <div class="seq-event-properties" style="margin-top:5px;">
-                    {{#each $Properties}}
-                    <div class="seq-event-property">
-                        <div class="seq-property-name" title="{{@key}}" style="float:left;width:200px;overflow:hidden;font-family:monospace;font-size:13px;font-weight:bold;text-overflow:ellipsis;">{{@key}}</div>
-                        <div class="seq-property-value" style="margin-left:245px;font-family:monospace;font-size:13px;word-wrap:break-word;white-space:pre-wrap;">{{pretty this}}</div>
-                    </div>
-                    {{/each}}
-                    {{#if $Exception}}
-                    <pre class="seq-event-exception" style="padding-top:2px;padding-bottom:2px;padding-right:2px;padding-left:2px;margin-top:5px;overflow:auto;font-family:monospace;font-size:9pt;color:white;white-space:pre;background-color:#e03836;">{{$Exception}}</pre>
-                    {{/if}}
-                </div>
-            </div>
+<div class="email-body" style="margin-top: 10px; margin-bottom: 10px; margin-right: 10px; margin-left: 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333; background-color: #fff;">
+    {{#each $Events}}
+    <div class="seq-event-detail" style="width: 100%; padding-top: 0; padding-bottom: 2px; padding-right: 2px; padding-left: 2px; margin-top: 2px; margin-bottom: 0; margin-right: -3px; margin-left: -3px; overflow: visible; white-space: nowrap; border-style: solid; border-width: 1px; border-radius: 2px; background-color: #eff9ff; border-color: #54afcc;">
+        <div class="seq-event-tools" style="float: left; margin-right: 5px;">
+            <span class="seq-event-timestamp" title="{{$UtcTimestamp}}" style="margin-right: 5px; color: white;"><span class="datetime" style="display: inline-block; width: 172px; padding-top: 2px; padding-bottom: 2px; padding-right: 4px; padding-left: 4px; font-size: 11.844px; font-weight: bold; line-height: 14px; color: #fff; text-shadow: none; white-space: nowrap; vertical-align: baseline; background-color: #aaa; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 2px; margin-top: 2px;">{{$LocalTimestamp}}</span></span>
         </div>
-        <div class="email-footer" style="margin-top:20px;font-size:9pt;font-style:italic;color:#ddd;">
-            Sent from <a href="https://getseq.net" style="text-decoration:none;color:#ddd;font-weight:bold;">Seq</a> &mdash; structured log server for .NET &mdash; installed
-            at <a href='{{{$ServerUri}}}' style="text-decoration:none;color:#ddd;font-weight:bold;">{{$ServerUri}}</a>.
+        <div class="seq-event-data" style="margin-top: 2px; margin-left: 190px; overflow: visible; white-space: normal;">
+            <div>
+                <span class="seq-message-template">[<strong>{{$Level}}</strong>] {{$Message}}</span>
+            </div>
+            <div class="seq-event-actions" style="margin-top: 5px;">
+                <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D"{{$Id}}"' class="action" style="color: #007acc; text-decoration: none; padding-right: 10px; font-size: 12px;">View in Seq</a>
+            </div>
+            <div class="seq-event-properties" style="margin-top: 5px;">
+                {{#each $Properties}}
+                <div class="seq-event-property">
+                    <div class="seq-property-name" title="{{@key}}" style="float: left; width: 200px; overflow: hidden; font-family: monospace; font-size: 13px; font-weight: bold; text-overflow: ellipsis;">{{@key}}</div>
+                    <div class="seq-property-value" style="margin-left: 245px; font-family: monospace; font-size: 13px; word-wrap: break-word; white-space: pre-wrap;">{{pretty this}}</div>
+                </div>
+                {{/each}}
+                {{#if $Exception}}
+                <pre class="seq-event-exception" style="padding-top: 2px; padding-bottom: 2px; padding-right: 2px; padding-left: 2px; margin-top: 5px; overflow: auto; font-family: monospace; font-size: 9pt; color: white; white-space: pre; background-color: #e03836;">{{$Exception}}</pre>
+                {{/if}}
+            </div>
         </div>
     </div>
+    {{/each}}
+    <div class="email-footer" style="margin-top: 20px; font-size: 9pt; font-style: italic; color: #ddd;">
+        Sent from <a href="https://getseq.net" style="text-decoration: none; color: #ddd; font-weight: bold;">Seq</a> &mdash; structured log server for .NET &mdash; installed
+        at <a href='{{{$ServerUri}}}' style="text-decoration: none; color: #ddd; font-weight: bold;">{{$ServerUri}}</a>.
+    </div>
+</div>
 </body>
 </html>

@@ -16,5 +16,9 @@
     <file src="bin\Release\Seq.App.EmailPlus.dll" target="lib\net45" />
     <file src="bin\Release\Handlebars.dll" target="lib\net45" />
     <file src="bin\Release\Newtonsoft.Json.dll" target="lib\net45" />
+    <file src="bin\Release\System.Reactive.Core.dll" target="lib\net45" />
+    <file src="bin\Release\System.Reactive.Interfaces.dll" target="lib\net45" />
+    <file src="bin\Release\System.Reactive.Linq.dll" target="lib\net45" />
+    <file src="bin\Release\System.Reactive.PlatformServices.dll" target="lib\net45" />
   </files>
 </package>

@@ -1,52 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using Handlebars;
-using Newtonsoft.Json;
+using System.Reactive.Concurrency;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
 namespace Seq.App.EmailPlus
 {
-    [SeqApp("Email+",
-        Description = "Uses a Handlebars template to send events as SMTP email.")]
+    [SeqApp("Email+", Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
-        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
-
-        const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
-        const int MaxSubjectLength = 130;
+        private const int MaxSubjectLength = 130;
+        private readonly IEmailFormatterFactory _emailFormatterFactory;
+        private readonly IBatchingStreamFactory<string, Event<LogEventData>> _eventStreamFactory;
+        private readonly IMailClientFactory _mailClientFactory;
+        private readonly IScheduler _scheduler;
+        private IBatchingStream<Event<LogEventData>> _eventStream;
+        private IEmailFormatter _formatter;
 
         public EmailReactor()
+            : this(new SmtpMailClientFactory(), new EmailFormatterFactory(), new BatchingStreamFactory<string, Event<LogEventData>>(), Scheduler.Default)
         {
-            Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrint);
+        }
 
-            _subjectTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var subjectTemplate = SubjectTemplate;
-                if (string.IsNullOrEmpty(subjectTemplate))
-                    subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Handlebars.Compile(subjectTemplate);                
-            });
-
-            _bodyTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var bodyTemplate = BodyTemplate;
-                if (string.IsNullOrEmpty(bodyTemplate))
-                    bodyTemplate = Resources.DefaultBodyTemplate;
-                return Handlebars.Handlebars.Compile(bodyTemplate);
-            });
+        public EmailReactor(IMailClientFactory mailClientFactory = null, IEmailFormatterFactory emailFormatterFactory = null,
+            IBatchingStreamFactory<string, Event<LogEventData>> batchingStreamFactory = null, IScheduler scheduler = null)
+        {
+            _mailClientFactory = mailClientFactory;
+            _emailFormatterFactory = emailFormatterFactory;
+            _eventStreamFactory = batchingStreamFactory;
+            _scheduler = scheduler;
         }
 
         [SeqAppSetting(
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
         public string From { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent.")]
@@ -60,7 +52,7 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
-        new public string Host { get; set; }
+        public new string Host { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -78,7 +70,8 @@ namespace Seq.App.EmailPlus
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
-                       "the default template that includes the message and properties (https://github.com/continuousit/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
+                       "the default template that includes the message and properties (https://github.com/continuousit/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html)."
+            )]
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
@@ -92,89 +85,64 @@ namespace Seq.App.EmailPlus
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string Password { get; set; }
 
+        [SeqAppSetting(
+            IsOptional = true,
+            HelpText = "The amount of time in seconds to wait for a subsequent event with the same subject to send as a single batch email.")]
+        public double? BatchDelay { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            HelpText = "The maximum number of events to include in a batch. This setting requires the BatchDelay setting to be set.")]
+        public int? BatchMaxAmount { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            HelpText = "The maximum amount of time in seconds to wait while building a batch email. This setting requires the BatchDelay setting to be set.")]
+        public double? BatchMaxDelay { get; set; }
+
         public void On(Event<LogEventData> evt)
         {
-            var body = FormatTemplate(_bodyTemplate.Value, evt);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt).Trim().Replace("\r", "").Replace("\n", "");
-            if (subject.Length > MaxSubjectLength)
-                subject = subject.Substring(0, MaxSubjectLength);
-
-            var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
-            if (!string.IsNullOrWhiteSpace(Username))
-                client.Credentials = new NetworkCredential(Username, Password);
-
-            var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
-
-            client.Send(message);
+            _eventStream.Add(evt);
         }
 
-        string FormatTemplate(Func<object, string> template, Event<LogEventData> evt)
+        protected override void OnAttached()
         {
-            var payload = ToDynamic(new Dictionary<string, object>
-            {
-                { "$Id",                  evt.Id },
-                { "$UtcTimestamp",        evt.TimestampUtc },
-                { "$LocalTimestamp",      evt.Data.LocalTimestamp },
-                { "$Level",               evt.Data.Level },
-                { "$MessageTemplate",     evt.Data.MessageTemplate },
-                { "$Message",             evt.Data.RenderedMessage },
-                { "$Exception",           evt.Data.Exception },
-                { "$Properties",          ToDynamic(evt.Data.Properties) },
-                { "$EventType",           "$" + evt.EventType.ToString("X8") },
-                { "$Instance",            base.Host.InstanceName },
-                { "$ServerUri",           base.Host.ListenUris.FirstOrDefault() }
-            });
-            
-            return template(payload);
+            base.OnAttached();
+
+            _formatter = _emailFormatterFactory.Create(
+                base.Host.InstanceName, base.Host.ListenUris.FirstOrDefault(), BodyTemplate, SubjectTemplate, MaxSubjectLength);
+
+            var delay = BatchDelay.HasValue ? TimeSpan.FromSeconds(BatchDelay.Value) : (TimeSpan?) null;
+            var maxDelay = BatchMaxDelay.HasValue ? TimeSpan.FromSeconds(BatchMaxDelay.Value) : (TimeSpan?) null;
+            _eventStream = _eventStreamFactory.Create(
+                evt => _formatter.FormatSubject(new[] {evt}), _scheduler ?? Scheduler.Default, delay, maxDelay, BatchMaxAmount);
+            _eventStream.Batches.Subscribe(Send);
         }
 
-        void PrettyPrint(TextWriter output, object context, object[] arguments)
+        private void Send(ICollection<Event<LogEventData>> events)
         {
-            var value = arguments.FirstOrDefault();
-            if (value == null)
-                output.WriteSafeString("null");
-            else if (value is IEnumerable<object> || value is IEnumerable<KeyValuePair<string, object>>)
-                output.WriteSafeString(JsonConvert.SerializeObject(FromDynamic(value)));
-            else
-                output.WriteSafeString(value.ToString());
+            if (events.Count < 1)
+                return;
+
+            using (var client = _mailClientFactory.Create(Host, Port ?? 25, EnableSsl ?? false))
+            {
+                if (!string.IsNullOrWhiteSpace(Username))
+                    client.Credentials = new NetworkCredential(Username, Password);
+
+                try
+                {
+                    client.Send(BuildMessage(events));
+                }
+                catch (SmtpException ex)
+                {
+                    Log.Warning(ex, "Exception while sending email.");
+                }
+            }
         }
 
-        static object FromDynamic(object o)
+        private MailMessage BuildMessage(ICollection<Event<LogEventData>> events)
         {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
-            {
-                return dictionary.ToDictionary(kvp => kvp.Key, kvp => FromDynamic(kvp.Value));
-            }
-
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
-            {
-                return enumerable.Select(FromDynamic).ToArray();
-            }
-
-            return o;
-        }
-
-        static object ToDynamic(object o)
-        {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
-            {
-                var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object>) result;
-                foreach (var kvp in dictionary)
-                    asDict.Add(kvp.Key, ToDynamic(kvp.Value));
-                return result;
-            }
-
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
-            {
-                return enumerable.Select(ToDynamic).ToArray();
-            }
-
-            return o;
+            return new MailMessage(From, To) {Subject = _formatter.FormatSubject(events), Body = _formatter.FormatBody(events), IsBodyHtml = true};
         }
     }
 }
