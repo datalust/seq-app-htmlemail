@@ -83,6 +83,14 @@ namespace Seq.App.Thresholds
             _suppressUntilUtc = DateTime.UtcNow + _suppressionTime;
             Log.Information("Threshold {ThresholdName} reached: {EventCount} events observed within {WindowSize} sec. (message suppressed for {SuppressionSeconds} sec.)",
                 ThresholdName, _sum, _buckets.Length, (int)_suppressionTime.TotalSeconds);
+
+            ResetSum();
+        }
+
+        private void ResetSum()
+        {
+            _sum = 0;
+            Array.Clear(_buckets, 0, _buckets.Length);
         }
 
         // Adjusts the window to fit the event, providing the index into
