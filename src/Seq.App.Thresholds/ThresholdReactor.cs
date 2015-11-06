@@ -119,33 +119,17 @@ namespace Seq.App.Thresholds
                 var firstReused = (_currentBucket + 1) % _buckets.Length;
                 if (distance >= _buckets.Length)
                 {
-                    _sum = 0;
-                    for (var i = 0; i < _buckets.Length; i++)
-                    {
-                        _buckets[i] = 0;
-                    }
+                    ResetSum();
                 }
                 else if (newCurrent >= firstReused)
                 {
-                    for (var i = firstReused; i <= newCurrent; i++)
-                    {
-                        _sum -= _buckets[i];
-                        _buckets[i] = 0;
-                    }
+                    CleanupBuckets(firstReused, newCurrent);
                 }
                 else
                 {
-                    for (var i = firstReused; i < _buckets.Length; i++)
-                    {
-                        _sum -= _buckets[i];
-                        _buckets[i] = 0;
-                    }
+                    CleanupBuckets(firstReused, _buckets.Length - 1);
 
-                    for (var i = 0; i <= newCurrent; i++)
-                    {
-                        _sum -= _buckets[i];
-                        _buckets[i] = 0;
-                    }
+                    CleanupBuckets(0, newCurrent);
                 }
 
                 _currentBucket = newCurrent;
@@ -154,6 +138,15 @@ namespace Seq.App.Thresholds
 
             eventBucket = _currentBucket;
             return true;
+        }
+
+        private void CleanupBuckets(int firstReused, int lastReused)
+        {
+            for (var i = firstReused; i <= lastReused; i++)
+            {
+                _sum -= _buckets[i];
+                _buckets[i] = 0;
+            }
         }
 
         // Check the current suppression time
