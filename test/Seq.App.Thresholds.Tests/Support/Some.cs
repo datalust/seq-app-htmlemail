@@ -23,10 +23,15 @@ namespace Seq.App.Thresholds.Tests.Support
             return Uint();
         }
 
-        public static Event<LogEventData> LogEvent(IDictionary<string, object> includedProperties = null)
+        public static Event<LogEventData> LogEvent(IDictionary<string, object> includedProperties = null, DateTime timestamp = default(DateTime))
         {
             var id = EventId();
-            var timestamp = UtcTimestamp();
+
+            if (timestamp == default(DateTime))
+            {
+                timestamp = UtcTimestamp();
+            }
+
             var properties = new Dictionary<string, object>
             {
                 {"Who", "world"},
