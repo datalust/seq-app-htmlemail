@@ -113,7 +113,7 @@ namespace Seq.App.EmailPlus
 
         public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
         {
-            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties);
+            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
             var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
             {
