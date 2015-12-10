@@ -71,6 +71,22 @@ namespace Seq.App.Thresholds.Tests
         }
 
         [Test]
+        public void when_reset_disabled_and_threshold_exceeded_should_only_3_message()
+        {
+            const int ExpectLogs = 3;
+            const int SecondsBetweenLogs = 0;
+
+            // arrange
+            var sut = GetThresholdReactor(5, false);
+
+            // act
+            SendXEventsNSecondsApart(sut, 7, SecondsBetweenLogs);
+
+            // assert
+            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(ExpectLogs));
+        }
+
+        [Test]
         public void when_threshold_tripled_over_time_should_get_3_logs()
         {
             const int ExpectLogs = 3;
@@ -110,13 +126,14 @@ namespace Seq.App.Thresholds.Tests
             }
         }
 
-        private ThresholdReactor GetThresholdReactor(int threshold)
+        private ThresholdReactor GetThresholdReactor(int threshold, bool resetOnThresholdReached = true)
         {
             var sut = new ThresholdReactor()
                 {
                     EventsInWindowThreshold = threshold, 
                     ThresholdName = Guid.NewGuid().ToString(), 
-                    WindowSeconds = 120
+                    WindowSeconds = 120,
+                    ResetOnThresholdReached = resetOnThresholdReached
                 };
 
             var appHost = new Mock<IAppHost>();

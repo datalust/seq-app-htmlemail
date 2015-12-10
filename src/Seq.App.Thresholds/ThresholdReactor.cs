@@ -53,6 +53,11 @@ namespace Seq.App.Thresholds
             HelpText = "The name of this threshold; the events written back to the stream will be tagged with this value.")]
         public string ThresholdName { get; set; }
 
+        [SeqAppSetting(
+            DisplayName = "Reset on threshold reached",
+            HelpText = "Once the threshold is reached, reset the event count so that threshold must be reached again before another event is triggered.")]
+        public bool ResetOnThresholdReached { get; set; }
+
         // Sets up the sliding buffer when the app starts
         protected override void OnAttached()
         {
@@ -84,7 +89,10 @@ namespace Seq.App.Thresholds
             Log.Information("Threshold {ThresholdName} reached: {EventCount} events observed within {WindowSize} sec. (message suppressed for {SuppressionSeconds} sec.)",
                 ThresholdName, _sum, _buckets.Length, (int)_suppressionTime.TotalSeconds);
 
-            ResetSum();
+            if (ResetOnThresholdReached)
+            {
+                ResetSum();
+            }
         }
 
         private void ResetSum()
