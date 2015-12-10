@@ -16,13 +16,11 @@ namespace Seq.App.Thresholds.Tests
     public class ThresholdReactorTests
     {
         private Mock<ILogger> _logger;
-        private DateTime _testStartTime;
 
         [SetUp]
         public void SetUp()
         {
             _logger = new Mock<ILogger>();
-            _testStartTime = Some.UtcTimestamp();
         }
 
         [Test]
@@ -71,7 +69,7 @@ namespace Seq.App.Thresholds.Tests
         }
 
         [Test]
-        public void when_reset_disabled_and_threshold_exceeded_should_only_3_message()
+        public void when_reset_disabled_and_threshold_exceeded_should_log_only_3_message()
         {
             const int ExpectLogs = 3;
             const int SecondsBetweenLogs = 0;
@@ -118,9 +116,11 @@ namespace Seq.App.Thresholds.Tests
 
         private void SendXEventsNSecondsApart(ISubscribeTo<LogEventData> sut, int numberOfEvents, int secondsBetweenEvents = 0)
         {
+            var firstEventTime = Some.UtcTimestamp();
+
             for (var i = 0; i < numberOfEvents; i++)
             {
-                var eventTime = _testStartTime + TimeSpan.FromSeconds(i * secondsBetweenEvents);
+                var eventTime = firstEventTime + TimeSpan.FromSeconds(i * secondsBetweenEvents);
                 var @event = Some.LogEvent(timestamp: eventTime);
                 sut.On(@event);
             }
