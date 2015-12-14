@@ -1,29 +1,24 @@
 ﻿using System;
-
 using Moq;
-
-using NUnit.Framework;
-
 using Seq.App.Thresholds.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
 using Serilog;
+using Xunit;
 
 namespace Seq.App.Thresholds.Tests
 {
-    [TestFixture]
     public class ThresholdReactorTests
     {
         private Mock<ILogger> _logger;
 
-        [SetUp]
-        public void SetUp()
+        public ThresholdReactorTests()
         {
             _logger = new Mock<ILogger>();
         }
 
-        [Test]
+        [Fact]
         public void when_wrapped_before_threshold_reached_should_not_log()
         {
             const int SecondsBetweenLogs = 45;
@@ -38,7 +33,7 @@ namespace Seq.App.Thresholds.Tests
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
         }
 
-        [Test]
+        [Fact]
         public void when_threshold_exceeded_over_time_should_log_only_1_message()
         {
             const int SecondsBetweenLogs = 2;
@@ -53,7 +48,7 @@ namespace Seq.App.Thresholds.Tests
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once());
         }
 
-        [Test]
+        [Fact]
         public void when_threshold_exceeded_should_log_only_1_message()
         {
             const int SecondsBetweenLogs = 0;
@@ -68,7 +63,7 @@ namespace Seq.App.Thresholds.Tests
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once());
         }
 
-        [Test]
+        [Fact]
         public void when_reset_disabled_and_threshold_exceeded_should_log_only_3_message()
         {
             const int ExpectLogs = 3;
@@ -84,7 +79,7 @@ namespace Seq.App.Thresholds.Tests
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(ExpectLogs));
         }
 
-        [Test]
+        [Fact]
         public void when_threshold_tripled_over_time_should_get_3_logs()
         {
             const int ExpectLogs = 3;
@@ -99,7 +94,7 @@ namespace Seq.App.Thresholds.Tests
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(ExpectLogs));
         }
 
-        [Test]
+        [Fact]
         public void when_threshold_tripled_should_get_3_logs()
         {
             const int ExpectLogs = 3;
