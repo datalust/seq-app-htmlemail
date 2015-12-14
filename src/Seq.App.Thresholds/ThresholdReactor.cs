@@ -53,6 +53,11 @@ namespace Seq.App.Thresholds
             HelpText = "The name of this threshold; the events written back to the stream will be tagged with this value.")]
         public string ThresholdName { get; set; }
 
+        [SeqAppSetting(
+            DisplayName = "Reset on threshold reached",
+            HelpText = "Once the threshold is reached, reset the event count so that threshold must be reached again before another event is triggered.")]
+        public bool ResetOnThresholdReached { get; set; }
+
         // Sets up the sliding buffer when the app starts
         protected override void OnAttached()
         {
@@ -83,6 +88,17 @@ namespace Seq.App.Thresholds
             _suppressUntilUtc = DateTime.UtcNow + _suppressionTime;
             Log.Information("Threshold {ThresholdName} reached: {EventCount} events observed within {WindowSize} sec. (message suppressed for {SuppressionSeconds} sec.)",
                 ThresholdName, _sum, _buckets.Length, (int)_suppressionTime.TotalSeconds);
+
+            if (ResetOnThresholdReached)
+            {
+                ResetSum();
+            }
+        }
+
+        private void ResetSum()
+        {
+            _sum = 0;
+            Array.Clear(_buckets, 0, _buckets.Length);
         }
 
         // Adjusts the window to fit the event, providing the index into
@@ -111,33 +127,17 @@ namespace Seq.App.Thresholds
                 var firstReused = (_currentBucket + 1) % _buckets.Length;
                 if (distance >= _buckets.Length)
                 {
-                    _sum = 0;
-                    for (var i = 0; i < _buckets.Length; i++)
-                    {
-                        _buckets[i] = 0;
-                    }
+                    ResetSum();
                 }
                 else if (newCurrent >= firstReused)
                 {
-                    for (var i = firstReused; i <= newCurrent; i++)
-                    {
-                        _sum -= _buckets[i];
-                        _buckets[i] = 0;
-                    }
+                    CleanupBuckets(firstReused, newCurrent);
                 }
                 else
                 {
-                    for (var i = firstReused; i < _buckets.Length; i++)
-                    {
-                        _sum -= _buckets[i];
-                        _buckets[i] = 0;
-                    }
+                    CleanupBuckets(firstReused, _buckets.Length - 1);
 
-                    for (var i = 0; i <= newCurrent; i++)
-                    {
-                        _sum -= _buckets[i];
-                        _buckets[i] = 0;
-                    }
+                    CleanupBuckets(0, newCurrent);
                 }
 
                 _currentBucket = newCurrent;
@@ -146,6 +146,15 @@ namespace Seq.App.Thresholds
 
             eventBucket = _currentBucket;
             return true;
+        }
+
+        private void CleanupBuckets(int firstReused, int lastReused)
+        {
+            for (var i = firstReused; i <= lastReused; i++)
+            {
+                _sum -= _buckets[i];
+                _buckets[i] = 0;
+            }
         }
 
         // Check the current suppression time
