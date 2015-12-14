@@ -64,7 +64,7 @@ namespace Seq.App.Thresholds
             base.OnAttached();
 
             _buckets = new int[WindowSeconds];
-            _currentBucketSecond = DateTime.UtcNow;
+            _currentBucketSecond = SecondsFloor(DateTime.UtcNow);
             _currentBucket = 0;
             _suppressionTime = TimeSpan.FromSeconds(SuppressionSeconds);
         }
