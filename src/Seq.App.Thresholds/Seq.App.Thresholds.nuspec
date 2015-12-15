@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Seq.App.Thresholds</id>
-    <version>0.1.0</version>
+    <version>$version$</version>
     <authors>Continuous IT</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>The thresholds app for Seq (http://getseq.net) triggers when the number of events sent to it over a set time period exceeds a threshold.</description>

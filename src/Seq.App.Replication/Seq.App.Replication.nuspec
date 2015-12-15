@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Seq.App.Replication</id>
-    <version>0.1.0</version>
+    <version>$version$</version>
     <authors>Continuous IT</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A simple hot/cold replicator for Seq (http://getseq.net) that forwards incoming events to a second server. Replication is not

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Seq.App.FileArchive</id>
-    <version>0.1.0</version>
+    <version>$version$</version>
     <authors>Continuous IT</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>The file archive app for Seq (http://getseq.net) writes incoming events to a set rolling disc files for long-term archival storage.</description>

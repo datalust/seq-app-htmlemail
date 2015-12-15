@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Seq.App.Email</id>
-    <version>0.1.0</version>
+    <version>$version$</version>
     <authors>Continuous IT</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>The email app for Seq (http://getseq.net) formats events as text and sends them via SMTP email.</description>
