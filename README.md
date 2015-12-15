@@ -1,5 +1,4 @@
-Seq Apps
-========
+## Seq Apps [![Build status](https://ci.appveyor.com/api/projects/status/k03t9s0ubtylqixi/branch/master?svg=true)](https://ci.appveyor.com/project/seqlogs/seq-apps/branch/master)
 
 Apps for the [Seq](http://getseq.net) event server. You can find installable versions of these by searching for the [seq-app tag on NuGet](http://www.nuget.org/packages?q=seq-app).
 
