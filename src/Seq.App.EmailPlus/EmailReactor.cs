@@ -79,7 +79,7 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "SMTP Set Pickup Directory",
-            HelpText = "Check this box if you would like to specify a pickup directory instead of doing things right.")]
+            HelpText = "Check this box if you would like to specify a pickup directory folder instead of an SMTP server.")]
         public bool? SetPickupDirectory { get; set; }
 
         [SeqAppSetting(
