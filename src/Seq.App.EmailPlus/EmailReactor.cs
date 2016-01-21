@@ -16,7 +16,7 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
-        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
+        readonly Lazy<Func<object, string>> _bodyTemplate, _subjectTemplate;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -33,7 +33,7 @@ namespace Seq.App.EmailPlus
                 var subjectTemplate = SubjectTemplate;
                 if (string.IsNullOrEmpty(subjectTemplate))
                     subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Handlebars.Compile(subjectTemplate);                
+                return Handlebars.Handlebars.Compile(subjectTemplate);
             });
 
             _bodyTemplate = new Lazy<Func<object, string>>(() =>
@@ -49,7 +49,7 @@ namespace Seq.App.EmailPlus
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
         public string From { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent.")]
@@ -78,6 +78,18 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "SMTP Set Pickup Directory",
+            HelpText = "Check this box if you would like to specify a pickup directory instead of doing things right.")]
+        public bool? SetPickupDirectory { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+             DisplayName = "Pickup Directory Path",
+            HelpText = "If setting a pickup Directory, specify the absolute path here.")]
+        public string PickupDirectoryPath { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
@@ -102,20 +114,26 @@ namespace Seq.App.EmailPlus
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
+            var client = new SmtpClient(Host, Port ?? 25) { EnableSsl = EnableSsl ?? false };
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
 
-            var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
+            var message = new MailMessage(From, To, subject, body) { IsBodyHtml = true };
+
+            if (SetPickupDirectory == true && !string.IsNullOrWhiteSpace(PickupDirectoryPath))
+            {
+                client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
+                client.PickupDirectoryLocation = PickupDirectoryPath;
+            }
 
             client.Send(message);
         }
 
         public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
         {
-            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
+            var properties = (IDictionary<string, object>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
+            var payload = (IDictionary<string, object>)ToDynamic(new Dictionary<string, object>
             {
                 { "$Id",                  evt.Id },
                 { "$UtcTimestamp",        evt.TimestampUtc },
@@ -134,7 +152,7 @@ namespace Seq.App.EmailPlus
             {
                 payload[property.Key] = property.Value;
             }
-            
+
             return template(payload);
         }
 
@@ -172,7 +190,7 @@ namespace Seq.App.EmailPlus
             if (dictionary != null)
             {
                 var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object>) result;
+                var asDict = (IDictionary<string, object>)result;
                 foreach (var kvp in dictionary)
                     asDict.Add(kvp.Key, ToDynamic(kvp.Value));
                 return result;
