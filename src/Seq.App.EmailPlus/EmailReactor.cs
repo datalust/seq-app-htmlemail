@@ -78,6 +78,18 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "SMTP Set Pickup Directory",
+            HelpText = "Check this box if you would like to specify a pickup directory instead of doing things right.")]
+        public bool? SetPickupDirectory { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+             DisplayName = "Pickup Directory Path",
+            HelpText = "If ssetting a pickup Directory, specify the absolute path here.")]
+        public string PickupDirectoryPath { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
@@ -107,6 +119,12 @@ namespace Seq.App.EmailPlus
                 client.Credentials = new NetworkCredential(Username, Password);
 
             var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
+
+            if (SetPickupDirectory == true && !string.IsNullOrWhiteSpace(PickupDirectoryPath))
+            {
+                client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
+                client.PickupDirectoryLocation = PickupDirectoryPath;
+            }
 
             client.Send(message);
         }
