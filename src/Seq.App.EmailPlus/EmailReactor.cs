@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
@@ -16,6 +17,7 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
+        readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
         readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
@@ -85,6 +87,12 @@ namespace Seq.App.EmailPlus
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "Suppression time (minutes)",
+            IsOptional = true,
+            HelpText = "Once an event type has been sent, the time to wait before sending again. The default is zero.")]
+        public int SuppressionMinutes { get; set; } = 0;
+
+        [SeqAppSetting(
             IsOptional = true,
             HelpText = "The username to use when authenticating to the SMTP server, if required.")]
         public string Username { get; set; }
@@ -97,6 +105,14 @@ namespace Seq.App.EmailPlus
 
         public void On(Event<LogEventData> evt)
         {
+            bool added = false;
+            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k => { added = true; return DateTime.UtcNow; });
+            if (!added)
+            {
+                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
+                _lastSeen[evt.EventType] = DateTime.UtcNow;
+            }
+
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
             var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "").Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
