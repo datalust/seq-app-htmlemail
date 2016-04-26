@@ -121,6 +121,22 @@ namespace Seq.App.Thresholds.Tests
             }
         }
 
+        [Fact]
+        public void burn_in_fuzzing()
+        {
+            var now = DateTime.UtcNow;
+            // ReSharper disable once AccessToModifiedClosure
+            var rng = new Random();
+            var sut = GetThresholdReactor(100001);
+
+            for (var i = 0; i < 100000; ++i)
+            {
+                now = now.AddSeconds(rng.Next(0, 360) - 176);
+                var @event = Some.LogEvent(timestamp: now);
+                sut.On(@event);
+            }
+        }
+
         private ThresholdReactor GetThresholdReactor(int threshold, bool resetOnThresholdReached = true)
         {
             var sut = new ThresholdReactor()

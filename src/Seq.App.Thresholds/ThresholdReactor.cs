@@ -120,7 +120,7 @@ namespace Seq.App.Thresholds
                 // The C# modulus (%) is a remainder and thus will be negative in this case; adding
                 // the bucket length gets us back into the positive index range (though note the bucket
                 // will still be in the 'past'.
-                eventBucket = _buckets.Length + ((_currentBucket + distance) % _buckets.Length);
+                eventBucket = (_buckets.Length + _currentBucket + distance) % _buckets.Length;
                 return true;
             }
 
