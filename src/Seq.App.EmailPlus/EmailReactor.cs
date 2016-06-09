@@ -90,7 +90,7 @@ namespace Seq.App.EmailPlus
             DisplayName = "Suppression time (minutes)",
             IsOptional = true,
             HelpText = "Once an event type has been sent, the time to wait before sending again. The default is zero.")]
-        public int SuppressionMinutes { get; set; } = 0;
+        public int SuppressionMinutes { get; set; };
 
         [SeqAppSetting(
             IsOptional = true,
