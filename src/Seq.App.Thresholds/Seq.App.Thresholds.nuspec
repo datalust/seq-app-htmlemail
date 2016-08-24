@@ -3,13 +3,13 @@
   <metadata>
     <id>Seq.App.Thresholds</id>
     <version>$version$</version>
-    <authors>Continuous IT</authors>
+    <authors>Datalust and Contributors</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>The thresholds app for Seq (http://getseq.net) triggers when the number of events sent to it over a set time period exceeds a threshold.</description>
+    <description>The thresholds app for Seq (https://getseq.net) triggers when the number of events sent to it over a set time period exceeds a threshold. This package supports Seq 3.3+. Install the 1.x version of this package for compatibility with earlier versions of Seq.</description>
     <language>en-US</language>
-    <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
+    <projectUrl>https://github.com/datalust/seq-apps</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>http://getseq.net/images/apps/seq-app-thresholds.png</iconUrl>
+    <iconUrl>https://getseq.net/images/apps/seq-app-thresholds.png</iconUrl>
     <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>

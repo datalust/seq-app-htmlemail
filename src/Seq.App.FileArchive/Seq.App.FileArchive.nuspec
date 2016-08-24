@@ -3,13 +3,13 @@
   <metadata>
     <id>Seq.App.FileArchive</id>
     <version>$version$</version>
-    <authors>Continuous IT</authors>
+    <authors>Datalust and Contributors</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>The file archive app for Seq (http://getseq.net) writes incoming events to a set rolling disc files for long-term archival storage.</description>
+    <description>The file archive app for Seq (https://getseq.net) writes incoming events to a set rolling disc files for long-term archival storage. This package supports Seq 3.3+. Install the 1.x version of this package for compatibility with earlier versions of Seq.</description>
     <language>en-US</language>
-    <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
+    <projectUrl>https://github.com/datalust/seq-apps</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>http://getseq.net/images/apps/seq-app-file-archive.png</iconUrl>
+    <iconUrl>https://getseq.net/images/apps/seq-app-file-archive.png</iconUrl>
     <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>

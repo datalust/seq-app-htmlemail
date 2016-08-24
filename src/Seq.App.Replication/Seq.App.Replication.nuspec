@@ -3,15 +3,15 @@
   <metadata>
     <id>Seq.App.Replication</id>
     <version>$version$</version>
-    <authors>Continuous IT</authors>
+    <authors>Datalust and Contributors</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A simple hot/cold replicator for Seq (http://getseq.net) that forwards incoming events to a second server. Replication is not
+    <description>A simple hot/cold replicator for Seq (https://getseq.net) that forwards incoming events to a second server. Replication is not
     transactional - this package helps with failover but doesn't replicate configuration or guarantee 100% redundancy under all possible failure
-    scenarios.</description>
+    scenarios. This package supports Seq 3.3+. Install the 1.x version of this package for compatibility with earlier versions of Seq.</description>
     <language>en-US</language>
-    <projectUrl>https://github.com/continuousit/seq-apps</projectUrl>
+    <projectUrl>https://github.com/datalust/seq-apps</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>http://getseq.net/images/apps/seq-app-replication.png</iconUrl>
+    <iconUrl>https://getseq.net/images/apps/seq-app-replication.png</iconUrl>
     <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>
