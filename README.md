@@ -6,7 +6,7 @@ Apps for the [Seq](http://getseq.net) event server. You can find installable ver
 
 Currently in this repository you'll find:
 
- * **Email+** - send Seq events as email messages when they arrive (replaces the older _Email_ app package)
+ * **Email+** - [send log events as HTML email messages](http://docs.getseq.net/v3/docs/formatting-html-email) when they arrive (replaces the obsolete _Email_ app package)
  * **File Archive** - copy incoming log events into a set of rolling text files
  * **First of Type** - raise an event the first time a new event type is seen
  * **Replication** - forward incoming events to another Seq server
