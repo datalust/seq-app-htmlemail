@@ -54,7 +54,7 @@ namespace Seq.App.EmailPlus
         
         [SeqAppSetting(
             DisplayName = "To address",
-            HelpText = "The account to which the email is being sent.")]
+            HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma.")]
         public string To { get; set; }
 
         [SeqAppSetting(
