@@ -157,14 +157,10 @@
                     <div class="email-subhead" style="font-weight:bold;" >Results</div>
                     {{#each Results}}
                     <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >
-                        {{pretty this.Key}}
-                        </div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >
-                            {{#each Slices}}
-                                <span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}
-                            {{/each}}
-                        </div>
+                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
+                        {{#each Slices}}
+                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" ><span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
+                        {{/each}}
                     </div>
                     {{/each}}
                 </div>

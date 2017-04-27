@@ -157,14 +157,10 @@
                     <div class="email-subhead">Results</div>
                     {{#each Results}}
                     <div class="seq-event-property">
-                        <div class="seq-property-name">
-                        {{pretty this.Key}}
-                        </div>
-                        <div class="seq-property-value">
-                            {{#each Slices}}
-                                <span class="seq-slice-start">{{SliceStart}}</span> {{pretty Rowset}}
-                            {{/each}}
-                        </div>
+                        <div class="seq-property-name">{{pretty this.Key}}</div>
+                        {{#each Slices}}
+                        <div class="seq-property-value"><span class="seq-slice-start">{{SliceStart}}</span> {{pretty Rowset}}</div>
+                        {{/each}}
                     </div>
                     {{/each}}
                 </div>
