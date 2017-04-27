@@ -35,7 +35,9 @@
                 font-weight: bold;
             }
         .seq-event-data {
-            padding: 30px 40px 20px;
+            padding: 30px 40px 40px;
+            border-left: 1px solid #eee;
+            border-right: 1px solid #eee;
         }
         .seq-message {
             font-weight: bold;            
@@ -55,7 +57,7 @@
         }
         .seq-condition {
             font-family: monospace;
-            background-color: ;
+            background-color: #fffbdd;
         }
         .seq-property-value {
             font-family: monospace;
@@ -72,7 +74,6 @@
             white-space: pre;
         }
         .email-footer {
-            margin: 20px 0 0;
             padding: 20px 40px 20px;
             font-size: 12px;
             background-color: #eee;
@@ -115,7 +116,7 @@
             {{#if_eq $EventType "$A1E77000"}}
             <div class="seq-event-data">
                 <div class="seq-message">Alert condition <span class="seq-condition">{{Condition}}</span> detected on
-                    <a href="{{{DashboardUrl}}}">{{DashboardTitle}}</a> &middot; {{ChartTitle}}</div>
+                    <a href="{{{DashboardUrl}}}">{{DashboardTitle}}/{{ChartTitle}}</a></div>
                 <div class="seq-event-links">
                     <a href="{{{ResultsUrl}}}">Explore detected results in Seq</a>                
                 </div>
@@ -173,7 +174,7 @@
             <div class="seq-event-data">
                 <div class="seq-message">{{$Message}}</div>
                 <div class="seq-event-links">
-                    <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'">Open this event in Seq</a>                
+                    <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'&amp;show=expanded">Open this event in Seq</a>                
                 </div>
                 <div class="seq-event-properties">
                     {{#each $Properties}}

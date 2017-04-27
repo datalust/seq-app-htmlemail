@@ -35,7 +35,9 @@
                 font-weight: bold;
             }
         .seq-event-data {
-            padding: 30px 40px 20px;
+            padding: 30px 40px 40px;
+            border-left: 1px solid #eee;
+            border-right: 1px solid #eee;
         }
         .seq-message {
             font-weight: bold;            
@@ -55,7 +57,7 @@
         }
         .seq-condition {
             font-family: monospace;
-            background-color: ;
+            background-color: #fffbdd;
         }
         .seq-property-value {
             font-family: monospace;
@@ -72,7 +74,6 @@
             white-space: pre;
         }
         .email-footer {
-            margin: 20px 0 0;
             padding: 20px 40px 20px;
             font-size: 12px;
             background-color: #eee;
@@ -113,9 +114,9 @@
                 <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
             </div>
             {{#if_eq $EventType "$A1E77000"}}
-            <div class="seq-event-data" style="padding-top:30px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-                <div class="seq-message" style="font-weight:bold;" >Alert condition <span class="seq-condition" style="font-family:monospace;background-color:;" >{{Condition}}</span> detected on
-                    <a href="{{{DashboardUrl}}}" style="color:#007acc;text-decoration:none;" >{{DashboardTitle}}</a> &middot; {{ChartTitle}}</div>
+            <div class="seq-event-data" style="padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
+                <div class="seq-message" style="font-weight:bold;" >Alert condition <span class="seq-condition" style="font-family:monospace;background-color:#fffbdd;" >{{Condition}}</span> detected on
+                    <a href="{{{DashboardUrl}}}" style="color:#007acc;text-decoration:none;" >{{DashboardTitle}}/{{ChartTitle}}</a></div>
                 <div class="seq-event-links" style="font-size:12px;margin-top:20px;" >
                     <a href="{{{ResultsUrl}}}" style="color:#007acc;text-decoration:none;" >Explore detected results in Seq</a>                
                 </div>
@@ -170,10 +171,10 @@
                 {{/if}}
             </div>
             {{else}}
-            <div class="seq-event-data" style="padding-top:30px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
+            <div class="seq-event-data" style="padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
                 <div class="seq-message" style="font-weight:bold;" >{{$Message}}</div>
                 <div class="seq-event-links" style="font-size:12px;margin-top:20px;" >
-                    <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'" style="color:#007acc;text-decoration:none;" >Open this event in Seq</a>                
+                    <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'&amp;show=expanded" style="color:#007acc;text-decoration:none;" >Open this event in Seq</a>                
                 </div>
                 <div class="seq-event-properties" style="margin-top:20px;" >
                     {{#each $Properties}}
@@ -192,7 +193,7 @@
             </div>
             {{/if_eq}}
         </div>
-        <div class="email-footer" style="margin-top:20px;margin-bottom:0;margin-right:0;margin-left:0;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;font-size:12px;background-color:#eee;" >
+        <div class="email-footer" style="padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;font-size:12px;background-color:#eee;" >
             Sent by Seq installed at <a href='{{{$ServerUri}}}' style="color:#007acc;text-decoration:none;" >{{$ServerUri}}</a>.
         </div>
     </div>
