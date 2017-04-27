@@ -1,145 +1,108 @@
 ﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>[{{$Level}}] {{$Message}} (via Seq)</title>
+    <title>{{$Message}} (via Seq)</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
-        .email-body {
-            margin: 10px;
+        .email {
             font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-            font-size: 14px;
+            font-size: 16px;
             line-height: 20px;
             color: #333;
             background-color: #fff;
+            padding: 0;
+            margin: 0;
         }
-
-        .seq-event-tools {
-            float: left;
-            margin-right: 5px;
+        .seq-event-header {
+            color: #fff;
+            padding: 20px 40px;
         }
-
+            .seq-event-header.error {
+                background-color: #e03836;
+            }
+            .seq-event-header.warning {
+                background-color: #f9c019;
+            }
+            .seq-event-header.information {
+                background-color: #0098ff;
+            }
+            .seq-event-header.debug {
+                background-color: #aaa;
+            }
+            .seq-event-header .seq-event-level {
+                font-size: 32px;
+                line-height: 40px;
+                font-weight: bold;
+            }
         .seq-event-data {
-            margin-top: 2px;
-            margin-left: 190px;
-            overflow: visible;
-            white-space: normal;
+            padding: 30px 40px 20px;
         }
-
-        .seq-event-properties {
-            margin-top: 5px;
+        .seq-message {
+            font-weight: bold;            
         }
-
-        .seq-property {
-            width: 100%;
+        .seq-event-links {
+            font-size: 12px;
         }
-
+        .seq-event-links, .seq-event-properties {
+            margin-top: 20px;
+        }
+        .seq-event-property {
+            margin-top: 10px;
+        }
         .seq-property-name {
-            float: left;
-            width: 200px;
-            overflow: hidden;
             font-family: monospace;
-            font-size: 13px;
             font-weight: bold;
-            text-overflow: ellipsis;
         }
-
         .seq-property-value {
-            margin-left: 245px;
             font-family: monospace;
-            font-size: 13px;
             word-wrap: break-word;
             white-space: pre-wrap;
         }
-
-        .seq-event-actions {
-            margin-top: 5px;
-        }
-
-            .seq-event-actions a.action {
-                padding-right: 10px;
-                font-size: 12px;
-            }
-
         a {
             color: #007acc;
             text-decoration: none;
         }
-
-        .seq-event-timestamp {
-            margin-right: 5px;
-            color: white;
-        }
-
-            .seq-event-timestamp .datetime {
-                display: inline-block;
-                width: 172px;
-                padding: 2px 4px;
-                font-size: 11.844px;
-                font-weight: bold;
-                line-height: 14px;
-                color: #fff;
-                text-shadow: none;
-                white-space: nowrap;
-                vertical-align: baseline;
-                background-color: #aaa;
-                -webkit-border-radius: 3px;
-                -moz-border-radius: 3px;
-                border-radius: 2px;
-                margin-top: 2px;
-            }
-
-        .seq-event-detail {
-            width: 100%;
-            padding: 0 2px 2px 2px;
-            margin: 2px -3px 0 -3px;
-            overflow: visible;
-            white-space: nowrap;
-            border-style: solid;
-            border-width: 1px;
-            border-radius: 2px;
-
-            /* Not dynamically controlled at this point; we always show all events in
-               the "information" color scheme */
-            background-color: #eff9ff;
-            border-color: #54afcc;
-        }
-
         .seq-event-exception {
-            padding: 2px;
-            margin-top: 5px;
             overflow: auto;
             font-family: monospace;
-            font-size: 9pt;
-            color: white;
             white-space: pre;
-            background-color: #e03836;
         }
-
         .email-footer {
-            margin-top: 20px;
-            font-size: 9pt;
-            font-style: italic;
-            color: #ddd;
+            margin: 20px 0 0;
+            padding: 20px 40px 20px;
+            font-size: 12px;
+            background-color: #eee;
         }
-
-            .email-footer a {
-                color: #ddd;
-                font-weight: bold;
-            }
     </style>
 </head>
 <body>
-    <div class="email-body">
-        <div class="seq-event-detail">
-            <div class="seq-event-tools">
-                <span class="seq-event-timestamp" title="{{$UtcTimestamp}}"><span class="datetime">{{$LocalTimestamp}}</span></span>
+    <div class="email">
+        <div class="email-body">
+            {{#if_eq $Level "Fatal"}}
+            <div class="seq-event-header error">
+            {{/if_eq}}
+            {{#if_eq $Level "Error"}}
+            <div class="seq-event-header error">
+            {{/if_eq}}
+            {{#if_eq $Level "Warning"}}
+            <div class="seq-event-header warning">
+            {{/if_eq}}
+            {{#if_eq $Level "Information"}}
+            <div class="seq-event-header information">
+            {{/if_eq}}
+            {{#if_eq $Level "Debug"}}
+            <div class="seq-event-header debug">
+            {{/if_eq}}
+            {{#if_eq $Level "Verbose"}}
+            <div class="seq-event-header debug">
+            {{/if_eq}}
+                <div class="seq-event-level">{{$Level}}</div>
+                <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
             </div>
             <div class="seq-event-data">
-                <div>
-                    <span class="seq-message-template">[<strong>{{$Level}}</strong>] {{$Message}}</span>
-                </div>
-                <div class="seq-event-actions">
-                    <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D%22{{$Id}}%22' class="action">View in Seq</a>
+                <div class="seq-message">{{$Message}}</div>
+                <div class="seq-event-links">
+                    <a href='{{{$ServerUri}}}#/events?filter=@Id%3D%3D%22{{$Id}}%22'>Open this event in Seq</a>                
                 </div>
                 <div class="seq-event-properties">
                     {{#each $Properties}}
@@ -149,14 +112,16 @@
                     </div>
                     {{/each}}
                     {{#if $Exception}}
-                    <pre class="seq-event-exception">{{$Exception}}</pre>
+                    <div class="seq-event-property">
+                        <div class="seq-property-name">Exception</div>
+                        <div class="seq-event-exception">{{$Exception}}</div>
+                    </div>
                     {{/if}}
                 </div>
             </div>
         </div>
         <div class="email-footer">
-            Sent from <a href="https://getseq.net">Seq</a> &mdash; structured log server for .NET &mdash; installed
-            at <a href='{{{$ServerUri}}}'>{{$ServerUri}}</a>.
+            Sent by Seq installed at <a href='{{{$ServerUri}}}'>{{$ServerUri}}</a>.
         </div>
     </div>
 </body>
