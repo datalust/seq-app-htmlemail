@@ -25,7 +25,7 @@ namespace Seq.App.EmailPlus
 
         static EmailReactor()
         {
-            Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrint);
+            HandlebarsHelpers.Register();
         }
 
         public EmailReactor()
@@ -152,34 +152,6 @@ namespace Seq.App.EmailPlus
             }
             
             return template(payload);
-        }
-
-        static void PrettyPrint(TextWriter output, object context, object[] arguments)
-        {
-            var value = arguments.FirstOrDefault();
-            if (value == null)
-                output.WriteSafeString("null");
-            else if (value is IEnumerable<object> || value is IEnumerable<KeyValuePair<string, object>>)
-                output.WriteSafeString(JsonConvert.SerializeObject(FromDynamic(value)));
-            else
-                output.WriteSafeString(value.ToString());
-        }
-
-        static object FromDynamic(object o)
-        {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
-            {
-                return dictionary.ToDictionary(kvp => kvp.Key, kvp => FromDynamic(kvp.Value));
-            }
-
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
-            {
-                return enumerable.Select(FromDynamic).ToArray();
-            }
-
-            return o;
         }
 
         static object ToDynamic(object o)
