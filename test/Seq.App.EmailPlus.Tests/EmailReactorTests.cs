@@ -9,6 +9,12 @@ namespace Seq.App.EmailPlus.Tests
 {
     public class EmailReactorTests
     {
+        static EmailReactorTests()
+        {
+            // Ensure the handlebars helpers are registered.
+            GC.KeepAlive(new EmailReactor());
+        }
+
         [Fact]
         public void BuiltInPropertiesAreRenderedInTemplates()
         {
