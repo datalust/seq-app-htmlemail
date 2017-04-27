@@ -46,5 +46,23 @@ namespace Seq.App.EmailPlus.Tests
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("No properties", result);
         }
+
+        [Fact]
+        public void IfEqHelperDetectsEquality()
+        {
+            var template = Handlebars.Handlebars.Compile("{{#if_eq $Level \"Fatal\"}}True{{/if_eq}}");
+            var data = Some.LogEvent();
+            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            Assert.Equal("True", result);
+        }
+
+        [Fact]
+        public void IfEqHelperDetectsInequality()
+        {
+            var template = Handlebars.Handlebars.Compile("{{#if_eq $Level \"Warning\"}}True{{/if_eq}}");
+            var data = Some.LogEvent();
+            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            Assert.Equal("", result);
+        }
     }
 }
