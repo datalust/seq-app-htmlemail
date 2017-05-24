@@ -17,16 +17,16 @@
             color: #fff;
             padding: 20px 40px;
         }
-            .seq-event-header.error {
+            .seq-event-header .level-error {
                 background-color: #e03836;
             }
-            .seq-event-header.warning {
+            .seq-event-header .level-warning {
                 background-color: #f9c019;
             }
-            .seq-event-header.information {
+            .seq-event-header .level-information {
                 background-color: #0098ff;
             }
-            .seq-event-header.debug {
+            .seq-event-header .level-debug {
                 background-color: #aaa;
             }
             .seq-event-header .seq-event-level {
@@ -92,26 +92,28 @@
 <body>
     <div class="email">
         <div class="email-body">
-            {{#if_eq $Level "Fatal"}}
-            <div class="seq-event-header error">
-            {{/if_eq}}
-            {{#if_eq $Level "Error"}}
-            <div class="seq-event-header error">
-            {{/if_eq}}
-            {{#if_eq $Level "Warning"}}
-            <div class="seq-event-header warning">
-            {{/if_eq}}
-            {{#if_eq $Level "Information"}}
-            <div class="seq-event-header information">
-            {{/if_eq}}
-            {{#if_eq $Level "Debug"}}
-            <div class="seq-event-header debug">
-            {{/if_eq}}
-            {{#if_eq $Level "Verbose"}}
-            <div class="seq-event-header debug">
-            {{/if_eq}}
-                <div class="seq-event-level">{{$Level}}</div>
-                <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+            <div class="seq-event-header">
+                {{#if_eq $Level "Fatal"}}
+                <div class="level-error">
+                {{/if_eq}}
+                {{#if_eq $Level "Error"}}
+                <div class="level-error">
+                {{/if_eq}}
+                {{#if_eq $Level "Warning"}}
+                <div class="level-warning">
+                {{/if_eq}}
+                {{#if_eq $Level "Information"}}
+                <div class="level-information">
+                {{/if_eq}}
+                {{#if_eq $Level "Debug"}}
+                <div class="level-debug">
+                {{/if_eq}}
+                {{#if_eq $Level "Verbose"}}
+                <div class="level-debug">
+                {{/if_eq}}
+                    <div class="seq-event-level">{{$Level}}</div>
+                    <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+                </div>
             </div>
             {{#if_eq $EventType "$A1E77000"}}
             <div class="seq-event-data">

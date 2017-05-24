@@ -17,16 +17,16 @@
             color: #fff;
             padding: 20px 40px;
         }
-            .seq-event-header.error {
+            .seq-event-header .level-error {
                 background-color: #e03836;
             }
-            .seq-event-header.warning {
+            .seq-event-header .level-warning {
                 background-color: #f9c019;
             }
-            .seq-event-header.information {
+            .seq-event-header .level-information {
                 background-color: #0098ff;
             }
-            .seq-event-header.debug {
+            .seq-event-header .level-debug {
                 background-color: #aaa;
             }
             .seq-event-header .seq-event-level {
@@ -92,26 +92,28 @@
 <body>
     <div class="email" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;color:#333;background-color:#fff;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;" >
         <div class="email-body">
-            {{#if_eq $Level "Fatal"}}
-            <div class="seq-event-header error" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Error"}}
-            <div class="seq-event-header error" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Warning"}}
-            <div class="seq-event-header warning" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Information"}}
-            <div class="seq-event-header information" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Debug"}}
-            <div class="seq-event-header debug" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Verbose"}}
-            <div class="seq-event-header debug" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-                <div class="seq-event-level" style="font-size:32px;line-height:40px;font-weight:bold;" >{{$Level}}</div>
-                <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+            <div class="seq-event-header" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
+                {{#if_eq $Level "Fatal"}}
+                <div class="level-error" style="background-color:#e03836;" >
+                {{/if_eq}}
+                {{#if_eq $Level "Error"}}
+                <div class="level-error" style="background-color:#e03836;" >
+                {{/if_eq}}
+                {{#if_eq $Level "Warning"}}
+                <div class="level-warning" style="background-color:#f9c019;" >
+                {{/if_eq}}
+                {{#if_eq $Level "Information"}}
+                <div class="level-information" style="background-color:#0098ff;" >
+                {{/if_eq}}
+                {{#if_eq $Level "Debug"}}
+                <div class="level-debug" style="background-color:#aaa;" >
+                {{/if_eq}}
+                {{#if_eq $Level "Verbose"}}
+                <div class="level-debug" style="background-color:#aaa;" >
+                {{/if_eq}}
+                    <div class="seq-event-level" style="font-size:32px;line-height:40px;font-weight:bold;" >{{$Level}}</div>
+                    <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+                </div>
             </div>
             {{#if_eq $EventType "$A1E77000"}}
             <div class="seq-event-data" style="padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
@@ -125,17 +127,17 @@
                         <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Query</div>
                         <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{Query}}</div>
                     </div>
-                    <div class="seq-event-property" style="margin-top:10px;">
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;">Measurement window</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{MeasurementWindow}}</div>
+                    <div class="seq-event-property" style="margin-top:10px;" >
+                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Measurement window</div>
+                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{MeasurementWindow}}</div>
                     </div>
-                    <div class="seq-event-property" style="margin-top:10px;">
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;">Suppression time</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{SuppressionTime}}</div>
+                    <div class="seq-event-property" style="margin-top:10px;" >
+                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Suppression time</div>
+                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{SuppressionTime}}</div>
                     </div>
-                    <div class="seq-event-property" style="margin-top:10px;">
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;">Detected range start</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{AlertRangeStart}}</div>
+                    <div class="seq-event-property" style="margin-top:10px;" >
+                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Detected range start</div>
+                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{AlertRangeStart}}</div>
                     </div>
                     <div class="seq-event-property" style="margin-top:10px;" >
                         <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Detected range end</div>
