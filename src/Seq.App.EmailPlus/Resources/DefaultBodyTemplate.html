@@ -1,205 +1,124 @@
-﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>{{$Message}} (via Seq)</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <style>
-        .email {
-            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-            font-size: 16px;
-            line-height: 20px;
-            color: #333;
-            background-color: #fff;
-            padding: 0;
-            margin: 0;
-        }
-        .seq-event-header {
-            color: #fff;
-            padding: 20px 40px;
-        }
-            .seq-event-header.error {
-                background-color: #e03836;
-            }
-            .seq-event-header.warning {
-                background-color: #f9c019;
-            }
-            .seq-event-header.information {
-                background-color: #0098ff;
-            }
-            .seq-event-header.debug {
-                background-color: #aaa;
-            }
-            .seq-event-header .seq-event-level {
-                font-size: 32px;
-                line-height: 40px;
-                font-weight: bold;
-            }
-        .seq-event-data {
-            padding: 30px 40px 40px;
-            border-left: 1px solid #eee;
-            border-right: 1px solid #eee;
-        }
-        .seq-message {
-            font-weight: bold;            
-        }
-        .seq-event-links {
-            font-size: 12px;
-        }
-        .seq-event-links, .seq-event-properties {
-            margin-top: 20px;
-        }
-        .seq-event-property {
-            margin-top: 10px;
-        }
-        .seq-property-name {
-            font-family: monospace;
-            font-weight: bold;
-        }
-        .seq-condition {
-            font-family: monospace;
-            background-color: #fffbdd;
-        }
-        .seq-property-value {
-            font-family: monospace;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-        a {
-            color: #007acc;
-            text-decoration: none;
-        }
-        .seq-event-exception {
-            overflow: auto;
-            font-family: monospace;
-            white-space: pre;
-        }
-        .email-footer {
-            padding: 20px 40px 20px;
-            font-size: 12px;
-            background-color: #eee;
-        }
-        .email-subhead {
-            font-weight: bold;
-        }
-        .seq-alert-results {
-            margin-top: 20px;
-        }
-        .seq-slice-start {
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
-    <div class="email" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;color:#333;background-color:#fff;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;" >
-        <div class="email-body">
-            {{#if_eq $Level "Fatal"}}
-            <div class="seq-event-header error" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;color:#333;background-color:#fff;" >
+    <tr>
+        {{#if_eq $Level "Fatal"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;margin:0;background-color:#e03836;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Error"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;margin:0;background-color:#e03836;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Warning"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px; background-color:#f9c019;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Information"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;background-color:#0098ff;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Debug"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;background-color:#aaa;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Verbose"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;background-color:#aaa;" >
             {{/if_eq}}
-            {{#if_eq $Level "Error"}}
-            <div class="seq-event-header error" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Warning"}}
-            <div class="seq-event-header warning" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Information"}}
-            <div class="seq-event-header information" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Debug"}}
-            <div class="seq-event-header debug" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-            {{#if_eq $Level "Verbose"}}
-            <div class="seq-event-header debug" style="color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;" >
-            {{/if_eq}}
-                <div class="seq-event-level" style="font-size:32px;line-height:40px;font-weight:bold;" >{{$Level}}</div>
-                <div class="seq-event-timestamp" title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+            <div style="font-size:32px;line-height:40px;font-weight:bold;" >{{$Level}}</div>
+            <div title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+        </td>
+    </tr>
+    <tr>
+        {{#if_eq $EventType "$A1E77000"}}
+        <td style="text-align:left;padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
+            <div style="font-weight:bold;" >Alert condition <span class="seq-condition" style="font-family:monospace;background-color:#fffbdd;" >{{Condition}}</span> detected on
+                <a href="{{{DashboardUrl}}}" style="color:#007acc;text-decoration:none;" >{{DashboardTitle}}/{{ChartTitle}}</a></div>
+            <div style="font-size:12px;margin-top:20px;" >
+                <a href="{{{ResultsUrl}}}" style="color:#007acc;text-decoration:none;" >Explore detected results in Seq</a>                
             </div>
-            {{#if_eq $EventType "$A1E77000"}}
-            <div class="seq-event-data" style="padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
-                <div class="seq-message" style="font-weight:bold;" >Alert condition <span class="seq-condition" style="font-family:monospace;background-color:#fffbdd;" >{{Condition}}</span> detected on
-                    <a href="{{{DashboardUrl}}}" style="color:#007acc;text-decoration:none;" >{{DashboardTitle}}/{{ChartTitle}}</a></div>
-                <div class="seq-event-links" style="font-size:12px;margin-top:20px;" >
-                    <a href="{{{ResultsUrl}}}" style="color:#007acc;text-decoration:none;" >Explore detected results in Seq</a>                
+            <div style="margin-top:20px;" >
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >Query</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{Query}}</div>
                 </div>
-                <div class="seq-event-properties" style="margin-top:20px;" >
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Query</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{Query}}</div>
-                    </div>
-                    <div class="seq-event-property" style="margin-top:10px;">
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;">Measurement window</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{MeasurementWindow}}</div>
-                    </div>
-                    <div class="seq-event-property" style="margin-top:10px;">
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;">Suppression time</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{SuppressionTime}}</div>
-                    </div>
-                    <div class="seq-event-property" style="margin-top:10px;">
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;">Detected range start</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{AlertRangeStart}}</div>
-                    </div>
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Detected range end</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
-                    </div>
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Intersected signals</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{pretty SignalTitles}}</div>
-                    </div>
-                    {{#if OwnerUsername}}
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Owner</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{OwnerUsername}}</div>
-                    </div>
-                    {{/if}}
-                    {{#if Errors}}
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Error</div>
-                        {{#each Errors}}
-                        <div class="seq-event-exception" style="overflow:auto;font-family:monospace;white-space:pre;" >{{this}}</div>
-                        {{/each}}
-                    </div>
-                    {{/if}}
+                <div style="margin-top:10px;">
+                    <div style="font-family:monospace;font-weight:bold;">Measurement window</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{MeasurementWindow}}</div>
                 </div>
-                {{#if Results}}
-                <div class="seq-alert-results" style="margin-top:20px;" >                    
-                    <div class="email-subhead" style="font-weight:bold;" >Results</div>
-                    {{#each Results}}
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
-                        {{#each Slices}}
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" ><span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
-                        {{/each}}
-                    </div>
+                <div style="margin-top:10px;">
+                    <div style="font-family:monospace;font-weight:bold;">Suppression time</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{SuppressionTime}}</div>
+                </div>
+                <div style="margin-top:10px;">
+                    <div style="font-family:monospace;font-weight:bold;">Detected range start</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;">{{AlertRangeStart}}</div>
+                </div>
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >Detected range end</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
+                </div>
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >Intersected signals</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{pretty SignalTitles}}</div>
+                </div>
+                {{#if OwnerUsername}}
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >Owner</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{OwnerUsername}}</div>
+                </div>
+                {{/if}}
+                {{#if Errors}}
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >Error</div>
+                    {{#each Errors}}
+                    <div style="overflow:hidden;font-family:monospace;white-space:pre-wrap;" >{{this}}</div>
                     {{/each}}
                 </div>
                 {{/if}}
             </div>
-            {{else}}
-            <div class="seq-event-data" style="padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
-                <div class="seq-message" style="font-weight:bold;" >{{$Message}}</div>
-                <div class="seq-event-links" style="font-size:12px;margin-top:20px;" >
-                    <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'&amp;show=expanded" style="color:#007acc;text-decoration:none;" >Open this event in Seq</a>                
-                </div>
-                <div class="seq-event-properties" style="margin-top:20px;" >
-                    {{#each $Properties}}
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" title="{{@key}}" style="font-family:monospace;font-weight:bold;" >{{@key}}</div>
-                        <div class="seq-property-value" style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{pretty this}}</div>
-                    </div>
+            {{#if Results}}
+            <div style="margin-top:20px;" >                    
+                <div style="font-weight:bold;" >Results</div>
+                {{#each Results}}
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
+                    {{#each Slices}}
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" ><span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
                     {{/each}}
-                    {{#if $Exception}}
-                    <div class="seq-event-property" style="margin-top:10px;" >
-                        <div class="seq-property-name" style="font-family:monospace;font-weight:bold;" >Exception</div>
-                        <div class="seq-event-exception" style="overflow:auto;font-family:monospace;white-space:pre;" >{{$Exception}}</div>
-                    </div>
-                    {{/if}}
                 </div>
+                {{/each}}
             </div>
-            {{/if_eq}}
-        </div>
-        <div class="email-footer" style="padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;font-size:12px;background-color:#eee;" >
+            {{/if}}
+        </td>
+        {{else}}
+        <td style="text-align:left;padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
+            <div style="font-weight:bold;" >{{$Message}}</div>
+            <div style="font-size:12px;margin-top:20px;" >
+                <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'&amp;show=expanded" style="color:#007acc;text-decoration:none;" >Open this event in Seq</a>                
+            </div>
+            <div style="margin-top:20px;" >
+                {{#each $Properties}}
+                <div style="margin-top:10px;" >
+                    <div title="{{@key}}" style="font-family:monospace;font-weight:bold;" >{{@key}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre-wrap;" >{{pretty this}}</div>
+                </div>
+                {{/each}}
+                {{#if $Exception}}
+                <div style="margin-top:10px;" >
+                    <div style="font-family:monospace;font-weight:bold;" >Exception</div>
+                    <div style="overflow:hidden;font-family:monospace;white-space:pre-wrap;" >{{$Exception}}</div>
+                </div>
+                {{/if}}
+            </div>
+        </td>
+        {{/if_eq}}
+    </tr>
+    <tr>
+        <td style="text-align:left;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;font-size:12px;background-color:#eee;">
             Sent by Seq installed at <a href='{{{$ServerUri}}}' style="color:#007acc;text-decoration:none;" >{{$ServerUri}}</a>.
-        </div>
-    </div>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
