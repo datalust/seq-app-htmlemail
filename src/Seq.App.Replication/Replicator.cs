@@ -83,16 +83,16 @@ namespace Seq.App.Replication
             return new LogEventProperty(name, CreatePropertyValue(value));
         }
 
-
         LogEventPropertyValue CreatePropertyValue(object value)
         {
-            var d = value as IDictionary<string, object>;
+            var d = value as IReadOnlyDictionary<string, object>;
             if (d != null)
             {
                 object tt;
-                d.TryGetValue("$typeTag", out tt);
+                var _ = d.TryGetValue("$typeTag", out tt) || d.TryGetValue("_typeTag", out tt) || d.TryGetValue("$type", out tt);
                 return new StructureValue(
-                    d.Where(kvp => kvp.Key != "$typeTag").Select(kvp => CreateProperty(kvp.Key, kvp.Value)),
+                    d.Where(kvp => kvp.Key != "$typeTag" && kvp.Key != "_typeTag" && kvp.Key != "$type")
+                        .Select(kvp => CreateProperty(kvp.Key, kvp.Value)),
                     tt as string);
             }
 
