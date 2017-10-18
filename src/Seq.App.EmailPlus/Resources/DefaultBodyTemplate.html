@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>{{$Message}} (via Seq)</title>
@@ -40,39 +40,39 @@
             <div style="margin-top:20px;" >
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >Query</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;" >{{Query}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{Query}}</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Measurement window</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;">{{MeasurementWindow}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{MeasurementWindow}}</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Suppression time</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;">{{SuppressionTime}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{SuppressionTime}}</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Detected range start</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;">{{AlertRangeStart}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{AlertRangeStart}}</div>
                 </div>
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >Detected range end</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;" >{{AlertRangeEnd}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
                 </div>
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >Intersected signals</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;" >{{pretty SignalTitles}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty SignalTitles}}</div>
                 </div>
                 {{#if OwnerUsername}}
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >Owner</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;" >{{OwnerUsername}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{OwnerUsername}}</div>
                 </div>
                 {{/if}}
                 {{#if Errors}}
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >Error</div>
                     {{#each Errors}}
-                    <div style="overflow:hidden;font-family:monospace;white-space:pre;" >{{this}}</div>
+                    <div style="overflow:hidden;font-family:monospace;white-space:pre;white-space:pre-wrap;" >{{this}}</div>
                     {{/each}}
                 </div>
                 {{/if}}
@@ -84,7 +84,7 @@
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
                     {{#each Slices}}
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;" ><span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
                     {{/each}}
                 </div>
                 {{/each}}
@@ -101,13 +101,13 @@
                 {{#each $Properties}}
                 <div style="margin-top:10px;" >
                     <div title="{{@key}}" style="font-family:monospace;font-weight:bold;" >{{@key}}</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;" >{{pretty this}}</div>
+                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this}}</div>
                 </div>
                 {{/each}}
                 {{#if $Exception}}
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >Exception</div>
-                    <div style="overflow:hidden;font-family:monospace;white-space:pre;" >{{$Exception}}</div>
+                    <div style="overflow:hidden;font-family:monospace;white-space:pre;white-space:pre-wrap;" >{{$Exception}}</div>
                 </div>
                 {{/if}}
             </div>
