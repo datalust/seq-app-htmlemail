@@ -69,7 +69,7 @@ namespace Seq.App.EmailPlus
 
         static void SubstringHelper(TextWriter output, object context, object[] arguments)
         {
-            //{{trimString value 0 30}}
+            //{{ trimString value "0" "30" }}
             var value = arguments.FirstOrDefault();
 
             if (value == null)

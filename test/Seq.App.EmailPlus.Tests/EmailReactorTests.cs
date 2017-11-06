@@ -70,5 +70,33 @@ namespace Seq.App.EmailPlus.Tests
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("", result);
         }
+
+        [Fact]
+        public void TrimStringHelper1Arg()
+        {
+            var template = Handlebars.Handlebars.Compile("{{ trimString $Level }}");
+            var data = Some.LogEvent();
+            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            Assert.Equal("Fatal", result);
+        }
+
+        [Fact]
+        public void TrimStringHelper2Args()
+        {
+            var template = Handlebars.Handlebars.Compile("{{ trimString $Level \"2\" }}");
+            var data = Some.LogEvent();
+            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            Assert.Equal("tal", result);
+        }
+
+        [Fact]
+        public void TrimStringHelper3Args()
+        {
+            var template = Handlebars.Handlebars.Compile("{{ trimString $Level \"2\" \"1\" }}");
+            var data = Some.LogEvent();
+            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            Assert.Equal("t", result);
+        }
+
     }
 }
