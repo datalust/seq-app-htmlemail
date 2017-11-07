@@ -18,7 +18,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void BuiltInPropertiesAreRenderedInTemplates()
         {
-            var template = Handlebars.Handlebars.Compile("{{$Level}}");
+            var template = HandlebarsDotNet.Handlebars.Compile("{{$Level}}");
             var data = Some.LogEvent();
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal(data.Data.Level.ToString(), result);
@@ -27,7 +27,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void PayloadPropertiesAreRenderedInTemplates()
         {
-            var template = Handlebars.Handlebars.Compile("See {{What}}");
+            var template = HandlebarsDotNet.Handlebars.Compile("See {{What}}");
             var data = Some.LogEvent(new Dictionary<string, object> { { "What", 10 } });
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("See 10", result);
@@ -36,7 +36,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void NoPropertiesAreRequiredOnASourceEvent()
         {
-            var template = Handlebars.Handlebars.Compile("No properties");
+            var template = HandlebarsDotNet.Handlebars.Compile("No properties");
             var id = Some.EventId();
             var timestamp = Some.UtcTimestamp();
             var data = new Event<LogEventData>(id, Some.EventType(), timestamp, new LogEventData
@@ -56,7 +56,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void IfEqHelperDetectsEquality()
         {
-            var template = Handlebars.Handlebars.Compile("{{#if_eq $Level \"Fatal\"}}True{{/if_eq}}");
+            var template = HandlebarsDotNet.Handlebars.Compile("{{#if_eq $Level \"Fatal\"}}True{{/if_eq}}");
             var data = Some.LogEvent();
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("True", result);
@@ -65,7 +65,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void IfEqHelperDetectsInequality()
         {
-            var template = Handlebars.Handlebars.Compile("{{#if_eq $Level \"Warning\"}}True{{/if_eq}}");
+            var template = HandlebarsDotNet.Handlebars.Compile("{{#if_eq $Level \"Warning\"}}True{{/if_eq}}");
             var data = Some.LogEvent();
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("", result);
@@ -74,7 +74,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void TrimStringHelper1Arg()
         {
-            var template = Handlebars.Handlebars.Compile("{{ trimString $Level }}");
+            var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level}}");
             var data = Some.LogEvent();
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("Fatal", result);
@@ -83,7 +83,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void TrimStringHelper2Args()
         {
-            var template = Handlebars.Handlebars.Compile("{{ trimString $Level \"2\" }}");
+            var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level 2}}");
             var data = Some.LogEvent();
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("tal", result);
@@ -92,7 +92,7 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void TrimStringHelper3Args()
         {
-            var template = Handlebars.Handlebars.Compile("{{ trimString $Level \"2\" \"1\" }}");
+            var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level 2 1}}");
             var data = Some.LogEvent();
             var result = EmailReactor.FormatTemplate(template, data, Some.Host());
             Assert.Equal("t", result);

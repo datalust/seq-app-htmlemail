@@ -1,4 +1,4 @@
-﻿using Handlebars;
+﻿using HandlebarsDotNet;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,9 +13,9 @@ namespace Seq.App.EmailPlus
     {
         public static void Register()
         {
-            Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrintHelper);
-            Handlebars.Handlebars.RegisterHelper("if_eq", IfEqHelper);
-            Handlebars.Handlebars.RegisterHelper("trimString", SubstringHelper);
+            Handlebars.RegisterHelper("pretty", PrettyPrintHelper);
+            Handlebars.RegisterHelper("if_eq", IfEqHelper);
+            Handlebars.RegisterHelper("substring", SubstringHelper);
         }
 
         static void PrettyPrintHelper(TextWriter output, object context, object[] arguments)
