@@ -1,4 +1,4 @@
-﻿using Handlebars;
+﻿using HandlebarsDotNet;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,8 +13,9 @@ namespace Seq.App.EmailPlus
     {
         public static void Register()
         {
-            Handlebars.Handlebars.RegisterHelper("pretty", PrettyPrintHelper);
-            Handlebars.Handlebars.RegisterHelper("if_eq", IfEqHelper);
+            Handlebars.RegisterHelper("pretty", PrettyPrintHelper);
+            Handlebars.RegisterHelper("if_eq", IfEqHelper);
+            Handlebars.RegisterHelper("substring", SubstringHelper);
         }
 
         static void PrettyPrintHelper(TextWriter output, object context, object[] arguments)
@@ -64,6 +65,56 @@ namespace Seq.App.EmailPlus
             }
 
             return o;
+        }
+
+        static void SubstringHelper(TextWriter output, object context, object[] arguments)
+        {
+            //{{ substring value 0 30 }}
+            var value = arguments.FirstOrDefault();
+
+            if (value == null)
+            {
+                return;
+            }
+
+            int start = 0;
+            int end = value.ToString().Length;
+
+            if (arguments?.Length < 2)
+            {
+                // No start or length arguments provided
+                output.WriteSafeString(value);
+            }
+            else if (arguments?.Length < 3)
+            {
+                // just a start position provided
+                int.TryParse(arguments[1].ToString(), out start);
+                if (start > value.ToString().Length)
+                {
+                    // start of substring after end of string.
+                    return;
+                }
+                output.WriteSafeString(value.ToString().Substring(start));
+            }
+            else
+            {
+                // Start & length provided.
+                int.TryParse(arguments[1].ToString(), out start);
+                int.TryParse(arguments[2].ToString(), out end);
+
+                if (start > value.ToString().Length)
+                {
+                    // start of substring after end of string.
+                    return;
+                }
+                // ensure the length is still in the string to avoid ArgumentOutOfRangeException
+                if (end > value.ToString().Length - start)
+                {
+                    end = value.ToString().Length - start;
+                }
+
+                output.WriteSafeString(value.ToString().Substring(start, end));
+            }
         }
     }
 }

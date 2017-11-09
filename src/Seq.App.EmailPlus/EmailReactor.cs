@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using Handlebars;
+using HandlebarsDotNet;
 using Newtonsoft.Json;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -35,7 +35,7 @@ namespace Seq.App.EmailPlus
                 var subjectTemplate = SubjectTemplate;
                 if (string.IsNullOrEmpty(subjectTemplate))
                     subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Handlebars.Compile(subjectTemplate);                
+                return Handlebars.Compile(subjectTemplate);
             });
 
             _bodyTemplate = new Lazy<Func<object, string>>(() =>
@@ -43,7 +43,7 @@ namespace Seq.App.EmailPlus
                 var bodyTemplate = BodyTemplate;
                 if (string.IsNullOrEmpty(bodyTemplate))
                     bodyTemplate = Resources.DefaultBodyTemplate;
-                return Handlebars.Handlebars.Compile(bodyTemplate);
+                return Handlebars.Compile(bodyTemplate);
             });
         }
 
