@@ -72,6 +72,15 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Fact]
+        public void TrimStringHelper0Args()
+        {
+            var template = HandlebarsDotNet.Handlebars.Compile("{{substring}}");
+            var data = Some.LogEvent();
+            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            Assert.Equal("", result);
+        }
+
+        [Fact]
         public void TrimStringHelper1Arg()
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level}}");
