@@ -74,7 +74,6 @@ namespace Seq.App.EmailPlus
 
             if (value == null)
             {
-                output.WriteSafeString("");
                 return;
             }
 
@@ -93,7 +92,6 @@ namespace Seq.App.EmailPlus
                 if (start > value.ToString().Length)
                 {
                     // start of substring after end of string.
-                    output.WriteSafeString("null");
                     return;
                 }
                 output.WriteSafeString(value.ToString().Substring(start));
@@ -107,7 +105,6 @@ namespace Seq.App.EmailPlus
                 if (start > value.ToString().Length)
                 {
                     // start of substring after end of string.
-                    output.WriteSafeString("null");
                     return;
                 }
                 // ensure the length is still in the string to avoid ArgumentOutOfRangeException
