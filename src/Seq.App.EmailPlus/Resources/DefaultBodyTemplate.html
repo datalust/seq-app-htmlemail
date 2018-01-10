@@ -58,9 +58,13 @@
                     <div style="font-family:monospace;font-weight:bold;" >Detected range end</div>
                     <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
                 </div>
-                <div style="margin-top:10px;" >
-                    <div style="font-family:monospace;font-weight:bold;" >Intersected signals</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty SignalTitles}}</div>
+                <div style="margin-top:10px;">
+                  <div style="font-family:monospace;font-weight:bold;">Signal</div>
+                  {{#if SignalTitles}} <!-- 4.0 and 4.1 -->
+                  <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{pretty SignalTitles}}</div>
+                  {{else}} <!-- 4.2+ -->
+                  <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{pretty SignalExpression}}</div>
+                  {{/if}}
                 </div>
                 {{#if OwnerUsername}}
                 <div style="margin-top:10px;" >
