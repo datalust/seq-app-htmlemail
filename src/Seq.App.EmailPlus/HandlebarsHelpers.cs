@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Seq.App.EmailPlus
 {
@@ -24,9 +22,19 @@ namespace Seq.App.EmailPlus
             if (value == null)
                 output.WriteSafeString("null");
             else if (value is IEnumerable<object> || value is IEnumerable<KeyValuePair<string, object>>)
-                output.WriteSafeString(JsonConvert.SerializeObject(FromDynamic(value)));
+                output.Write(JsonConvert.SerializeObject(FromDynamic(value)));
             else
-                output.WriteSafeString(value.ToString());
+            {
+                var str = value.ToString();
+                if (string.IsNullOrWhiteSpace(str))
+                {
+                    output.WriteSafeString("&nbsp;");
+                }
+                else
+                {
+                    output.Write(str);
+                }
+            }
         }
 
         static void IfEqHelper(TextWriter output, HelperOptions options, dynamic context, object[] arguments)
@@ -73,34 +81,29 @@ namespace Seq.App.EmailPlus
             var value = arguments.FirstOrDefault();
 
             if (value == null)
-            {
                 return;
-            }
 
-            int start = 0;
-            int end = value.ToString().Length;
-
-            if (arguments?.Length < 2)
+            if (arguments.Length < 2)
             {
                 // No start or length arguments provided
-                output.WriteSafeString(value);
+                output.Write(value);
             }
-            else if (arguments?.Length < 3)
+            else if (arguments.Length < 3)
             {
                 // just a start position provided
-                int.TryParse(arguments[1].ToString(), out start);
+                int.TryParse(arguments[1].ToString(), out var start);
                 if (start > value.ToString().Length)
                 {
                     // start of substring after end of string.
                     return;
                 }
-                output.WriteSafeString(value.ToString().Substring(start));
+                output.Write(value.ToString().Substring(start));
             }
             else
             {
                 // Start & length provided.
-                int.TryParse(arguments[1].ToString(), out start);
-                int.TryParse(arguments[2].ToString(), out end);
+                int.TryParse(arguments[1].ToString(), out var start);
+                int.TryParse(arguments[2].ToString(), out var end);
 
                 if (start > value.ToString().Length)
                 {
@@ -113,7 +116,7 @@ namespace Seq.App.EmailPlus
                     end = value.ToString().Length - start;
                 }
 
-                output.WriteSafeString(value.ToString().Substring(start, end));
+                output.Write(value.ToString().Substring(start, end));
             }
         }
     }
