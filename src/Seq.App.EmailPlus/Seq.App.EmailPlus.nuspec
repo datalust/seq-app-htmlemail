@@ -13,8 +13,8 @@
     <tags>seq-app seq serilog events</tags>
   </metadata>
   <files>
-    <file src="bin\Release\Seq.App.EmailPlus.dll" target="lib\net45" />
-    <file src="bin\Release\Handlebars.dll" target="lib\net45" />
-    <file src="bin\Release\Newtonsoft.Json.dll" target="lib\net45" />
+    <file src="bin\Release\Seq.App.EmailPlus.dll" target="lib\net452" />
+    <file src="bin\Release\Handlebars.dll" target="lib\net452" />
+    <file src="bin\Release\Newtonsoft.Json.dll" target="lib\net452" />
   </files>
 </package>
