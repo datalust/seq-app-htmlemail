@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="$USER_HOME$/.Rider2018.1/system/resharper-host/local/Transient/ReSharperHost/v12/SolutionCaches/_seq-apps.-1554531734.00" t="ExcludeRecursive" />
+    <e p="$PROJECT_DIR$" t="IncludeFlat">
+      <e p=".nuget" t="Include">
+        <e p="packages.config" t="Include" />
+      </e>
+      <e p="packages" t="ExcludeRecursive">
+        <e p="xunit.core.2.1.0/build/_desktop/xunit.execution.desktop.dll" t="Include" />
+        <e p="xunit.runner.visualstudio.2.0.1/build/_common/xunit.abstractions.dll" t="Include" />
+        <e p="xunit.runner.visualstudio.2.0.1/build/_common/xunit.runner.utility.desktop.dll" t="Include" />
+        <e p="xunit.runner.visualstudio.2.0.1/build/_common/xunit.runner.visualstudio.testadapter.dll" t="Include" />
+      </e>
+      <e p="seq-apps.sln" t="IncludeFlat" />
+      <e p="src" t="Include">
+        <e p="Seq.App.EmailPlus" t="IncludeRecursive">
+          <e p="EmailReactor.cs" t="Include" />
+          <e p="HandlebarsHelpers.cs" t="Include" />
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="Resources" t="Include">
+            <e p="DefaultBodyTemplate.html" t="Include" />
+          </e>
+          <e p="Resources.Designer.cs" t="Include" />
+          <e p="Resources.resx" t="Include" />
+          <e p="Seq.App.EmailPlus.csproj" t="IncludeRecursive" />
+          <e p="Seq.App.EmailPlus.nuspec" t="Include" />
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+        <e p="Seq.App.FileArchive" t="IncludeRecursive">
+          <e p="ArchiveWriterReactor.cs" t="Include" />
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="Seq.App.FileArchive.csproj" t="IncludeRecursive" />
+          <e p="Seq.App.FileArchive.nuspec" t="Include" />
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+        <e p="Seq.App.FirstOfType" t="IncludeRecursive">
+          <e p="FirstOfTypeDetector.cs" t="Include" />
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="Seq.App.FirstOfType.csproj" t="IncludeRecursive" />
+          <e p="Seq.App.FirstOfType.nuspec" t="Include" />
+          <e p="UInt32BloomFilter.cs" t="Include" />
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+        <e p="Seq.App.Replication" t="IncludeRecursive">
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="ReplicatedException.cs" t="Include" />
+          <e p="Replicator.cs" t="Include" />
+          <e p="Seq.App.Replication.csproj" t="IncludeRecursive" />
+          <e p="Seq.App.Replication.nuspec" t="Include" />
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+        <e p="Seq.App.Thresholds" t="IncludeRecursive">
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="Seq.App.Thresholds.csproj" t="IncludeRecursive" />
+          <e p="Seq.App.Thresholds.nuspec" t="Include" />
+          <e p="ThresholdReactor.cs" t="Include" />
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+      </e>
+      <e p="test" t="Include">
+        <e p="Seq.App.EmailPlus.Tests" t="IncludeRecursive">
+          <e p="EmailReactorTests.cs" t="Include" />
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="Seq.App.EmailPlus.Tests.csproj" t="IncludeRecursive" />
+          <e p="Support" t="Include">
+            <e p="Some.cs" t="Include" />
+          </e>
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+        <e p="Seq.App.Thresholds.Tests" t="IncludeRecursive">
+          <e p="Properties" t="Include">
+            <e p="AssemblyInfo.cs" t="Include" />
+          </e>
+          <e p="Seq.App.Thresholds.Tests.csproj" t="IncludeRecursive" />
+          <e p="Support" t="Include">
+            <e p="Some.cs" t="Include" />
+          </e>
+          <e p="ThresholdReactorTests.cs" t="Include" />
+          <e p="app.config" t="Include" />
+          <e p="bin" t="ExcludeRecursive" />
+          <e p="obj" t="ExcludeRecursive" />
+          <e p="packages.config" t="Include" />
+        </e>
+      </e>
+    </e>
+  </component>
+</project>
