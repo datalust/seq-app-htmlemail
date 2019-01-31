@@ -2,12 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using HandlebarsDotNet;
-using Newtonsoft.Json;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
@@ -17,8 +15,9 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
+        readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
-        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate;
+        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -26,6 +25,12 @@ namespace Seq.App.EmailPlus
         static EmailReactor()
         {
             HandlebarsHelpers.Register();
+        }
+
+        internal EmailReactor(IMailGateway mailGateway)
+            : this()
+        {
+            _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
         }
 
         public EmailReactor()
@@ -45,6 +50,14 @@ namespace Seq.App.EmailPlus
                     bodyTemplate = Resources.DefaultBodyTemplate;
                 return Handlebars.Compile(bodyTemplate);
             });
+
+            _toAddressesTemplate = new Lazy<Func<object, string>>(() =>
+            {
+                var toAddressTemplate = To;
+                if (string.IsNullOrEmpty(toAddressTemplate))
+                    return o => To;
+                return Handlebars.Compile(toAddressTemplate);
+            });
         }
 
         [SeqAppSetting(
@@ -54,7 +67,7 @@ namespace Seq.App.EmailPlus
         
         [SeqAppSetting(
             DisplayName = "To address",
-            HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma.")]
+            HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
         public string To { get; set; }
 
         [SeqAppSetting(
@@ -65,7 +78,7 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
-        new public string Host { get; set; }
+        public new string Host { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -105,7 +118,7 @@ namespace Seq.App.EmailPlus
 
         public void On(Event<LogEventData> evt)
         {
-            bool added = false;
+            var added = false;
             var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k => { added = true; return DateTime.UtcNow; });
             if (!added)
             {
@@ -113,6 +126,7 @@ namespace Seq.App.EmailPlus
                 _lastSeen[evt.EventType] = DateTime.UtcNow;
             }
 
+            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
             var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "").Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
@@ -122,9 +136,9 @@ namespace Seq.App.EmailPlus
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
 
-            var message = new MailMessage(From, To, subject, body) {IsBodyHtml = true};
+            var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true};
 
-            client.Send(message);
+            _mailGateway.Send(client, message);
         }
 
         public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
@@ -156,8 +170,7 @@ namespace Seq.App.EmailPlus
 
         static object ToDynamic(object o)
         {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
+            if (o is IEnumerable<KeyValuePair<string, object>> dictionary)
             {
                 var result = new ExpandoObject();
                 var asDict = (IDictionary<string, object>) result;
@@ -166,8 +179,7 @@ namespace Seq.App.EmailPlus
                 return result;
             }
 
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
+            if (o is IEnumerable<object> enumerable)
             {
                 return enumerable.Select(ToDynamic).ToArray();
             }
