@@ -15,6 +15,7 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
     {
+        readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
         readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
 
@@ -24,6 +25,12 @@ namespace Seq.App.EmailPlus
         static EmailReactor()
         {
             HandlebarsHelpers.Register();
+        }
+
+        internal EmailReactor(IMailGateway mailGateway)
+            : this()
+        {
+            _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
         }
 
         public EmailReactor()
@@ -131,7 +138,7 @@ namespace Seq.App.EmailPlus
 
             var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true};
 
-            client.Send(message);
+            _mailGateway.Send(client, message);
         }
 
         public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)

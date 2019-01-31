@@ -53,8 +53,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DirectMailGateway.cs" />
     <Compile Include="EmailReactor.cs" />
     <Compile Include="HandlebarsHelpers.cs" />
+    <Compile Include="IMailGateway.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>

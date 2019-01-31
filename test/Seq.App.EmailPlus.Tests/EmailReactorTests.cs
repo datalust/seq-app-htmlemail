@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -107,5 +108,25 @@ namespace Seq.App.EmailPlus.Tests
             Assert.Equal("t", result);
         }
 
+
+        [Fact]
+        public void ToAddressesAreTemplated()
+        {
+            var mail = new CollectingMailGateway();
+            var reactor = new EmailReactor(mail)
+            {
+                From = "from@example.com",
+                To = "{{Name}}@example.com",
+                Host = "example.com"
+            };
+
+            reactor.Attach(new TestAppHost());
+
+            var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
+            reactor.On(data);
+
+            var sent = mail.Sent.Single();
+            Assert.Equal("test@example.com", sent.Message.To.ToString());
+        }
     }
 }
