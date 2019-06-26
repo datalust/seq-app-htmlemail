@@ -3,7 +3,6 @@ using Moq;
 using Seq.App.Thresholds.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
-
 using Serilog;
 using Xunit;
 
@@ -139,10 +138,10 @@ namespace Seq.App.Thresholds.Tests
 
         private ThresholdReactor GetThresholdReactor(int threshold, bool resetOnThresholdReached = true)
         {
-            var sut = new ThresholdReactor()
-                {
-                    EventsInWindowThreshold = threshold, 
-                    ThresholdName = Guid.NewGuid().ToString(), 
+            var sut = new ThresholdReactor
+            {
+                    EventsInWindowThreshold = threshold,
+                    ThresholdName = Guid.NewGuid().ToString(),
                     WindowSeconds = 120,
                     ResetOnThresholdReached = resetOnThresholdReached
                 };

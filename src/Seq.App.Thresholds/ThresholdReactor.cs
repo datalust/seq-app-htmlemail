@@ -8,7 +8,6 @@ namespace Seq.App.Thresholds
     /// Counts events in a sliding time window, writing a message back to the
     /// stream when a set threshold is reached.
     /// </summary>
-    /// 
     [SeqApp("Threshold Detection",
         Description = "Counts events in a sliding time window, writing an event back to the stream when a set threshold is reached.")]
     public class ThresholdReactor : Reactor, ISubscribeTo<LogEventData>
@@ -72,8 +71,7 @@ namespace Seq.App.Thresholds
         // Called by Seq whenever an event is send to the app
         public void On(Event<LogEventData> evt)
         {
-            int eventBucket;
-            if (!TrySlideWindow(evt, out eventBucket))
+            if (!TrySlideWindow(evt, out var eventBucket))
                 return;
 
             _buckets[eventBucket]++;

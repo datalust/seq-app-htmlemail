@@ -56,8 +56,7 @@ namespace Seq.App.Replication
 
         public void Dispose()
         {
-            var disp = _replicaLogger as IDisposable;
-            if (disp != null)
+            if (_replicaLogger is IDisposable disp)
                 disp.Dispose();
         }
 
@@ -85,19 +84,16 @@ namespace Seq.App.Replication
 
         LogEventPropertyValue CreatePropertyValue(object value)
         {
-            var d = value as IReadOnlyDictionary<string, object>;
-            if (d != null)
+            if (value is IReadOnlyDictionary<string, object> d)
             {
-                object tt;
-                var _ = d.TryGetValue("$typeTag", out tt) || d.TryGetValue("_typeTag", out tt) || d.TryGetValue("$type", out tt);
+                var _ = d.TryGetValue("$typeTag", out var tt) || d.TryGetValue("_typeTag", out tt) || d.TryGetValue("$type", out tt);
                 return new StructureValue(
                     d.Where(kvp => kvp.Key != "$typeTag" && kvp.Key != "_typeTag" && kvp.Key != "$type")
                         .Select(kvp => CreateProperty(kvp.Key, kvp.Value)),
                     tt as string);
             }
 
-            var dd = value as IDictionary;
-            if (dd != null)
+            if (value is IDictionary dd)
             {
                 return new DictionaryValue(dd.Keys
                     .Cast<object>()

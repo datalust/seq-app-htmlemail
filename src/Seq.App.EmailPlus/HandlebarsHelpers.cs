@@ -60,14 +60,12 @@ namespace Seq.App.EmailPlus
 
         static object FromDynamic(object o)
         {
-            var dictionary = o as IEnumerable<KeyValuePair<string, object>>;
-            if (dictionary != null)
+            if (o is IEnumerable<KeyValuePair<string, object>> dictionary)
             {
                 return dictionary.ToDictionary(kvp => kvp.Key, kvp => FromDynamic(kvp.Value));
             }
 
-            var enumerable = o as IEnumerable<object>;
-            if (enumerable != null)
+            if (o is IEnumerable<object> enumerable)
             {
                 return enumerable.Select(FromDynamic).ToArray();
             }

@@ -41,9 +41,7 @@ namespace Seq.App.FirstOfType
 
         void Set(uint hash)
         {
-            int bitInByte;
-            int byteIndex;
-            Locate(hash, out byteIndex, out bitInByte);
+            Locate(hash, out var byteIndex, out var bitInByte);
             var b = _bytes[byteIndex];
             var set = 1 << bitInByte;
             b = (byte)(b | set);
@@ -52,9 +50,7 @@ namespace Seq.App.FirstOfType
 
         bool Has(uint hash)
         {
-            int bitInByte;
-            int byteIndex;
-            Locate(hash, out byteIndex, out bitInByte);
+            Locate(hash, out var byteIndex, out var bitInByte);
             var b = _bytes[byteIndex];
             var i = b >> bitInByte;
             return (i & 1) != 0;

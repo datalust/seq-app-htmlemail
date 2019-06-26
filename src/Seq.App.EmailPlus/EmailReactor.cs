@@ -64,7 +64,7 @@ namespace Seq.App.EmailPlus
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
         public string From { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
@@ -136,9 +136,10 @@ namespace Seq.App.EmailPlus
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
 
-            var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true};
-
-            _mailGateway.Send(client, message);
+            using (var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true})
+            {
+                _mailGateway.Send(client, message);
+            }
         }
 
         public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
@@ -164,7 +165,7 @@ namespace Seq.App.EmailPlus
             {
                 payload[property.Key] = property.Value;
             }
-            
+
             return template(payload);
         }
 
