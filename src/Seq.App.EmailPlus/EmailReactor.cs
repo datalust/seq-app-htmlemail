@@ -136,9 +136,10 @@ namespace Seq.App.EmailPlus
             if (!string.IsNullOrWhiteSpace(Username))
                 client.Credentials = new NetworkCredential(Username, Password);
 
-            var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true};
-
-            _mailGateway.Send(client, message);
+            using (var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true})
+            {
+                _mailGateway.Send(client, message);
+            }
         }
 
         public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
