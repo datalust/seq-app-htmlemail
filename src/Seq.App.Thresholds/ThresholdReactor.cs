@@ -71,8 +71,7 @@ namespace Seq.App.Thresholds
         // Called by Seq whenever an event is send to the app
         public void On(Event<LogEventData> evt)
         {
-            int eventBucket;
-            if (!TrySlideWindow(evt, out eventBucket))
+            if (!TrySlideWindow(evt, out var eventBucket))
                 return;
 
             _buckets[eventBucket]++;

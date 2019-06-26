@@ -69,8 +69,7 @@ namespace Seq.App.FileArchive
         {
             if (value is IDictionary<string, object> d)
             {
-                object tt;
-                d.TryGetValue("$typeTag", out tt);
+                d.TryGetValue("$typeTag", out var tt);
                 return new StructureValue(
                     d.Where(kvp => kvp.Key != "$typeTag").Select(kvp => CreateProperty(kvp.Key, kvp.Value)),
                     tt as string);

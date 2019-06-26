@@ -86,8 +86,7 @@ namespace Seq.App.Replication
         {
             if (value is IReadOnlyDictionary<string, object> d)
             {
-                object tt;
-                var _ = d.TryGetValue("$typeTag", out tt) || d.TryGetValue("_typeTag", out tt) || d.TryGetValue("$type", out tt);
+                var _ = d.TryGetValue("$typeTag", out var tt) || d.TryGetValue("_typeTag", out tt) || d.TryGetValue("$type", out tt);
                 return new StructureValue(
                     d.Where(kvp => kvp.Key != "$typeTag" && kvp.Key != "_typeTag" && kvp.Key != "$type")
                         .Select(kvp => CreateProperty(kvp.Key, kvp.Value)),
