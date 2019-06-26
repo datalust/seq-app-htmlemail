@@ -138,8 +138,8 @@ namespace Seq.App.Thresholds.Tests
 
         private ThresholdReactor GetThresholdReactor(int threshold, bool resetOnThresholdReached = true)
         {
-            var sut = new ThresholdReactor()
-                {
+            var sut = new ThresholdReactor
+            {
                     EventsInWindowThreshold = threshold,
                     ThresholdName = Guid.NewGuid().ToString(),
                     WindowSeconds = 120,
