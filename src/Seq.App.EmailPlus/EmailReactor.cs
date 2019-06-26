@@ -64,7 +64,7 @@ namespace Seq.App.EmailPlus
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
         public string From { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
@@ -164,7 +164,7 @@ namespace Seq.App.EmailPlus
             {
                 payload[property.Key] = property.Value;
             }
-            
+
             return template(payload);
         }
 

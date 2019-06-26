@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
