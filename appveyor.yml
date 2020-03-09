@@ -16,7 +16,7 @@ build:
 deploy:
 - provider: NuGet
   api_key:
-    secure: LWEcRiPJVlrahxBxZX2vjoOkyAboOEHtnGweeLkPouuSG9z5Y84A2EotlATZoni3
+    secure: 2gIz4MVtwGwgHeamdSNZBS/ETP6H7TbijVSZvTqku9FYU0qiY0NTpcdqEywRLmHR
   on:
     branch: master
     
