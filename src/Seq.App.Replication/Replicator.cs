@@ -5,7 +5,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Core;
 
-// ReSharper disable UnusedType.Global, MemberCanBePrivate.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global, UnusedType.Global, MemberCanBePrivate.Global
 
 namespace Seq.App.Replication
 {
@@ -59,6 +59,8 @@ namespace Seq.App.Replication
 
         public void On(Event<LogEvent> evt)
         {
+            evt.Data.RemovePropertyIfPresent("@i");
+            evt.Data.RemovePropertyIfPresent("@seqid");
             _replicaLogger.Write(evt.Data);
         }
     }
