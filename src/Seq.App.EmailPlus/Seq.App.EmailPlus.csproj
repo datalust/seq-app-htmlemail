@@ -7,7 +7,7 @@
     use the 2.x series of releases of this package.</Description>
     <Authors>Datalust and Contributors</Authors>
     <PackageTags>seq-app</PackageTags>
-    <PackageIconUrl>https://datalust.co/images/apps/seq-app-emailplus.png</PackageIconUrl>
+    <PackageIconUrl>https://datalust.co/images/apps/seq-app-email-plus.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/datalust/seq-apps</PackageProjectUrl>
     <RepositoryUrl>https://github.com/datalust/seq-apps</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
