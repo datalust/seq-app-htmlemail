@@ -19,9 +19,9 @@
   <ItemGroup>
     <PackageReference Include="Seq.Apps" Version="5.1.0" />
     <PackageReference Include="Serilog" Version="2.9.0" />
-    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
+    <PackageReference Include="Serilog.Sinks.RollingFile" Version="2.1.0" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <None Include="../../LICENSE" Pack="true" PackagePath="" />
     <None Include="./obj/publish/**/*" Exclude="./obj/publish/Seq.App.FileArchive.dll;./obj/publish/Seq.Apps.dll;./obj/publish/Serilog.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
