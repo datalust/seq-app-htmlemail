@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Seq.App.Thresholds.Tests.Support
 {
     public static class Some
@@ -22,11 +24,11 @@ namespace Seq.App.Thresholds.Tests.Support
             return Uint();
         }
 
-        public static Event<LogEventData> LogEvent(IDictionary<string, object> includedProperties = null, DateTime timestamp = default(DateTime))
+        public static Event<LogEventData> LogEvent(IDictionary<string, object> includedProperties = null, DateTime timestamp = default)
         {
             var id = EventId();
 
-            if (timestamp == default(DateTime))
+            if (timestamp == default)
             {
                 timestamp = UtcTimestamp();
             }
@@ -39,9 +41,9 @@ namespace Seq.App.Thresholds.Tests.Support
 
             if (includedProperties != null)
             {
-                foreach (var includedProperty in includedProperties)
+                foreach (var (key, value) in includedProperties)
                 {
-                    properties.Add(includedProperty.Key, includedProperty.Value);
+                    properties.Add(key, value);
                 }
             }
 
@@ -65,16 +67,6 @@ namespace Seq.App.Thresholds.Tests.Support
         public static DateTime UtcTimestamp()
         {
             return DateTime.UtcNow;
-        }
-
-        public static string Uri()
-        {
-            return "https://" + String();
-        }
-
-        public static Host Host()
-        {
-            return new Host(new [] { Uri() }, String() );
         }
     }
 }

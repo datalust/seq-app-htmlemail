@@ -6,8 +6,8 @@ namespace Seq.App.FirstOfType
 {
     [SeqApp(
         "First of Type",
-        Description = "Emits an event whenever the first event of a new type is seen. Currently only suitable when the event stream is Serilog-based.")]
-    public class FirstOfTypeDetector : Reactor, ISubscribeTo<LogEventData>
+        Description = "Emits an event whenever the first event of a new type is seen.")]
+    public class FirstOfTypeDetector : SeqApp, ISubscribeTo<LogEventData>
     {
         const string StateFilename = "DetectedEventTypes.bin";
         const string StateWriteFilename = "DetectedEventTypes-new.bin";

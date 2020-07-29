@@ -1,12 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:upstream" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="1789f9f6-7cb7-40e6-bb29-fe8fde308a76" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/contentModel.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.seq-apps/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.seq-apps/riderModule.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/appveyor.yml" beforeDir="false" afterPath="$PROJECT_DIR$/appveyor.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seq-apps.sln" beforeDir="false" afterPath="$PROJECT_DIR$/seq-apps.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailReactor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailApp.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Properties/AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Properties/AssemblyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/packages.config" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/packages.config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.nuspec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterReactor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterApp.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/Properties/AssemblyInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.nuspec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/FirstOfTypeDetector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FirstOfType/FirstOfTypeDetector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Properties/AssemblyInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.nuspec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Properties/AssemblyInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/ReplicatedException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Replicator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Replication/Replicator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.nuspec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/Properties/AssemblyInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.nuspec" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/ThresholdReactor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Thresholds/ThresholdReactor.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/EmailReactorTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/EmailReactorTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Seq.App.EmailPlus.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Seq.App.EmailPlus.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Seq.App.Thresholds.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Seq.App.Thresholds.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Support/Some.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Support/Some.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/app.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/packages.config" beforeDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,14 +81,47 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsGulpfileManager">
-    <detection-done>true</detection-done>
-    <sorting>DEFINITION_ORDER</sorting>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.FirstOfType/obj/Debug/netstandard2.0/Seq.App.FirstOfType.AssemblyInfo.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterApp.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailApp.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.Thresholds/ThresholdReactor.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.Replication/Replicator.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.EmailPlus/Properties/AssemblyInfo.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Support/Some.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.EmailPlus/HandlebarsHelpers.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.FirstOfType/FirstOfTypeDetector.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Seq.App.EmailPlus/Resources.resx" root0="FORCE_HIGHLIGHTING" />
   </component>
-  <component name="NodePackageJsonFileManager">
-    <packageJsonPaths />
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/Build.ps1" />
+        <option value="$PROJECT_DIR$/appveyor.yml" />
+        <option value="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Seq.App.EmailPlus.Tests.csproj" />
+        <option value="$PROJECT_DIR$/src/Seq.App.EmailPlus/Properties/AssemblyInfo.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterReactor.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailReactor.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.csproj" />
+        <option value="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.csproj" />
+        <option value="$PROJECT_DIR$/src/Seq.App.FirstOfType/FirstOfTypeDetector.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.csproj" />
+        <option value="$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailApp.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.csproj" />
+        <option value="$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterApp.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.Replication/Replicator.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.Thresholds/ThresholdReactor.cs" />
+        <option value="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.csproj" />
+        <option value="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Support/Some.cs" />
+        <option value="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Seq.App.Thresholds.Tests.csproj" />
+        <option value="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" />
+        <option value="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" />
+        <option value="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" />
+      </list>
+    </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="98" />
@@ -30,47 +129,25 @@
     <option name="width" value="2462" />
     <option name="height" value="1390" />
   </component>
-  <component name="ProjectView">
-    <navigator currentView="SolutionExplorer" proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="SolutionExplorer">
-        <subPane>
-          <expand>
-            <path>
-              <item name="" type="13324e5d:SolutionExplorerViewPane$ProjectViewPaneTreeStructure$createRoot$1" />
-              <item name="seq-apps (7 projects)" type="977d5f41:SolutionExplorerNodeRider" />
-            </path>
-            <path>
-              <item name="" type="13324e5d:SolutionExplorerViewPane$ProjectViewPaneTreeStructure$createRoot$1" />
-              <item name="seq-apps (7 projects)" type="977d5f41:SolutionExplorerNodeRider" />
-              <item name="src" type="977d5f41:SolutionExplorerNodeRider" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-        <option name="show-file-system" value="false" />
-        <option name="show-all-items" value="false" />
-      </pane>
-      <pane id="Scratches" />
-    </panes>
+  <component name="ProjectId" id="1fLOLvpThFbNpFUYU2PlBYyJA8C" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="Rider.ProjectViewActivator.IsNotFirstRun" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
   </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
+  <component name="SvnConfiguration">
+    <configuration />
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -80,53 +157,36 @@
       <option name="presentableId" value="Default" />
       <updated>1529279268415</updated>
       <workItem from="1529279270563" duration="292000" />
+      <workItem from="1595993857724" duration="2150000" />
+      <workItem from="1595996039156" duration="1806000" />
     </task>
     <servers />
   </component>
-  <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="292000" />
-  </component>
-  <component name="TodoView">
-    <todo-panel id="selected-file">
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-  </component>
-  <component name="ToolWindowManager">
-    <frame x="98" y="50" width="2462" height="1390" extended-state="6" />
-    <layout>
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="right" id="Errors In Solution" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
-      <window_info anchor="bottom" id="Unit Tests" />
-      <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Terminal" />
-      <window_info anchor="bottom" id="NuGet" weight="0.32942238" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25420168" />
-      <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Build" visible="true" weight="0.32942238" />
-      <window_info anchor="right" id="Database" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info id="Favorites" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-    </layout>
-  </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
   </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.ps1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="617" y="288" key="Rider.ProjectTemplateDialog.Size" timestamp="1595994107778">
+      <screen x="0" y="0" width="2048" height="1112" />
+    </state>
+    <state x="617" y="288" key="Rider.ProjectTemplateDialog.Size/2560.0.1536.844/0.0.2048.1112@0.0.2048.1112" timestamp="1595994107778" />
   </component>
 </project>

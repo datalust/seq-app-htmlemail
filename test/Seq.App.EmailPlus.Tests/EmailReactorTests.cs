@@ -13,7 +13,7 @@ namespace Seq.App.EmailPlus.Tests
         static EmailReactorTests()
         {
             // Ensure the handlebars helpers are registered.
-            GC.KeepAlive(new EmailReactor());
+            GC.KeepAlive(new EmailApp());
         }
 
         [Fact]
@@ -21,7 +21,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{$Level}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal(data.Data.Level.ToString(), result);
         }
 
@@ -30,7 +30,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("See {{What}}");
             var data = Some.LogEvent(new Dictionary<string, object> { { "What", 10 } });
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("See 10", result);
         }
 
@@ -50,7 +50,7 @@ namespace Seq.App.EmailPlus.Tests
                 RenderedMessage = "Some text",
                 Properties = null
             });
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("No properties", result);
         }
 
@@ -59,7 +59,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{#if_eq $Level \"Fatal\"}}True{{/if_eq}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("True", result);
         }
 
@@ -68,7 +68,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{#if_eq $Level \"Warning\"}}True{{/if_eq}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("", result);
         }
 
@@ -77,7 +77,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("", result);
         }
 
@@ -86,7 +86,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("Fatal", result);
         }
 
@@ -95,7 +95,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level 2}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("tal", result);
         }
 
@@ -104,7 +104,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level 2 1}}");
             var data = Some.LogEvent();
-            var result = EmailReactor.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("t", result);
         }
 
@@ -113,7 +113,7 @@ namespace Seq.App.EmailPlus.Tests
         public void ToAddressesAreTemplated()
         {
             var mail = new CollectingMailGateway();
-            var reactor = new EmailReactor(mail)
+            var reactor = new EmailApp(mail)
             {
                 From = "from@example.com",
                 To = "{{Name}}@example.com",

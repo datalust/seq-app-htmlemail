@@ -9,11 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.FileArchive", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.Thresholds", "src\Seq.App.Thresholds\Seq.App.Thresholds.csproj", "{715102FE-A617-4FEA-A8B6-01CDB866EE91}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6ED53D7C-E336-45A6-BC66-696DA2DECE40}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\packages.config = .nuget\packages.config
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{775EF423-0A25-485A-BFA0-BAE59F580C9A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.Replication", "src\Seq.App.Replication\Seq.App.Replication.csproj", "{47DBBC2D-0EF4-415C-B65C-B0779B0D534B}"
@@ -25,6 +20,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.EmailPlus.Tests", "test\Seq.App.EmailPlus.Tests\Seq.App.EmailPlus.Tests.csproj", "{C451A1B4-A053-4E43-B97C-C3D3A0F82CC5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seq.App.Thresholds.Tests", "test\Seq.App.Thresholds.Tests\Seq.App.Thresholds.Tests.csproj", "{BAED4BF3-FDEB-49F7-BAEF-05CB0E8C92CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{7A6823F0-171F-42FC-B068-8BA566729050}"
+ProjectSection(SolutionItems) = preProject
+	README.md = README.md
+	.gitattributes = .gitattributes
+	.gitignore = .gitignore
+	appveyor.yml = appveyor.yml
+	LICENSE = LICENSE
+	Build.ps1 = Build.ps1
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
