@@ -25,53 +25,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1789f9f6-7cb7-40e6-bb29-fe8fde308a76" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/contentModel.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.seq-apps/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.seq-apps/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.seq-apps/riderModule.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appveyor.yml" beforeDir="false" afterPath="$PROJECT_DIR$/appveyor.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seq-apps.sln" beforeDir="false" afterPath="$PROJECT_DIR$/seq-apps.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailReactor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/EmailApp.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Properties/AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Properties/AssemblyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/Seq.App.EmailPlus.nuspec" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.EmailPlus/packages.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterReactor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FileArchive/ArchiveWriterApp.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/Properties/AssemblyInfo.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/Seq.App.FileArchive.nuspec" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FileArchive/packages.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/FirstOfTypeDetector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FirstOfType/FirstOfTypeDetector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Properties/AssemblyInfo.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/Seq.App.FirstOfType.nuspec" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.FirstOfType/packages.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Properties/AssemblyInfo.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/ReplicatedException.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Replicator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Replication/Replicator.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/Seq.App.Replication.nuspec" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Replication/packages.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/Properties/AssemblyInfo.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/Seq.App.Thresholds.nuspec" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/ThresholdReactor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Seq.App.Thresholds/ThresholdReactor.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Seq.App.Thresholds/packages.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/EmailReactorTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/EmailReactorTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Seq.App.EmailPlus.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Seq.App.EmailPlus.Tests.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/packages.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Seq.App.Thresholds.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Seq.App.Thresholds.Tests.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Support/Some.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/Support/Some.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/app.config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/packages.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,6 +75,7 @@
         <option value="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/TestAppHost.cs" />
         <option value="$PROJECT_DIR$/test/Seq.App.EmailPlus.Tests/Support/Some.cs" />
         <option value="$PROJECT_DIR$/test/Seq.App.Thresholds.Tests/ThresholdReactorTests.cs" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -158,7 +114,7 @@
       <updated>1529279268415</updated>
       <workItem from="1529279270563" duration="292000" />
       <workItem from="1595993857724" duration="2150000" />
-      <workItem from="1595996039156" duration="1806000" />
+      <workItem from="1595996039156" duration="2642000" />
     </task>
     <servers />
   </component>
