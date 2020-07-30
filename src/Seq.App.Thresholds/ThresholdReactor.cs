@@ -2,6 +2,8 @@
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global, MemberCanBePrivate.Global, UnusedType.Global
+
 namespace Seq.App.Thresholds
 {
     /// <summary>
@@ -10,7 +12,7 @@ namespace Seq.App.Thresholds
     /// </summary>
     [SeqApp("Threshold Detection",
         Description = "Counts events in a sliding time window, writing an event back to the stream when a set threshold is reached.")]
-    public class ThresholdReactor : Reactor, ISubscribeTo<LogEventData>
+    public class ThresholdReactor : SeqApp, ISubscribeTo<LogEventData>
     {
         // Each bucket counts events in a one-second interval
         int[] _buckets;

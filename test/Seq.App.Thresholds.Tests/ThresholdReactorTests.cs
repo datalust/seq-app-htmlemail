@@ -6,11 +6,13 @@ using Seq.Apps.LogEvents;
 using Serilog;
 using Xunit;
 
+// ReSharper disable RedundantArgumentDefaultValue
+
 namespace Seq.App.Thresholds.Tests
 {
     public class ThresholdReactorTests
     {
-        private Mock<ILogger> _logger;
+        readonly Mock<ILogger> _logger;
 
         public ThresholdReactorTests()
         {
@@ -18,97 +20,81 @@ namespace Seq.App.Thresholds.Tests
         }
 
         [Fact]
-        public void when_wrapped_before_threshold_reached_should_not_log()
+        public void WhenWrappedBeforeThresholdReachedShouldNotLog()
         {
-            const int SecondsBetweenLogs = 45;
+            const int secondsBetweenLogs = 45;
 
-            // arrange
             var sut = GetThresholdReactor(5);
 
-            // act
-            SendXEventsNSecondsApart(sut, 7, SecondsBetweenLogs);
-
-            // assert
+            SendXEventsNSecondsApart(sut, 7, secondsBetweenLogs);
+            
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
         }
 
         [Fact]
-        public void when_threshold_exceeded_over_time_should_log_only_1_message()
+        public void WhenThresholdExceededOverTimeShouldLogOneMessage()
         {
-            const int SecondsBetweenLogs = 2;
+            const int secondsBetweenLogs = 2;
 
-            // arrange
             var sut = GetThresholdReactor(5);
 
-            // act
-            SendXEventsNSecondsApart(sut, 7, SecondsBetweenLogs);
+            SendXEventsNSecondsApart(sut, 7, secondsBetweenLogs);
 
-            // assert
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once());
         }
 
         [Fact]
-        public void when_threshold_exceeded_should_log_only_1_message()
+        public void WhenThresholdExceededShouldLogOneMessage()
         {
-            const int SecondsBetweenLogs = 0;
+            const int secondsBetweenLogs = 0;
 
-            // arrange
             var sut = GetThresholdReactor(5);
 
-            // act
-            SendXEventsNSecondsApart(sut, 7, SecondsBetweenLogs);
+            SendXEventsNSecondsApart(sut, 7, secondsBetweenLogs);
 
-            // assert
             _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once());
         }
 
         [Fact]
-        public void when_reset_disabled_and_threshold_exceeded_should_log_only_3_message()
+        public void WhenResetDisabledAndThresholdExceededShouldLogThreeMessages()
         {
-            const int ExpectLogs = 3;
-            const int SecondsBetweenLogs = 0;
+            const int expectLogs = 3;
+            const int secondsBetweenLogs = 0;
 
-            // arrange
             var sut = GetThresholdReactor(5, false);
 
-            // act
-            SendXEventsNSecondsApart(sut, 7, SecondsBetweenLogs);
+            SendXEventsNSecondsApart(sut, 7, secondsBetweenLogs);
 
-            // assert
-            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(ExpectLogs));
+            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(expectLogs));
         }
 
         [Fact]
-        public void when_threshold_tripled_over_time_should_get_3_logs()
+        public void WhenThresholdTripledOverTimeShouldLogThreeMessages()
         {
-            const int ExpectLogs = 3;
-            const int Threshold = 5;
-            const int SecondsBetweenLogs = 2;
-            var sut = GetThresholdReactor(Threshold);
+            const int expectLogs = 3;
+            const int threshold = 5;
+            const int secondsBetweenLogs = 2;
+            var sut = GetThresholdReactor(threshold);
 
-            // act
-            SendXEventsNSecondsApart(sut, Threshold * ExpectLogs, SecondsBetweenLogs);
+            SendXEventsNSecondsApart(sut, threshold * expectLogs, secondsBetweenLogs);
 
-            // assert
-            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(ExpectLogs));
+            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(expectLogs));
         }
 
         [Fact]
-        public void when_threshold_tripled_should_get_3_logs()
+        public void WhenThresholdTripledShouldLogThreeMessages()
         {
-            const int ExpectLogs = 3;
-            const int Threshold = 5;
-            const int SecondsBetweenLogs = 2;
-            var sut = GetThresholdReactor(Threshold);
+            const int expectLogs = 3;
+            const int threshold = 5;
+            const int secondsBetweenLogs = 2;
+            var sut = GetThresholdReactor(threshold);
 
-            // act
-            SendXEventsNSecondsApart(sut, Threshold * ExpectLogs, SecondsBetweenLogs);
+            SendXEventsNSecondsApart(sut, threshold * expectLogs, secondsBetweenLogs);
 
-            // assert
-            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(ExpectLogs));
+            _logger.Verify(l => l.Information(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly(expectLogs));
         }
 
-        private void SendXEventsNSecondsApart(ISubscribeTo<LogEventData> sut, int numberOfEvents, int secondsBetweenEvents = 0)
+        static void SendXEventsNSecondsApart(ISubscribeTo<LogEventData> sut, int numberOfEvents, int secondsBetweenEvents = 0)
         {
             var firstEventTime = Some.UtcTimestamp();
 
@@ -121,7 +107,7 @@ namespace Seq.App.Thresholds.Tests
         }
 
         [Fact]
-        public void burn_in_fuzzing()
+        public void BurnInFuzzing()
         {
             var now = DateTime.UtcNow;
             // ReSharper disable once AccessToModifiedClosure
@@ -136,7 +122,7 @@ namespace Seq.App.Thresholds.Tests
             }
         }
 
-        private ThresholdReactor GetThresholdReactor(int threshold, bool resetOnThresholdReached = true)
+        ThresholdReactor GetThresholdReactor(int threshold, bool resetOnThresholdReached = true)
         {
             var sut = new ThresholdReactor
             {
@@ -147,7 +133,7 @@ namespace Seq.App.Thresholds.Tests
                 };
 
             var appHost = new Mock<IAppHost>();
-            appHost.SetupGet(h => h.Host).Returns(new Host(new[] { "localhost" }, "test"));
+            appHost.SetupGet(h => h.Host).Returns(new Host("https://seq.example.com", "test"));
             appHost.SetupGet(h => h.Logger).Returns(_logger.Object);
 
             sut.Attach(appHost.Object);

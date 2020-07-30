@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Seq.App.EmailPlus.Tests.Support
 {
     public static class Some
@@ -62,14 +64,9 @@ namespace Seq.App.EmailPlus.Tests.Support
             return DateTime.UtcNow;
         }
 
-        public static string Uri()
-        {
-            return "https://" + String();
-        }
-
         public static Host Host()
         {
-            return new Host(new [] { Uri() }, String() );
+            return new Host("https://seq.example.com", String() );
         }
     }
 }
