@@ -26,7 +26,7 @@ namespace Seq.App.FileArchive
         {
             _archiveLogger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.RollingFile(
+                .WriteTo.File(
                     PathFormat,
                     retainedFileCountLimit: null,
                     outputTemplate: "{Timestamp} [{Level}] {Message:l}{NewLine:l}{ArchiveWriterException:l}")
