@@ -7,7 +7,7 @@
       use the 2.x series of releases of this package.</Description>
     <Authors>Datalust and Contributors</Authors>
     <PackageTags>seq-app</PackageTags>
-    <PackageIconUrl>https://datalust.co/images/apps/seq-app-thresholds.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/datalust/seq-apps</PackageProjectUrl>
     <RepositoryUrl>https://github.com/datalust/seq-apps</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="./icon.png" Pack="true" Visible="false" PackagePath="" />
     <None Include="../../LICENSE" Pack="true" PackagePath="" />
     <None Include="./obj/publish/**/*" Exclude="./obj/publish/Seq.App.Thresholds.dll;./obj/publish/Seq.Apps.dll;./obj/publish/Serilog.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
   </ItemGroup>
