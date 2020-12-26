@@ -1,22 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Seq.Apps;
-using Seq.Apps.LogEvents;
 using Serilog;
 using Serilog.Events;
-using Serilog.Parsing;
-using System.Collections;
+using Serilog.Core;
+
+// ReSharper disable UnusedAutoPropertyAccessor.Global, UnusedType.Global, MemberCanBePrivate.Global
 
 namespace Seq.App.Replication
 {
     [SeqApp(
         "Replicator",
         Description = "Forwards events to a second Seq server instance.")]
-    public class Replicator : Reactor, ISubscribeTo<LogEventData>, IDisposable
+    public class Replicator : SeqApp, ISubscribeTo<LogEvent>, IDisposable
     {
-        ILogger _replicaLogger;
+        Logger _replicaLogger;
 
         [SeqAppSetting(
             DisplayName = "Server URL",
@@ -56,59 +54,14 @@ namespace Seq.App.Replication
 
         public void Dispose()
         {
-            if (_replicaLogger is IDisposable disp)
-                disp.Dispose();
+            _replicaLogger.Dispose();
         }
 
-        public void On(Event<LogEventData> evt)
+        public void On(Event<LogEvent> evt)
         {
-            var mtp = new MessageTemplateParser();
-
-            var properties = (evt.Data.Properties ?? new Dictionary<string, object>())
-                .Select(kvp => CreateProperty(kvp.Key, kvp.Value));
-
-            var sle = new LogEvent(
-                evt.Data.LocalTimestamp,
-                (Serilog.Events.LogEventLevel)Enum.Parse(typeof(Serilog.Events.LogEventLevel), evt.Data.Level.ToString()),
-                evt.Data.Exception != null ? new ReplicatedException(evt.Data.Exception) : null,
-                mtp.Parse(evt.Data.MessageTemplate),
-                properties);
-
-            _replicaLogger.Write(sle);
-        }
-
-        LogEventProperty CreateProperty(string name, object value)
-        {
-            return new LogEventProperty(name, CreatePropertyValue(value));
-        }
-
-        LogEventPropertyValue CreatePropertyValue(object value)
-        {
-            if (value is IReadOnlyDictionary<string, object> d)
-            {
-                var _ = d.TryGetValue("$typeTag", out var tt) || d.TryGetValue("_typeTag", out tt) || d.TryGetValue("$type", out tt);
-                return new StructureValue(
-                    d.Where(kvp => kvp.Key != "$typeTag" && kvp.Key != "_typeTag" && kvp.Key != "$type")
-                        .Select(kvp => CreateProperty(kvp.Key, kvp.Value)),
-                    tt as string);
-            }
-
-            if (value is IDictionary dd)
-            {
-                return new DictionaryValue(dd.Keys
-                    .Cast<object>()
-                    .Select(k => new KeyValuePair<ScalarValue, LogEventPropertyValue>(
-                        (ScalarValue)CreatePropertyValue(k),
-                        CreatePropertyValue(dd[k]))));
-            }
-
-            if (value == null || value is string || !(value is IEnumerable))
-            {
-                return new ScalarValue(value);
-            }
-
-            var enumerable = (IEnumerable)value;
-            return new SequenceValue(enumerable.Cast<object>().Select(CreatePropertyValue));
+            evt.Data.RemovePropertyIfPresent("@i");
+            evt.Data.RemovePropertyIfPresent("@seqid");
+            _replicaLogger.Write(evt.Data);
         }
     }
 }

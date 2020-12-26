@@ -9,11 +9,13 @@ using HandlebarsDotNet;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Seq.App.EmailPlus
 {
     [SeqApp("Email+",
         Description = "Uses a Handlebars template to send events as SMTP email.")]
-    public class EmailReactor : Reactor, ISubscribeTo<LogEventData>
+    public class EmailApp : SeqApp, ISubscribeTo<LogEventData>
     {
         readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
@@ -22,18 +24,18 @@ namespace Seq.App.EmailPlus
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
 
-        static EmailReactor()
+        static EmailApp()
         {
             HandlebarsHelpers.Register();
         }
 
-        internal EmailReactor(IMailGateway mailGateway)
+        internal EmailApp(IMailGateway mailGateway)
             : this()
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
         }
 
-        public EmailReactor()
+        public EmailApp()
         {
             _subjectTemplate = new Lazy<Func<object, string>>(() =>
             {
@@ -158,7 +160,7 @@ namespace Seq.App.EmailPlus
                 { "$Properties",          properties },
                 { "$EventType",           "$" + evt.EventType.ToString("X8") },
                 { "$Instance",            host.InstanceName },
-                { "$ServerUri",           host.ListenUris.FirstOrDefault() }
+                { "$ServerUri",           host.BaseUri }
             });
 
             foreach (var property in properties)
