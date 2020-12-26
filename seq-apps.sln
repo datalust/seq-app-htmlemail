@@ -29,6 +29,7 @@ ProjectSection(SolutionItems) = preProject
 	appveyor.yml = appveyor.yml
 	LICENSE = LICENSE
 	Build.ps1 = Build.ps1
+	global.json = global.json
 EndProjectSection
 EndProject
 Global
