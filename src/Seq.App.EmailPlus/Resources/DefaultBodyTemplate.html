@@ -32,7 +32,7 @@
         <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;background-color:#777;" >
             {{/if_eq}}
             <div style="font-size:28px;line-height:20px;font-weight:bold;" >{{$Level}}</div>
-            <div title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
+            <div title="{{datetime $UtcTimestamp 'G' 'Coordinated Universal Time'}}">{{$LocalTimestamp}}</div>
         </td>
     </tr>
     <tr>
@@ -58,11 +58,11 @@
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Detected range start</div>
-                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{AlertRangeStart}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{datetime AlertRangeStart 'G' 'Coordinated Universal Time'}}</div>
                 </div>
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;">Detected range end</div>
-                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{datetime AlertRangeEnd 'G' 'Coordinated Universal Time'}}</div>
                 </div>
                 <div style="margin-top:10px;">
                   <div style="font-family:monospace;font-weight:bold;">Signal</div>
@@ -94,7 +94,7 @@
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
                     {{#each Slices}}
-                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span style="font-weight:bold;" >{{datetime SliceStart 'G' 'Coordinated Universal Time'}}</span> {{pretty Rowset}}</div>
                     {{/each}}
                 </div>
                 {{/each}}

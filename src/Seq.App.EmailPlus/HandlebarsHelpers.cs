@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Serilog;
 
 namespace Seq.App.EmailPlus
 {
@@ -14,6 +15,7 @@ namespace Seq.App.EmailPlus
             Handlebars.RegisterHelper("pretty", PrettyPrintHelper);
             Handlebars.RegisterHelper("if_eq", IfEqHelper);
             Handlebars.RegisterHelper("substring", SubstringHelper);
+            Handlebars.RegisterHelper("datetime", DateTimeHelper);
         }
 
         static void PrettyPrintHelper(EncodedTextWriter output, Context context, Arguments arguments)
@@ -117,6 +119,46 @@ namespace Seq.App.EmailPlus
             }
 
             return value.ToString().Substring(start, end);
+        }
+
+        static void DateTimeHelper(TextWriter output, object context, object[] arguments)
+        {
+            if (arguments.Length < 1)
+                return;
+
+            // Using `DateTimeOffset` avoids ending up with `DateTimeKind.Unspecified` after time zone conversion.
+            DateTimeOffset dt;
+            if (arguments[0] is DateTimeOffset dto)
+                dt = dto;
+            else if (arguments[0] is DateTime rdt)
+                dt = rdt.Kind == DateTimeKind.Unspecified ? new DateTime(rdt.Ticks, DateTimeKind.Utc) : rdt;
+            else
+                return;
+
+            string format = null;
+            if (arguments.Length >= 2 && arguments[1] is string f)
+            {
+                format = f;
+            }
+
+            if (arguments.Length >= 3 && arguments[2] is string timeZoneId)
+            {
+                try
+                {
+                    var tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                    dt = TimeZoneInfo.ConvertTime(dt, tzi);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "A time zone with id {TimeZoneId} was not found; falling back to UTC");
+                }
+            }
+            
+            if (dt.Offset == TimeSpan.Zero)
+                // Use the idiomatic trailing `Z` formatting for ISO-8601 in UTC.
+                output.Write(dt.UtcDateTime.ToString(format));
+            else
+                output.Write(dt.ToString(format));
         }
     }
 }
