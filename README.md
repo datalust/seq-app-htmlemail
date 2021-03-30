@@ -1,4 +1,4 @@
-# Seq.App.EmailPlus [![Build status](https://ci.appveyor.com/api/projects/status/k03t9s0ubtylqixi/branch/main?svg=true)](https://ci.appveyor.com/project/datalust/seq-apps/branch/main) [![Join the chat at https://gitter.im/datalust/seq](https://img.shields.io/gitter/room/datalust/seq.svg)](https://gitter.im/datalust/seq) [![NuGet tag](https://img.shields.io/badge/nuget-seq--app-blue.svg)](https://www.nuget.org/packages?q=seq-app)
+# Seq.App.EmailPlus [![Build status](https://ci.appveyor.com/api/projects/status/k03t9s0ubtylqixi?svg=true)](https://ci.appveyor.com/project/datalust/seq-app-htmlemail) [![Join the chat at https://gitter.im/datalust/seq](https://img.shields.io/gitter/room/datalust/seq.svg)](https://gitter.im/datalust/seq) [![NuGet tag](https://img.shields.io/badge/nuget-seq--app-blue.svg)](https://www.nuget.org/packages?q=seq-app)
 
 In this repository you'll find _Seq.App.EmailPlus_: [send log events and alerts as HTML email messages](https://docs.datalust.co/docs/formatting-html-email) when they arrive at [Seq](https://datalust.co/seq).
  
