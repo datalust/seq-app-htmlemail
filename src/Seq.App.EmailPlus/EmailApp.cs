@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using HandlebarsDotNet;
+using MailKit.Net.Smtp;
+using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
@@ -19,11 +19,13 @@ namespace Seq.App.EmailPlus
 
     [SeqApp("Email+",
         Description = "Uses a Handlebars template to send events as SMTP email.")]
-    public class EmailApp : SeqApp, ISubscribeTo<LogEventData>
+    public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
         readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        private SmtpClient _client = new SmtpClient();
+        private SmtpOptions _options = new SmtpOptions();
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -124,13 +126,17 @@ namespace Seq.App.EmailPlus
 
         protected override void OnAttached()
         {
-
+            _options = new SmtpOptions() {Server = Host, Port = Port ?? 25, UseSsl = EnableSsl ?? false, User = Username, Password = Password, RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)};
         }
 
-        public void On(Event<LogEventData> evt)
+        public async Task OnAsync(Event<LogEventData> evt)
         {
             var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k => { added = true; return DateTime.UtcNow; });
+            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k =>
+            {
+                added = true;
+                return DateTime.UtcNow;
+            });
             if (!added)
             {
                 if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
@@ -139,18 +145,15 @@ namespace Seq.App.EmailPlus
 
             var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "").Replace("\n", "");
+            var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
+                .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
-            if (!string.IsNullOrWhiteSpace(Username))
-                client.Credentials = new NetworkCredential(Username, Password);
+            var result = await _mailGateway.Send(_client, _options, new MimeMessage(new List<InternetAddress> {MailboxAddress.Parse(From)},
+                new List<InternetAddress> {MailboxAddress.Parse(to)}, subject,
+                (new BodyBuilder() {HtmlBody = body}).ToMessageBody()));
 
-            using (var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true})
-            {
-                _mailGateway.Send(client, message);
-            }
         }
 
         public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
@@ -169,7 +172,9 @@ namespace Seq.App.EmailPlus
                 { "$Properties",          properties },
                 { "$EventType",           "$" + evt.EventType.ToString("X8") },
                 { "$Instance",            host.InstanceName },
-                { "$ServerUri",           host.BaseUri }
+                { "$ServerUri",           host.BaseUri },
+                // Note, this will only be valid when events are streamed directly to the app, and not when the app is sending an alert notification.
+                { "$EventUri",            string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded") } 
             });
 
             foreach (var property in properties)

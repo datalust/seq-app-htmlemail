@@ -110,7 +110,7 @@ namespace Seq.App.EmailPlus.Tests
 
 
         [Fact]
-        public void ToAddressesAreTemplated()
+        public async void ToAddressesAreTemplated()
         {
             var mail = new CollectingMailGateway();
             var reactor = new EmailApp(mail)
@@ -123,7 +123,7 @@ namespace Seq.App.EmailPlus.Tests
             reactor.Attach(new TestAppHost());
 
             var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
-            reactor.On(data);
+            await reactor.OnAsync(data);
 
             var sent = mail.Sent.Single();
             Assert.Equal("test@example.com", sent.Message.To.ToString());
