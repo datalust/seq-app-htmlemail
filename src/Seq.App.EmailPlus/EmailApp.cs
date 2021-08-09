@@ -11,17 +11,19 @@ using HandlebarsDotNet;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
-// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global, MemberCanBePrivate.Global
 
 namespace Seq.App.EmailPlus
 {
+    using Template = HandlebarsTemplate<object, object>;
+
     [SeqApp("Email+",
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailApp : SeqApp, ISubscribeTo<LogEventData>
     {
         readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
-        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -39,7 +41,7 @@ namespace Seq.App.EmailPlus
 
         public EmailApp()
         {
-            _subjectTemplate = new Lazy<Func<object, string>>(() =>
+            _subjectTemplate = new Lazy<Template>(() =>
             {
                 var subjectTemplate = SubjectTemplate;
                 if (string.IsNullOrEmpty(subjectTemplate))
@@ -47,7 +49,7 @@ namespace Seq.App.EmailPlus
                 return Handlebars.Compile(subjectTemplate);
             });
 
-            _bodyTemplate = new Lazy<Func<object, string>>(() =>
+            _bodyTemplate = new Lazy<Template>(() =>
             {
                 var bodyTemplate = BodyTemplate;
                 if (string.IsNullOrEmpty(bodyTemplate))
@@ -55,11 +57,11 @@ namespace Seq.App.EmailPlus
                 return Handlebars.Compile(bodyTemplate);
             });
 
-            _toAddressesTemplate = new Lazy<Func<object, string>>(() =>
+            _toAddressesTemplate = new Lazy<Template>(() =>
             {
                 var toAddressTemplate = To;
                 if (string.IsNullOrEmpty(toAddressTemplate))
-                    return o => To;
+                    return (_, __) => To;
                 return Handlebars.Compile(toAddressTemplate);
             });
         }
@@ -159,7 +161,7 @@ namespace Seq.App.EmailPlus
             }
         }
 
-        public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
+        public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
