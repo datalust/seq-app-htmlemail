@@ -99,12 +99,6 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
-            DisplayName = "Suppress SSL Validation",
-            HelpText = "Check this box if SSL errors should be ignored. This scenario can occur if using self-signed certificates, wildcard certificates, etc. Only use if you explicitly trust the SMTP server.")]
-        public bool? SuppressSslValidation { get; set; }
-
-        [SeqAppSetting(
-            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
@@ -130,8 +124,6 @@ namespace Seq.App.EmailPlus
 
         protected override void OnAttached()
         {
-            if (EnableSsl != null && SuppressSslValidation != null && (bool)EnableSsl && (bool)SuppressSslValidation)
-                ServicePointManager.ServerCertificateValidationCallback += ValidateCertificate;
 
         }
 
@@ -205,12 +197,6 @@ namespace Seq.App.EmailPlus
             }
 
             return o;
-        }
-
-        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain,
-            SslPolicyErrors errors)
-        {
-            return true;
         }
     }
 }
