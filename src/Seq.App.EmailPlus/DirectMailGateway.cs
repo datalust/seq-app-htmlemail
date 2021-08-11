@@ -7,13 +7,16 @@ namespace Seq.App.EmailPlus
 {
     class DirectMailGateway : IMailGateway
     {
-        public async Task<MailResult> Send(SmtpClient client, SmtpOptions options, MimeMessage message)
+        public async Task<MailResult> Send(SmtpOptions options, MimeMessage message)
         {
-            if (client == null) throw new ArgumentNullException(nameof(client));
             if (message == null) throw new ArgumentNullException(nameof(message));
             try
             {
-                await client.ConnectAsync(options.Server, options.Port, options.UseSsl);
+                var client = new SmtpClient();
+                
+                await client.ConnectAsync(options.Server, options.Port, options.SocketOptions);
+                if (options.RequiresAuthentication)
+                    await client.AuthenticateAsync(options.User, options.Password);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
 

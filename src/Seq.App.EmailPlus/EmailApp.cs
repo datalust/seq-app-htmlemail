@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -24,8 +25,7 @@ namespace Seq.App.EmailPlus
         readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        private SmtpClient _client = new SmtpClient();
-        private SmtpOptions _options = new SmtpOptions();
+        readonly SmtpOptions _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -43,6 +43,16 @@ namespace Seq.App.EmailPlus
 
         public EmailApp()
         {
+            _options = _options = new SmtpOptions()
+            {
+                Server = Host, Port = Port ?? 25,
+                SocketOptions = EnableSsl != null && (bool) EnableSsl
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTlsWhenAvailable,
+                User = Username, Password = Password,
+                RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
+            };
+            
             _subjectTemplate = new Lazy<Template>(() =>
             {
                 var subjectTemplate = SubjectTemplate;
@@ -124,11 +134,6 @@ namespace Seq.App.EmailPlus
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string Password { get; set; }
 
-        protected override void OnAttached()
-        {
-            _options = new SmtpOptions() {Server = Host, Port = Port ?? 25, UseSsl = EnableSsl ?? false, User = Username, Password = Password, RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)};
-        }
-
         public async Task OnAsync(Event<LogEventData> evt)
         {
             var added = false;
@@ -150,9 +155,12 @@ namespace Seq.App.EmailPlus
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var result = await _mailGateway.Send(_client, _options, new MimeMessage(new List<InternetAddress> {MailboxAddress.Parse(From)},
+            var result = await _mailGateway.Send(_options, new MimeMessage(new List<InternetAddress> {MailboxAddress.Parse(From)},
                 new List<InternetAddress> {MailboxAddress.Parse(to)}, subject,
                 (new BodyBuilder() {HtmlBody = body}).ToMessageBody()));
+
+            if (!result.Success)
+                throw result.Errors;
 
         }
 

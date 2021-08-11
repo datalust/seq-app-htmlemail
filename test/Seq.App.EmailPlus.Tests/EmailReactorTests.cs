@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -110,7 +111,7 @@ namespace Seq.App.EmailPlus.Tests
 
 
         [Fact]
-        public async void ToAddressesAreTemplated()
+        public async Task ToAddressesAreTemplated()
         {
             var mail = new CollectingMailGateway();
             var reactor = new EmailApp(mail)

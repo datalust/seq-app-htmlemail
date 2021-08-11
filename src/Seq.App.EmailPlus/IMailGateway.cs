@@ -8,6 +8,6 @@ namespace Seq.App.EmailPlus
 {
     interface IMailGateway
     {
-        Task<MailResult> Send(SmtpClient client, SmtpOptions options, MimeMessage message);
+        Task<MailResult> Send(SmtpOptions options, MimeMessage message);
     }
 }
