@@ -48,7 +48,7 @@ namespace Seq.App.EmailPlus
                 Port = Port ?? 25,
                 SocketOptions = EnableSsl != null && (bool) EnableSsl
                     ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.StartTlsWhenAvailable,
+                    : SecureSocketOptions.None,
                 User = Username, Password = Password,
                 RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
             });
@@ -172,7 +172,7 @@ namespace Seq.App.EmailPlus
 
             Exception lastError = null;
             var errors = new List<Exception>();
-            if (Options.Value.Server.Any())
+            if (Options.Value.Server != null && Options.Value.Server.Any())
             {
                 type = DeliveryType.MailHost;
                 var result = await _mailGateway.Send(Options.Value, message);
@@ -180,13 +180,14 @@ namespace Seq.App.EmailPlus
                 sent = result.Success;
                 if (!result.Success)
                 {
-                    lastError = result.LastError;
+                    if (result.LastError != null)
+                        lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.LastServer), result.LastServer)
                         .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.Errors), result.Errors)
-                        .Error(result.LastError, "Error sending mail: ",
-                            result.LastError.Message);
+                        .Error(result.LastError, "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
+                            result.LastError?.Message, From, to, subject);
                 }
             }
 
@@ -199,12 +200,13 @@ namespace Seq.App.EmailPlus
 
                 if (!result.Success)
                 {
-                    lastError = result.LastError;
+                    if (result.LastError != null)
+                        lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
                         .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
-                            "Error sending mail via DNS: ", result.LastError.Message);
+                            "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}", result.LastError?.Message, From, to, subject);
                 }
             }
 
@@ -215,7 +217,7 @@ namespace Seq.App.EmailPlus
                 case true:
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                        .Information("Mail Sent, From {From}, To: {To}, Subject: {Subject}");
+                        .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
                     break;
             }
         }

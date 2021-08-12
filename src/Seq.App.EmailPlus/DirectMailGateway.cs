@@ -11,7 +11,8 @@ namespace Seq.App.EmailPlus
 {
     internal class DirectMailGateway : IMailGateway
     {
-        private readonly SmtpClient _client = new SmtpClient();
+        static readonly SmtpClient Client = new SmtpClient();
+        static readonly LookupClient DnsClient = new LookupClient();
 
         public async Task<MailResult> Send(SmtpOptions options, MimeMessage message)
         {
@@ -50,12 +51,11 @@ namespace Seq.App.EmailPlus
             {
                 var domains = GetDomains(message);
 
-                var dnsClient = new LookupClient();
                 foreach (var domain in domains)
                 {
                     type = deliveryType;
                     lastServer = domain;
-                    var mx = await dnsClient.QueryAsync(domain, QueryType.MX);
+                    var mx = await DnsClient.QueryAsync(domain, QueryType.MX);
                     var mxServers =
                         (from mxServer in mx.Answers
                             where !string.IsNullOrEmpty(((MxRecord) mxServer).Exchange)
@@ -85,9 +85,12 @@ namespace Seq.App.EmailPlus
 
                     if (mailResult.Success) continue;
                     dnsResult.Success = false;
-
+                    if (dnsResult.LastError == null) dnsResult.LastError = mxServers.Count == 0 ? new Exception("DNS delivery failed - no MX records detected for " + domain) : new Exception("DNS delivery failed - no error detected");
                     break;
                 }
+
+                if (!domains.Any())
+                    dnsResult.LastError = new Exception("DNS delivery failed - no domains parsed from To addresses");
             }
             catch (Exception ex)
             {
@@ -106,15 +109,14 @@ namespace Seq.App.EmailPlus
         }
 
 
-        private static IEnumerable<string> GetDomains(MimeMessage message)
+        public static IEnumerable<string> GetDomains(MimeMessage message)
         {
             var domains = new List<string>();
             foreach (var to in message.To)
             {
                 var toDomain = to.ToString().Split('@')[1];
                 if (string.IsNullOrEmpty(toDomain)) continue;
-                foreach (var domain in domains.Where(domain =>
-                    !toDomain.Equals(domain, StringComparison.OrdinalIgnoreCase)))
+                if (!domains.Any(domain => domain.Equals(toDomain, StringComparison.OrdinalIgnoreCase)))
                     domains.Add(toDomain);
             }
 
@@ -128,13 +130,13 @@ namespace Seq.App.EmailPlus
                 return new MailResult {Success = false, LastServer = server, Type = deliveryType};
             try
             {
-                await _client.ConnectAsync(server, options.Port, options.SocketOptions);
+                await Client.ConnectAsync(server, options.Port, options.SocketOptions);
                 if (options.RequiresAuthentication)
-                    await _client.AuthenticateAsync(options.User, options.Password);
+                    await Client.AuthenticateAsync(options.User, options.Password);
 
 
-                await _client.SendAsync(message);
-                await _client.DisconnectAsync(true);
+                await Client.SendAsync(message);
+                await Client.DisconnectAsync(true);
 
 
                 return new MailResult {Success = true, LastServer = server, Type = deliveryType};

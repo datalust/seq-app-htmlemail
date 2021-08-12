@@ -2,19 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MimeKit;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Seq.App.EmailPlus.Tests
 {
     public class EmailReactorTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
         static EmailReactorTests()
         {
             // Ensure the handlebars helpers are registered.
             GC.KeepAlive(new EmailApp());
+        }
+
+        public EmailReactorTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -142,5 +151,56 @@ namespace Seq.App.EmailPlus.Tests
             reactor.Attach(new TestAppHost());
             Assert.True(reactor.Options.Value.ServerList.Count() == 2);
         }
+
+        [Fact]
+        public void ParseDomainTest()
+        {
+            var mail = new DirectMailGateway();
+            var domains = DirectMailGateway.GetDomains(new MimeMessage(
+                new List<InternetAddress> {InternetAddress.Parse("test@example.com")},
+                new List<InternetAddress> {InternetAddress.Parse("test2@example.com"), InternetAddress.Parse("test3@example.com"), InternetAddress.Parse("test@example2.com")}, "Test",
+                (new BodyBuilder {HtmlBody = "test"}).ToMessageBody()));
+            Assert.True(domains.Count() == 2);
+        }
+
+        //[Fact]
+        //public async Task MailHostDeliveryTest()
+        //{
+        //    var reactor = new EmailApp()
+        //    {
+        //        Host = "fqdn",
+        //        EnableSsl = false,
+        //        From = "test@example.com",
+        //        To = "testdest@example.com",
+        //        BodyTemplate = "Test Body",
+        //        SubjectTemplate = "Test Email"
+        //    };
+
+        //    reactor.Attach(new TestAppHost());
+        //    var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
+        //    await reactor.OnAsync(data);
+
+        //}
+        
+        //[Fact]
+        //public async Task SmtpDnsDeliveryTest()
+        //{
+        //    var mail = new DirectMailGateway();
+        //    var reactor = new EmailApp(mail)
+        //    {
+        //        DeliverUsingDns = true,
+        //        EnableSsl = false,
+        //        From = "test@example.com",
+        //        To = "testdest@example.com",
+        //        BodyTemplate = "Test Body",
+        //        SubjectTemplate = "Test Email"
+        //    };
+
+        //    reactor.Attach(new TestAppHost());
+        //    var x = await mail.SendDns(DeliveryType.Dns, reactor.Options.Value, new MimeMessage(
+        //        new List<InternetAddress> {InternetAddress.Parse(reactor.From)},
+        //        new List<InternetAddress> {InternetAddress.Parse(reactor.To)}, reactor.SubjectTemplate, (new BodyBuilder {HtmlBody = reactor.BodyTemplate}).ToMessageBody()));
+        //    _testOutputHelper.WriteLine("{0}: {1}", x.Success, x.LastError);
+        //}
     }
 }
