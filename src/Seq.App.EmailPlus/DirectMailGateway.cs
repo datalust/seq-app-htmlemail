@@ -32,7 +32,7 @@ namespace Seq.App.EmailPlus
 
         public async Task<DnsMailResult> SendDns(DeliveryType deliveryType, SmtpOptions options, MimeMessage message)
         {
-            var dnsResult = new DnsMailResult {Success = true};
+            var dnsResult = new DnsMailResult();
             var resultList = new List<MailResult>();
             var lastServer = string.Empty;
             if (message == null) throw new ArgumentNullException(nameof(message));
@@ -56,9 +56,15 @@ namespace Seq.App.EmailPlus
                     foreach (var server in mxServers)
                     {
                         lastServer = server;
-                        dnsResult.LastServer = server;
-                        dnsResult.Type = type;
                         mailResult = await TryDeliver(server, options, message, type);
+                        dnsResult = new DnsMailResult()
+                        {
+                            LastServer = server,
+                            LastError = mailResult.Errors ?? mailResult.Errors,
+                            Type = type,
+                            Success = mailResult.Success
+                        };
+                        
                         resultList.Add(mailResult);
 
                         if (mailResult.Success)
@@ -67,17 +73,20 @@ namespace Seq.App.EmailPlus
                     }
 
                     if (mailResult.Success) continue;
-                    dnsResult.LastServer = lastServer;
                     dnsResult.Success = false;
+
                     break;
                 }
             }
             catch (Exception ex)
             {
-                dnsResult.Type = type;
-                dnsResult.LastServer = lastServer;
-                dnsResult.Success = false;
-                dnsResult.LastError = ex;
+                dnsResult = new DnsMailResult()
+                {
+                    Type = type,
+                    LastServer = lastServer,
+                    Success = false,
+                    LastError = ex
+                };
             }
 
             dnsResult.Results = resultList;

@@ -129,7 +129,7 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Fact]
-        public async Task SmtpOptionsCalculated()
+        public void SmtpOptionsCalculated()
         {
             var mail = new CollectingMailGateway();
             var reactor = new EmailApp(mail)
