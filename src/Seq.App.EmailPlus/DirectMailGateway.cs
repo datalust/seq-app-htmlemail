@@ -109,19 +109,14 @@ namespace Seq.App.EmailPlus
                 return new MailResult {Success = false, LastServer = server, Type = deliveryType};
             try
             {
-                if (!string.IsNullOrEmpty(server))
-                {
-                    await _client.ConnectAsync(server, options.Port, options.SocketOptions);
-                    if (options.RequiresAuthentication)
-                        await _client.AuthenticateAsync(options.User, options.Password);
-                }
-                else
-                {
-                    var dnsClient = new LookupClient();
-                }
+                await _client.ConnectAsync(server, options.Port, options.SocketOptions);
+                if (options.RequiresAuthentication)
+                    await _client.AuthenticateAsync(options.User, options.Password);
+
 
                 await _client.SendAsync(message);
                 await _client.DisconnectAsync(true);
+
 
                 return new MailResult {Success = true, LastServer = server, Type = deliveryType};
             }
