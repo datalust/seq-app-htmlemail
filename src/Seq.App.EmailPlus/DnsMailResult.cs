@@ -9,6 +9,7 @@ namespace Seq.App.EmailPlus
         public DeliveryType Type { get; set; }
         public string LastServer { get; set; }
         public Exception LastError { get; set; }
-        public List<MailResult> Results { get; set; }
+        public List<Exception> Errors { get; set; } = new List<Exception>();
+        public List<MailResult> Results { get; set; } = new List<MailResult>();
     }
 }

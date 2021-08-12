@@ -9,24 +9,31 @@ using MimeKit;
 
 namespace Seq.App.EmailPlus
 {
-    class DirectMailGateway : IMailGateway
+    internal class DirectMailGateway : IMailGateway
     {
-        readonly SmtpClient _client = new SmtpClient();
+        private readonly SmtpClient _client = new SmtpClient();
 
         public async Task<MailResult> Send(SmtpOptions options, MimeMessage message)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
             var mailResult = new MailResult();
             var type = DeliveryType.MailHost;
+            var errors = new List<Exception>();
             foreach (var server in options.ServerList)
             {
                 mailResult = await TryDeliver(server, options, message, type);
                 if (!mailResult.Success)
+                {
+                    errors.Add(mailResult.LastError);
                     type = DeliveryType.MailFallback;
+                }
                 else
+                {
                     break;
+                }
             }
 
+            mailResult.Errors = errors;
             return mailResult;
         }
 
@@ -35,6 +42,7 @@ namespace Seq.App.EmailPlus
             var dnsResult = new DnsMailResult();
             var resultList = new List<MailResult>();
             var lastServer = string.Empty;
+            var errors = new List<Exception>();
             if (message == null) throw new ArgumentNullException(nameof(message));
             var type = deliveryType;
 
@@ -58,14 +66,16 @@ namespace Seq.App.EmailPlus
                         lastServer = server;
                         mailResult = await TryDeliver(server, options, message, type);
                         var lastError = dnsResult.LastError;
-                        dnsResult = new DnsMailResult()
+                        errors.AddRange(mailResult.Errors);
+
+                        dnsResult = new DnsMailResult
                         {
                             LastServer = server,
-                            LastError = mailResult.Errors ?? lastError,
+                            LastError = mailResult.LastError ?? lastError,
                             Type = type,
                             Success = mailResult.Success
                         };
-                        
+
                         resultList.Add(mailResult);
 
                         if (mailResult.Success)
@@ -81,7 +91,7 @@ namespace Seq.App.EmailPlus
             }
             catch (Exception ex)
             {
-                dnsResult = new DnsMailResult()
+                dnsResult = new DnsMailResult
                 {
                     Type = type,
                     LastServer = lastServer,
@@ -90,6 +100,7 @@ namespace Seq.App.EmailPlus
                 };
             }
 
+            dnsResult.Errors = errors;
             dnsResult.Results = resultList;
             return dnsResult;
         }
@@ -104,9 +115,7 @@ namespace Seq.App.EmailPlus
                 if (string.IsNullOrEmpty(toDomain)) continue;
                 foreach (var domain in domains.Where(domain =>
                     !toDomain.Equals(domain, StringComparison.OrdinalIgnoreCase)))
-                {
                     domains.Add(toDomain);
-                }
             }
 
             return domains;
@@ -132,9 +141,8 @@ namespace Seq.App.EmailPlus
             }
             catch (Exception ex)
             {
-                return new MailResult {Success = false, Errors = ex, LastServer = server, Type = deliveryType};
+                return new MailResult {Success = false, LastError = ex, LastServer = server, Type = deliveryType};
             }
         }
-
     }
 }

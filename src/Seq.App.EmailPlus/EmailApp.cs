@@ -171,20 +171,22 @@ namespace Seq.App.EmailPlus
                 toList, subject, (new BodyBuilder {HtmlBody = body}).ToMessageBody());
 
             Exception lastError = null;
+            var errors = new List<Exception>();
             if (Options.Value.Server.Any())
             {
                 type = DeliveryType.MailHost;
                 var result = await _mailGateway.Send(Options.Value, message);
-
+                errors = result.Errors;
                 sent = result.Success;
                 if (!result.Success)
                 {
-                    lastError = result.Errors;
+                    lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.LastServer), result.LastServer)
-                        .ForContext(nameof(result.Type), result.Type).Error(result.Errors, "Error sending mail: ",
-                            result.Errors.Message);
+                        .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.Errors), result.Errors)
+                        .Error(result.LastError, "Error sending mail: ",
+                            result.LastError.Message);
                 }
             }
 
@@ -192,6 +194,7 @@ namespace Seq.App.EmailPlus
             {
                 type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
                 var result = await _mailGateway.SendDns(type, Options.Value, message);
+                errors = result.Errors;
                 sent = result.Success;
 
                 if (!result.Success)
@@ -199,7 +202,7 @@ namespace Seq.App.EmailPlus
                     lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
-                        .ForContext(nameof(result.Results), result.Results, true)
+                        .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
                         .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
                             "Error sending mail via DNS: ", result.LastError.Message);
                 }
@@ -211,7 +214,7 @@ namespace Seq.App.EmailPlus
                     throw lastError;
                 case true:
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
-                        .ForContext("Success", true).ForContext("Body", body)
+                        .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
                         .Information("Mail Sent, From {From}, To: {To}, Subject: {Subject}");
                     break;
             }
