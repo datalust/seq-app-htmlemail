@@ -57,10 +57,11 @@ namespace Seq.App.EmailPlus
                     {
                         lastServer = server;
                         mailResult = await TryDeliver(server, options, message, type);
+                        var lastError = dnsResult.LastError;
                         dnsResult = new DnsMailResult()
                         {
                             LastServer = server,
-                            LastError = mailResult.Errors ?? mailResult.Errors,
+                            LastError = mailResult.Errors ?? lastError,
                             Type = type,
                             Success = mailResult.Success
                         };
