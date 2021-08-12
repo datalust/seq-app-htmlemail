@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using MailKit.Net.Smtp;
 using MimeKit;
 
 
@@ -14,7 +13,14 @@ namespace Seq.App.EmailPlus.Tests.Support
         {
             await Task.Run(() => Sent.Add(new SentMessage(message)));
             
-            return new MailResult() {Success = true};
+            return new MailResult {Success = true};
+        }
+
+        public async Task<DnsMailResult> SendDns(DeliveryType deliveryType, SmtpOptions options, MimeMessage message)
+        {
+            await Task.Run(() => Sent.Add(new SentMessage(message)));
+            
+            return new DnsMailResult {Success = true};
         }
     }
 }

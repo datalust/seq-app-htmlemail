@@ -122,12 +122,25 @@ namespace Seq.App.EmailPlus.Tests
             };
 
             reactor.Attach(new TestAppHost());
-
             var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
             await reactor.OnAsync(data);
-
             var sent = mail.Sent.Single();
             Assert.Equal("test@example.com", sent.Message.To.ToString());
+        }
+
+        [Fact]
+        public async Task SmtpOptionsCalculated()
+        {
+            var mail = new CollectingMailGateway();
+            var reactor = new EmailApp(mail)
+            {
+                From = "from@example.com",
+                To = "{{Name}}@example.com",
+                Host = "example.com,example2.com"
+            };
+
+            reactor.Attach(new TestAppHost());
+            Assert.True(reactor.Options.Value.ServerList.Count() == 2);
         }
     }
 }
