@@ -46,6 +46,9 @@ namespace Seq.App.EmailPlus
                 Server = Host,
                 DnsDelivery = DeliverUsingDns != null && (bool) DeliverUsingDns,
                 Port = Port ?? 25,
+                Priority = SmtpOptions.ParsePriority(Priority, out var priorityMapping),
+                PriorityMapping = priorityMapping,
+                DefaultPriority = SmtpOptions.ParsePriority(DefaultPriority),
                 SocketOptions = EnableSsl != null && (bool) EnableSsl
                     ? SecureSocketOptions.SslOnConnect
                     : SecureSocketOptions.None,
@@ -123,6 +126,24 @@ namespace Seq.App.EmailPlus
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
+            IsOptional = true,
+            DisplayName = "Email Priority Property",
+            HelpText = "Event Property that can be used to map email priority; properties can be mapped to email priority using the Email Priority or Property Mapping field.")]
+        public string PriorityProperty { get; set; }
+        
+        [SeqAppSetting(
+            IsOptional = true,
+            DisplayName = "Email Priority or Property Mapping",
+            HelpText = "The Priority of the email - High, Normal, Low - Default Normal, or 'Email Priority Property' mapping using Property=Mapping format, eg. Highest=High,Error=Normal,Low=Low.")]
+        public string Priority { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            DisplayName = "Default Priority",
+            HelpText = "If using Email Priority mapping - Default for events not matching the mapping - High, Normal, or Low. Defaults to Normal.")]
+        public string DefaultPriority { get; set; }
+
+        [SeqAppSetting(
             DisplayName = "Suppression time (minutes)",
             IsOptional = true,
             HelpText = "Once an event type has been sent, the time to wait before sending again. The default is zero.")]
@@ -169,6 +190,24 @@ namespace Seq.App.EmailPlus
             var message = new MimeMessage(
                 new List<InternetAddress> {InternetAddress.Parse(From)},
                 toList, subject, (new BodyBuilder {HtmlBody = body}).ToMessageBody());
+
+            switch (Options.Value.Priority)
+            {
+                case EmailPriority.UseMapping:
+                    if (!string.IsNullOrEmpty(PriorityProperty) && Options.Value.PriorityMapping.Count > 0 &&
+                        TryGetPropertyValueCI(evt.Data.Properties, PriorityProperty, out var priorityProperty) &&
+                        priorityProperty is string priorityValue &&
+                        Options.Value.PriorityMapping.TryGetValue(priorityValue, out var matchedPriority))
+                        message.Priority = (MessagePriority) matchedPriority;
+                    else
+                        message.Priority = (MessagePriority) Options.Value.DefaultPriority;
+                    break;
+                case EmailPriority.Low:
+                case EmailPriority.Normal:
+                case EmailPriority.High:
+                    message.Priority = (MessagePriority) Options.Value.Priority;
+                    break;
+            }
 
             Exception lastError = null;
             var errors = new List<Exception>();
@@ -268,6 +307,20 @@ namespace Seq.App.EmailPlus
             }
 
             return o;
+        }
+
+        static bool TryGetPropertyValueCI(IReadOnlyDictionary<string, object> properties, string propertyName,
+            out object propertyValue)
+        {
+            var pair = properties.FirstOrDefault(p => p.Key.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
+            if (pair.Key == null)
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            propertyValue = pair.Value;
+            return true;
         }
     }
 }
