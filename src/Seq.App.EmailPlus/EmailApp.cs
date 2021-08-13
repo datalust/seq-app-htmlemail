@@ -22,7 +22,7 @@ namespace Seq.App.EmailPlus
     {
         readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
-        readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        readonly Lazy<Template> _bodyTemplate, _plainTextTemplate, _subjectTemplate, _toAddressesTemplate, _ccAddressesTemplate, _bccAddressesTemplate;
         public readonly Lazy<SmtpOptions> Options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
@@ -72,12 +72,36 @@ namespace Seq.App.EmailPlus
                 return Handlebars.Compile(bodyTemplate);
             });
 
+            _plainTextTemplate = new Lazy<Template>(() =>
+            {
+                var plainTextTemplate = PlainTextTemplate;
+                if (string.IsNullOrEmpty(plainTextTemplate))
+                    plainTextTemplate = Resources.DefaultBodyTemplate;
+                return Handlebars.Compile(plainTextTemplate);
+            });
+
             _toAddressesTemplate = new Lazy<Template>(() =>
             {
                 var toAddressTemplate = To;
                 if (string.IsNullOrEmpty(toAddressTemplate))
                     return (_, __) => To;
                 return Handlebars.Compile(toAddressTemplate);
+            });
+
+            _ccAddressesTemplate = new Lazy<Template>(() =>
+            {
+                var ccAddressTemplate = Cc;
+                if (string.IsNullOrEmpty(ccAddressTemplate))
+                    return (_, __) => To;
+                return Handlebars.Compile(ccAddressTemplate);
+            });
+
+            _bccAddressesTemplate = new Lazy<Template>(() =>
+            {
+                var bccAddressTemplate = Bcc;
+                if (string.IsNullOrEmpty(bccAddressTemplate))
+                    return (_, __) => To;
+                return Handlebars.Compile(bccAddressTemplate);
             });
         }
 
@@ -90,6 +114,16 @@ namespace Seq.App.EmailPlus
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
         public string To { get; set; }
+
+        [SeqAppSetting(
+            DisplayName = "CC address",
+            HelpText = "The account to which emails should be sent as CC. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
+        public string Cc { get; set; }
+
+        [SeqAppSetting(
+            DisplayName = "BCC address",
+            HelpText = "The account to which the email is being sent as BCC. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
+        public string Bcc { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -124,6 +158,13 @@ namespace Seq.App.EmailPlus
             HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
                        "the default template that includes the message and properties (https://github.com/datalust/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
         public string BodyTemplate { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            InputType = SettingInputType.LongText,
+            DisplayName = "Plain text template",
+            HelpText = "Optional plain text template to use when generating the email body, using Handlebars.NET syntax. Leave this blank if disable.")]
+        public string PlainTextTemplate { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -177,20 +218,40 @@ namespace Seq.App.EmailPlus
             var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
+
+            var cc = FormatTemplate(_ccAddressesTemplate.Value, evt, base.Host)
+                .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim()).ToList();
+
+            var bcc = FormatTemplate(_bccAddressesTemplate.Value, evt, base.Host)
+                .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim()).ToList();
+
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
+            var textBody = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
             var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
             var toList = to.Select(MailboxAddress.Parse).ToList();
+            var ccList = cc.Select(MailboxAddress.Parse).ToList();
+            var bccList = bcc.Select(MailboxAddress.Parse).ToList();
 
             var sent = false;
             var type = DeliveryType.None;
             var message = new MimeMessage(
                 new List<InternetAddress> {InternetAddress.Parse(From)},
-                toList, subject, (new BodyBuilder {HtmlBody = body}).ToMessageBody());
+                toList, subject,
+                (new BodyBuilder
+                    {HtmlBody = body, TextBody = textBody == body ? string.Empty : textBody}).ToMessageBody());
 
+            if (ccList.Any())
+                message.Cc.AddRange(ccList);
+
+            if (bccList.Any())
+                message.Bcc.AddRange(bccList);
+            
             switch (Options.Value.Priority)
             {
                 case EmailPriority.UseMapping:
