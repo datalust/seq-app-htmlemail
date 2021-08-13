@@ -22,7 +22,7 @@ namespace Seq.App.EmailPlus
     {
         readonly IMailGateway _mailGateway = new DirectMailGateway();
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
-        readonly Lazy<Template> _bodyTemplate, _plainTextTemplate, _subjectTemplate, _toAddressesTemplate, _ccAddressesTemplate, _bccAddressesTemplate;
+        readonly Lazy<Template> _bodyTemplate, _plainTextTemplate, _subjectTemplate, _toAddressesTemplate, _replyToAddressesTemplate, _ccAddressesTemplate, _bccAddressesTemplate;
         public readonly Lazy<SmtpOptions> Options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
@@ -83,25 +83,25 @@ namespace Seq.App.EmailPlus
             _toAddressesTemplate = new Lazy<Template>(() =>
             {
                 var toAddressTemplate = To;
-                if (string.IsNullOrEmpty(toAddressTemplate))
-                    return (_, __) => To;
-                return Handlebars.Compile(toAddressTemplate);
+                return string.IsNullOrEmpty(toAddressTemplate) ? (_, __) => To : Handlebars.Compile(toAddressTemplate);
+            });
+
+            _replyToAddressesTemplate = new Lazy<Template>(() =>
+            {
+                var replyToAddressTemplate = ReplyTo;
+                return string.IsNullOrEmpty(replyToAddressTemplate) ? (_, __) => ReplyTo : Handlebars.Compile(replyToAddressTemplate);
             });
 
             _ccAddressesTemplate = new Lazy<Template>(() =>
             {
                 var ccAddressTemplate = Cc;
-                if (string.IsNullOrEmpty(ccAddressTemplate))
-                    return (_, __) => To;
-                return Handlebars.Compile(ccAddressTemplate);
+                return string.IsNullOrEmpty(ccAddressTemplate) ? (_, __) => Cc : Handlebars.Compile(ccAddressTemplate);
             });
 
             _bccAddressesTemplate = new Lazy<Template>(() =>
             {
                 var bccAddressTemplate = Bcc;
-                if (string.IsNullOrEmpty(bccAddressTemplate))
-                    return (_, __) => To;
-                return Handlebars.Compile(bccAddressTemplate);
+                return string.IsNullOrEmpty(bccAddressTemplate) ? (_, __) => Bcc : Handlebars.Compile(bccAddressTemplate);
             });
         }
 
@@ -116,13 +116,21 @@ namespace Seq.App.EmailPlus
         public string To { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "ReplyTo address",
+            HelpText = "Optional account to which replies will be sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.",
+            IsOptional = true)]
+        public string ReplyTo { get; set; }
+
+        [SeqAppSetting(
             DisplayName = "CC address",
-            HelpText = "The account to which emails should be sent as CC. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
+            HelpText = "Optional account to which emails should be sent as CC. Multiple addresses are separated by a comma. Handlebars syntax is supported.",
+            IsOptional = true)]
         public string Cc { get; set; }
 
         [SeqAppSetting(
             DisplayName = "BCC address",
-            HelpText = "The account to which the email is being sent as BCC. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
+            HelpText = "Optional account to which the email is being sent as BCC. Multiple addresses are separated by a comma. Handlebars syntax is supported.",
+            IsOptional = true)]
         public string Bcc { get; set; }
 
         [SeqAppSetting(
@@ -219,6 +227,10 @@ namespace Seq.App.EmailPlus
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
+            var replyTo = FormatTemplate(_replyToAddressesTemplate.Value, evt, base.Host)
+                .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim()).ToList();
+
             var cc = FormatTemplate(_ccAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
@@ -234,6 +246,7 @@ namespace Seq.App.EmailPlus
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
+            var replyToList = replyTo.Select(MailboxAddress.Parse).ToList();
             var toList = to.Select(MailboxAddress.Parse).ToList();
             var ccList = cc.Select(MailboxAddress.Parse).ToList();
             var bccList = bcc.Select(MailboxAddress.Parse).ToList();
@@ -246,12 +259,16 @@ namespace Seq.App.EmailPlus
                 (new BodyBuilder
                     {HtmlBody = body, TextBody = textBody == body ? string.Empty : textBody}).ToMessageBody());
 
+            if (replyToList.Any())
+                message.ReplyTo.AddRange(replyToList);
+
             if (ccList.Any())
                 message.Cc.AddRange(ccList);
 
             if (bccList.Any())
                 message.Bcc.AddRange(bccList);
-            
+
+            var priority = EmailPriority.Normal;
             switch (Options.Value.Priority)
             {
                 case EmailPriority.UseMapping:
@@ -259,16 +276,18 @@ namespace Seq.App.EmailPlus
                         TryGetPropertyValueCI(evt.Data.Properties, PriorityProperty, out var priorityProperty) &&
                         priorityProperty is string priorityValue &&
                         Options.Value.PriorityMapping.TryGetValue(priorityValue, out var matchedPriority))
-                        message.Priority = (MessagePriority) matchedPriority;
+                        priority = matchedPriority;
                     else
-                        message.Priority = (MessagePriority) Options.Value.DefaultPriority;
+                        priority = Options.Value.DefaultPriority;
                     break;
                 case EmailPriority.Low:
                 case EmailPriority.Normal:
                 case EmailPriority.High:
-                    message.Priority = (MessagePriority) Options.Value.Priority;
+                    priority = Options.Value.Priority;
                     break;
             }
+
+            message.Priority = (MessagePriority) priority;
 
             Exception lastError = null;
             var errors = new List<Exception>();
@@ -282,11 +301,14 @@ namespace Seq.App.EmailPlus
                 {
                     if (result.LastError != null)
                         lastError = result.LastError;
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    Log.ForContext("From", From).ForContext("To", to)
+                        .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
+                        .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.LastServer), result.LastServer)
                         .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.Errors), result.Errors)
-                        .Error(result.LastError, "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
+                        .Error(result.LastError,
+                            "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
                 }
             }
@@ -302,11 +324,14 @@ namespace Seq.App.EmailPlus
                 {
                     if (result.LastError != null)
                         lastError = result.LastError;
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    Log.ForContext("From", From).ForContext("To", to)
+                        .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
+                        .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
                         .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
-                            "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}", result.LastError?.Message, From, to, subject);
+                            "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}",
+                            result.LastError?.Message, From, to, subject);
                 }
             }
 
@@ -315,7 +340,9 @@ namespace Seq.App.EmailPlus
                 case false when lastError != null:
                     throw lastError;
                 case true:
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    Log.ForContext("From", From).ForContext("To", to)
+                        .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
+                        .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
                         .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
                     break;
