@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
-using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using Seq.Apps;
@@ -40,15 +38,19 @@ namespace Seq.App.EmailPlus
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-            _options = _options = new SmtpOptions()
+            // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+            _options = _options = new SmtpOptions
             {
-                Server = Host, Port = Port ?? 25,
-                SocketOptions = EnableSsl != null && (bool) EnableSsl
+                Server = Host,
+                Port = Port ?? 25,
+                SocketOptions = EnableSsl ?? false
                     ? SecureSocketOptions.SslOnConnect
                     : SecureSocketOptions.StartTlsWhenAvailable,
-                User = Username, Password = Password,
+                Username = Username,
+                Password = Password,
                 RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
             };
+            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
             
             _subjectTemplate = new Lazy<Template>(() =>
             {
@@ -138,21 +140,7 @@ namespace Seq.App.EmailPlus
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
-<<<<<<< HEAD
-            var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k =>
-            {
-                added = true;
-                return DateTime.UtcNow;
-            });
-            if (!added)
-            {
-                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
-                _lastSeen[evt.EventType] = DateTime.UtcNow;
-            }
-=======
             if (ShouldSuppress(evt)) return;
->>>>>>> 475ab11 (Fixes #75)
 
             var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
@@ -161,13 +149,13 @@ namespace Seq.App.EmailPlus
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var result = await _mailGateway.Send(_options, new MimeMessage(new List<InternetAddress> {MailboxAddress.Parse(From)},
-                new List<InternetAddress> {MailboxAddress.Parse(to)}, subject,
-                (new BodyBuilder() {HtmlBody = body}).ToMessageBody()));
-
-            if (!result.Success)
-                throw result.Errors;
-
+            await _mailGateway.SendAsync(
+                _options,
+                new MimeMessage(
+                    new List<InternetAddress> {MailboxAddress.Parse(From)},
+                    new List<InternetAddress> {MailboxAddress.Parse(to)},
+                    subject,
+                    new BodyBuilder {HtmlBody = body}.ToMessageBody()));
         }
 
         bool ShouldSuppress(Event<LogEventData> evt)
@@ -199,7 +187,7 @@ namespace Seq.App.EmailPlus
             return true;
         }
 
-        public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 

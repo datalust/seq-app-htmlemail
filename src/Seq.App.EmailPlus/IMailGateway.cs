@@ -1,13 +1,10 @@
-﻿
-
-using System.Threading.Tasks;
-using MailKit.Net.Smtp;
+﻿using System.Threading.Tasks;
 using MimeKit;
 
 namespace Seq.App.EmailPlus
 {
     interface IMailGateway
     {
-        Task<MailResult> Send(SmtpOptions options, MimeMessage message);
+        Task SendAsync(SmtpOptions options, MimeMessage message);
     }
 }
