@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
-using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using Seq.Apps;
@@ -22,8 +19,9 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
-        readonly IMailGateway _mailGateway = new DirectMailGateway();
-        readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
+        readonly IMailGateway _mailGateway;
+        readonly IClock _clock;
+        readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
         readonly SmtpOptions _options;
 
@@ -35,23 +33,24 @@ namespace Seq.App.EmailPlus
             HandlebarsHelpers.Register();
         }
 
-        internal EmailApp(IMailGateway mailGateway)
-            : this()
+        internal EmailApp(IMailGateway mailGateway, IClock clock)
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
-        }
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-        public EmailApp()
-        {
-            _options = _options = new SmtpOptions()
+            // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+            _options = _options = new SmtpOptions
             {
-                Server = Host, Port = Port ?? 25,
-                SocketOptions = EnableSsl != null && (bool) EnableSsl
+                Server = Host,
+                Port = Port ?? 25,
+                SocketOptions = EnableSsl ?? false
                     ? SecureSocketOptions.SslOnConnect
                     : SecureSocketOptions.StartTlsWhenAvailable,
-                User = Username, Password = Password,
+                Username = Username,
+                Password = Password,
                 RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
             };
+            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
             
             _subjectTemplate = new Lazy<Template>(() =>
             {
@@ -76,6 +75,11 @@ namespace Seq.App.EmailPlus
                     return (_, __) => To;
                 return Handlebars.Compile(toAddressTemplate);
             });
+        }
+
+        public EmailApp()
+            : this(new DirectMailGateway(), new SystemClock())
+        {
         }
 
         [SeqAppSetting(
@@ -136,17 +140,7 @@ namespace Seq.App.EmailPlus
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
-            var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k =>
-            {
-                added = true;
-                return DateTime.UtcNow;
-            });
-            if (!added)
-            {
-                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
-                _lastSeen[evt.EventType] = DateTime.UtcNow;
-            }
+            if (ShouldSuppress(evt)) return;
 
             var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
@@ -155,16 +149,45 @@ namespace Seq.App.EmailPlus
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var result = await _mailGateway.Send(_options, new MimeMessage(new List<InternetAddress> {MailboxAddress.Parse(From)},
-                new List<InternetAddress> {MailboxAddress.Parse(to)}, subject,
-                (new BodyBuilder() {HtmlBody = body}).ToMessageBody()));
-
-            if (!result.Success)
-                throw result.Errors;
-
+            await _mailGateway.SendAsync(
+                _options,
+                new MimeMessage(
+                    new List<InternetAddress> {MailboxAddress.Parse(From)},
+                    new List<InternetAddress> {MailboxAddress.Parse(to)},
+                    subject,
+                    new BodyBuilder {HtmlBody = body}.ToMessageBody()));
         }
 
-        public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        bool ShouldSuppress(Event<LogEventData> evt)
+        {
+            if (SuppressionMinutes == 0)
+                return false;
+
+            var now = _clock.UtcNow;
+            if (!_suppressions.TryGetValue(evt.EventType, out var suppressedSince) ||
+                suppressedSince.AddMinutes(SuppressionMinutes) < now)
+            {
+                // Not suppressed, or suppression expired
+
+                // Clean up old entries
+                var expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                while (expired.Value != default)
+                {
+                    _suppressions.Remove(expired.Key);
+                    expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                }
+
+                // Start suppression again
+                suppressedSince = now;
+                _suppressions[evt.EventType] = suppressedSince;
+                return false;
+            }
+
+            // Suppressed
+            return true;
+        }
+
+        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 

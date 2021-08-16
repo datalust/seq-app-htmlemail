@@ -24,7 +24,7 @@ namespace Seq.App.EmailPlus.Tests.Support
             return Uint();
         }
 
-        public static Event<LogEventData> LogEvent(IDictionary<string, object> includedProperties = null)
+        public static Event<LogEventData> LogEvent(uint? eventType = null, IDictionary<string, object> includedProperties = null)
         {
             var id = EventId();
             var timestamp = UtcTimestamp();
@@ -42,7 +42,7 @@ namespace Seq.App.EmailPlus.Tests.Support
                 }
             }
 
-            return new Event<LogEventData>(id, EventType(), timestamp, new LogEventData
+            return new Event<LogEventData>(id, eventType ?? EventType(), timestamp, new LogEventData
             {
                 Exception = null,
                 Id = id,
