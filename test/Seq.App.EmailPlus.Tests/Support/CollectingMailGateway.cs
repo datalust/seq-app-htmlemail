@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Net.Mail;
+using System.Threading.Tasks;
+using MailKit.Net.Smtp;
+using MimeKit;
+
 
 namespace Seq.App.EmailPlus.Tests.Support
 {
@@ -7,9 +10,11 @@ namespace Seq.App.EmailPlus.Tests.Support
     {
         public List<SentMessage> Sent { get; } = new List<SentMessage>();
 
-        public void Send(SmtpClient client, MailMessage message)
+        public async Task<MailResult> Send(SmtpOptions options, MimeMessage message)
         {
-            Sent.Add(new SentMessage(client, message));
+            await Task.Run(() => Sent.Add(new SentMessage(message)));
+            
+            return new MailResult() {Success = true};
         }
     }
 }

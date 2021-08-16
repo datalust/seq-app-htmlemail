@@ -1,15 +1,15 @@
-﻿using System.Net.Mail;
+﻿
+using MailKit.Net.Smtp;
+using MimeKit;
 
 namespace Seq.App.EmailPlus.Tests.Support
 {
     class SentMessage
     {
-        public SmtpClient Client { get; }
-        public MailMessage Message { get; }
+        public MimeMessage Message { get; }
 
-        public SentMessage(SmtpClient client, MailMessage message)
+        public SentMessage(MimeMessage message)
         {
-            Client = client;
             Message = message;
         }
     }
