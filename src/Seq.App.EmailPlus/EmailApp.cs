@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -22,8 +21,9 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
-        readonly IMailGateway _mailGateway = new DirectMailGateway();
-        readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
+        readonly IMailGateway _mailGateway;
+        readonly IClock _clock;
+        readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
         readonly SmtpOptions _options;
 
@@ -35,14 +35,11 @@ namespace Seq.App.EmailPlus
             HandlebarsHelpers.Register();
         }
 
-        internal EmailApp(IMailGateway mailGateway)
-            : this()
+        internal EmailApp(IMailGateway mailGateway, IClock clock)
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
-        }
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-        public EmailApp()
-        {
             _options = _options = new SmtpOptions()
             {
                 Server = Host, Port = Port ?? 25,
@@ -76,6 +73,11 @@ namespace Seq.App.EmailPlus
                     return (_, __) => To;
                 return Handlebars.Compile(toAddressTemplate);
             });
+        }
+
+        public EmailApp()
+            : this(new DirectMailGateway(), new SystemClock())
+        {
         }
 
         [SeqAppSetting(
@@ -136,6 +138,7 @@ namespace Seq.App.EmailPlus
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
+<<<<<<< HEAD
             var added = false;
             var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k =>
             {
@@ -147,6 +150,9 @@ namespace Seq.App.EmailPlus
                 if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
                 _lastSeen[evt.EventType] = DateTime.UtcNow;
             }
+=======
+            if (ShouldSuppress(evt)) return;
+>>>>>>> 475ab11 (Fixes #75)
 
             var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
@@ -162,6 +168,35 @@ namespace Seq.App.EmailPlus
             if (!result.Success)
                 throw result.Errors;
 
+        }
+
+        bool ShouldSuppress(Event<LogEventData> evt)
+        {
+            if (SuppressionMinutes == 0)
+                return false;
+
+            var now = _clock.UtcNow;
+            if (!_suppressions.TryGetValue(evt.EventType, out var suppressedSince) ||
+                suppressedSince.AddMinutes(SuppressionMinutes) < now)
+            {
+                // Not suppressed, or suppression expired
+
+                // Clean up old entries
+                var expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                while (expired.Value != default)
+                {
+                    _suppressions.Remove(expired.Key);
+                    expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                }
+
+                // Start suppression again
+                suppressedSince = now;
+                _suppressions[evt.EventType] = suppressedSince;
+                return false;
+            }
+
+            // Suppressed
+            return true;
         }
 
         public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)

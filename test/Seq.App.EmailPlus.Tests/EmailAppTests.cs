@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+<<<<<<< HEAD:test/Seq.App.EmailPlus.Tests/EmailReactorTests.cs
 using System.Linq;
 using System.Threading.Tasks;
+=======
+>>>>>>> 475ab11 (Fixes #75):test/Seq.App.EmailPlus.Tests/EmailAppTests.cs
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -9,11 +12,12 @@ using Xunit;
 
 namespace Seq.App.EmailPlus.Tests
 {
-    public class EmailReactorTests
+    public class EmailAppTests
     {
-        static EmailReactorTests()
+        static EmailAppTests()
         {
-            // Ensure the handlebars helpers are registered.
+            // Ensure the handlebars helpers are registered, since we test them before we're
+            // sure of having created an instance of the app.
             GC.KeepAlive(new EmailApp());
         }
 
@@ -30,7 +34,7 @@ namespace Seq.App.EmailPlus.Tests
         public void PayloadPropertiesAreRenderedInTemplates()
         {
             var template = HandlebarsDotNet.Handlebars.Compile("See {{What}}");
-            var data = Some.LogEvent(new Dictionary<string, object> { { "What", 10 } });
+            var data = Some.LogEvent(includedProperties:new Dictionary<string, object> { { "What", 10 } });
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("See 10", result);
         }
@@ -114,20 +118,76 @@ namespace Seq.App.EmailPlus.Tests
         public async Task ToAddressesAreTemplated()
         {
             var mail = new CollectingMailGateway();
-            var reactor = new EmailApp(mail)
+            var app = new EmailApp(mail, new SystemClock())
             {
                 From = "from@example.com",
                 To = "{{Name}}@example.com",
                 Host = "example.com"
             };
 
-            reactor.Attach(new TestAppHost());
+            app.Attach(new TestAppHost());
 
+<<<<<<< HEAD:test/Seq.App.EmailPlus.Tests/EmailReactorTests.cs
             var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
             await reactor.OnAsync(data);
+=======
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "Name", "test" } });
+            app.On(data);
+>>>>>>> 475ab11 (Fixes #75):test/Seq.App.EmailPlus.Tests/EmailAppTests.cs
 
-            var sent = mail.Sent.Single();
+            var sent = Assert.Single(mail.Sent);
             Assert.Equal("test@example.com", sent.Message.To.ToString());
+        }
+
+        [Fact]
+        public void EventsAreSuppressedWithinWindow()
+        {
+            var mail = new CollectingMailGateway();
+            var clock = new TestClock();
+            var app = new EmailApp(mail, clock)
+            {
+                From = "from@example.com",
+                To = "to@example.com",
+                Host = "example.com",
+                SuppressionMinutes = 10
+            };
+
+            app.Attach(new TestAppHost());
+
+            app.On(Some.LogEvent(eventType: 99));
+            clock.Advance(TimeSpan.FromMinutes(1));
+            app.On(Some.LogEvent(eventType: 99));
+            app.On(Some.LogEvent(eventType: 99));
+
+            Assert.Single(mail.Sent);
+            mail.Sent.Clear();
+
+            clock.Advance(TimeSpan.FromHours(1));
+
+            app.On(Some.LogEvent(eventType: 99));
+
+            Assert.Single(mail.Sent);
+        }
+
+        [Fact]
+        public void EventsAreSuppressedByType()
+        {
+            var mail = new CollectingMailGateway();
+            var app = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                To = "to@example.com",
+                Host = "example.com",
+                SuppressionMinutes = 10
+            };
+
+            app.Attach(new TestAppHost());
+
+            app.On(Some.LogEvent(eventType: 1));
+            app.On(Some.LogEvent(eventType: 2));
+            app.On(Some.LogEvent(eventType: 1));
+
+            Assert.Equal(2, mail.Sent.Count);
         }
     }
 }
