@@ -44,9 +44,7 @@ namespace Seq.App.EmailPlus
                 Server = Host,
                 DnsDelivery = DeliverUsingDns != null && (bool) DeliverUsingDns,
                 Port = Port ?? 25,
-                SocketOptions = EnableSsl != null && (bool) EnableSsl
-                    ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.None,
+                SocketOptions = SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
                 Username = Username, Password = Password,
                 RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
             });
@@ -125,6 +123,12 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "Use Optional TLS",
+            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to use TLS.")]
+        public bool? UseTlsWhenAvailable { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText =
@@ -164,6 +168,7 @@ namespace Seq.App.EmailPlus
 
             var toList = to.Select(MailboxAddress.Parse).ToList();
             var sent = false;
+            var logged = false;
             var type = DeliveryType.None;
             var message = new MimeMessage(
                 new List<InternetAddress> {InternetAddress.Parse(From)},
@@ -188,6 +193,7 @@ namespace Seq.App.EmailPlus
                         .Error(result.LastError,
                             "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
+                    logged = true;
                 }
             }
 
@@ -208,19 +214,20 @@ namespace Seq.App.EmailPlus
                         .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
                             "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
+                    logged = true;
                 }
             }
 
-            switch (sent)
+            if (sent)
             {
-                case false when lastError != null:
-                    throw lastError;
-                case true:
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
-                        .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                        .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
-                    break;
+                Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
+                    .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
             }
+            else if (!logged)
+                Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
+                    .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}");
         }
 
         bool ShouldSuppress(Event<LogEventData> evt)

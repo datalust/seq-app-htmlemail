@@ -25,7 +25,23 @@ namespace Seq.App.EmailPlus
                 return new List<string>();
             }
         }
-    }
 
-    
+        public static SecureSocketOptions GetSocketOptions(bool? EnableSsl, bool? UseTlsWhenAvailable)
+        {
+            if (EnableSsl != null)
+            {
+                switch (EnableSsl)
+                {
+                    case true:
+                        return SecureSocketOptions.SslOnConnect;
+                    case false when UseTlsWhenAvailable != null && !(bool) UseTlsWhenAvailable:
+                        return SecureSocketOptions.None;
+                    case false when UseTlsWhenAvailable != null && (bool) UseTlsWhenAvailable:
+                        return SecureSocketOptions.StartTlsWhenAvailable;
+                }
+            }
+
+            return SecureSocketOptions.Auto;
+        }
+    }
 }
