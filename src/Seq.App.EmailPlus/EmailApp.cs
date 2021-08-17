@@ -40,7 +40,7 @@ namespace Seq.App.EmailPlus
             // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
             Options = new Lazy<SmtpOptions>(() => new SmtpOptions
             {
-                Server = Host,
+                Server = SmtpOptions.GetServerList(Host).ToList(),
                 DnsDelivery = DeliverUsingDns != null && (bool) DeliverUsingDns,
                 Port = Port ?? 25,
                 SocketOptions = SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
@@ -98,12 +98,14 @@ namespace Seq.App.EmailPlus
         public string SubjectTemplate { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "SMTP Mail Host(s)",
             HelpText =
                 "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string.",
             IsOptional = true)]
         public new string Host { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "Deliver using DNS",
             HelpText =
                 "Deliver directly using DNS. If Host is configured, this will be used as a fallback delivery mechanism.")]
         public bool? DeliverUsingDns { get; set; }
@@ -122,8 +124,8 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
-            DisplayName = "Use Optional TLS",
-            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to use TLS.")]
+            DisplayName = "Use Optional TLS if available",
+            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to negotiate using TLS.")]
         public bool? UseTlsWhenAvailable { get; set; }
 
         [SeqAppSetting(
@@ -152,6 +154,12 @@ namespace Seq.App.EmailPlus
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string Password { get; set; }
 
+        protected override void OnAttached()
+        {
+            if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
+                throw new Exception("There are no delivery methods selected - you must specify at least one Host, or enable Deliver Using DNS");
+        }
+
         public async Task OnAsync(Event<LogEventData> evt)
         {
             if (ShouldSuppress(evt)) return;
@@ -171,7 +179,7 @@ namespace Seq.App.EmailPlus
             var type = DeliveryType.None;
             var message = new MimeMessage(
                 new List<InternetAddress> {InternetAddress.Parse(From)},
-                toList, subject, (new BodyBuilder {HtmlBody = body}).ToMessageBody());
+                toList, subject, new BodyBuilder {HtmlBody = body}.ToMessageBody());
 
             var errors = new List<Exception>();
             if (Options.Value.Server != null && Options.Value.Server.Any())

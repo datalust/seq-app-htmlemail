@@ -20,7 +20,7 @@ namespace Seq.App.EmailPlus
             var mailResult = new MailResult();
             var type = DeliveryType.MailHost;
             var errors = new List<Exception>();
-            foreach (var server in options.ServerList)
+            foreach (var server in options.Server)
             {
                 mailResult = await TryDeliver(server, options, message, type);
                 if (!mailResult.Success)

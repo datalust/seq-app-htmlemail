@@ -145,7 +145,7 @@ namespace Seq.App.EmailPlus.Tests
             };
 
             reactor.Attach(new TestAppHost());
-            Assert.True(reactor.Options.Value.ServerList.Count() == 2);
+            Assert.True(reactor.Options.Value.Server.Count() == 2);
             Assert.True(SmtpOptions.GetSocketOptions(true, false) == SecureSocketOptions.SslOnConnect);
             Assert.True(SmtpOptions.GetSocketOptions(false, false) == SecureSocketOptions.None);
             Assert.True(SmtpOptions.GetSocketOptions(false, true) == SecureSocketOptions.StartTlsWhenAvailable);
