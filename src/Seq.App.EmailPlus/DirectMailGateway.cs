@@ -50,7 +50,7 @@ namespace Seq.App.EmailPlus
 
             try
             {
-                var domains = GetDomains(message);
+                var domains = GetDomains(message).ToList();
 
                 foreach (var domain in domains)
                 {
@@ -127,7 +127,7 @@ namespace Seq.App.EmailPlus
             return domains;
         }
 
-        private async Task<MailResult> TryDeliver(string server, SmtpOptions options, MimeMessage message,
+        private static async Task<MailResult> TryDeliver(string server, SmtpOptions options, MimeMessage message,
             DeliveryType deliveryType)
         {
             if (string.IsNullOrEmpty(server))

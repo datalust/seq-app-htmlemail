@@ -4,7 +4,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
-using MailKit.Security;
 using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
