@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using MailKit.Net.Smtp;
 using MimeKit;
-
 
 namespace Seq.App.EmailPlus.Tests.Support
 {
@@ -9,18 +9,10 @@ namespace Seq.App.EmailPlus.Tests.Support
     {
         public List<SentMessage> Sent { get; } = new List<SentMessage>();
 
-        public async Task<MailResult> Send(SmtpOptions options, MimeMessage message)
+        public Task SendAsync(SmtpOptions options, MimeMessage message)
         {
-            await Task.Run(() => Sent.Add(new SentMessage(message)));
-            
-            return new MailResult {Success = true};
-        }
-
-        public async Task<DnsMailResult> SendDns(DeliveryType deliveryType, SmtpOptions options, MimeMessage message)
-        {
-            await Task.Run(() => Sent.Add(new SentMessage(message)));
-            
-            return new DnsMailResult {Success = true};
+            Sent.Add(new SentMessage(message));
+            return Task.CompletedTask;
         }
     }
 }

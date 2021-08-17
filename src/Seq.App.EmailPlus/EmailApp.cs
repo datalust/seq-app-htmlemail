@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -20,10 +19,11 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
-        readonly IMailGateway _mailGateway = new DirectMailGateway();
-        readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
+        readonly IMailGateway _mailGateway;
+        readonly IClock _clock;
+        readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        public readonly Lazy<SmtpOptions> Options;
+        readonly SmtpOptions _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -33,26 +33,25 @@ namespace Seq.App.EmailPlus
             HandlebarsHelpers.Register();
         }
 
-        internal EmailApp(IMailGateway mailGateway)
-            : this()
+        internal EmailApp(IMailGateway mailGateway, IClock clock)
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
-        }
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-        public EmailApp()
-        {
-            Options = new Lazy<SmtpOptions>(() => new SmtpOptions
+            // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+            _options = _options = new SmtpOptions
             {
                 Server = Host,
-                DnsDelivery = DeliverUsingDns != null && (bool) DeliverUsingDns,
                 Port = Port ?? 25,
-                SocketOptions = EnableSsl != null && (bool) EnableSsl
+                SocketOptions = EnableSsl ?? false
                     ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.None,
-                User = Username, Password = Password,
+                    : SecureSocketOptions.StartTlsWhenAvailable,
+                Username = Username,
+                Password = Password,
                 RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
-            });
-
+            };
+            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+            
             _subjectTemplate = new Lazy<Template>(() =>
             {
                 var subjectTemplate = SubjectTemplate;
@@ -78,6 +77,11 @@ namespace Seq.App.EmailPlus
             });
         }
 
+        public EmailApp()
+            : this(new DirectMailGateway(), new SystemClock())
+        {
+        }
+
         [SeqAppSetting(
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
@@ -95,13 +99,8 @@ namespace Seq.App.EmailPlus
         public string SubjectTemplate { get; set; }
 
         [SeqAppSetting(
-            HelpText = "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string.",
-            IsOptional = true)]
+            HelpText = "The name of the SMTP server machine.")]
         public new string Host { get; set; }
-
-        [SeqAppSetting(
-            HelpText = "Deliver directly using DNS. If Host is configured, this will be used as a fallback delivery mechanism.")]
-        public bool? DeliverUsingDns { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -141,88 +140,54 @@ namespace Seq.App.EmailPlus
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
-            var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k =>
-            {
-                added = true;
-                return DateTime.UtcNow;
-            });
-            if (!added)
-            {
-                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
-                _lastSeen[evt.EventType] = DateTime.UtcNow;
-            }
+            if (ShouldSuppress(evt)) return;
 
-            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host)
-                .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                .Select(t => t.Trim()).ToList();
+            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
             var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var toList = to.Select(MailboxAddress.Parse).ToList();
-
-            var sent = false;
-            var type = DeliveryType.None;
-            var message = new MimeMessage(
-                new List<InternetAddress> {InternetAddress.Parse(From)},
-                toList, subject, (new BodyBuilder {HtmlBody = body}).ToMessageBody());
-
-            Exception lastError = null;
-            var errors = new List<Exception>();
-            if (Options.Value.Server != null && Options.Value.Server.Any())
-            {
-                type = DeliveryType.MailHost;
-                var result = await _mailGateway.Send(Options.Value, message);
-                errors = result.Errors;
-                sent = result.Success;
-                if (!result.Success)
-                {
-                    if (result.LastError != null)
-                        lastError = result.LastError;
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
-                        .ForContext("Success", sent).ForContext("Body", body)
-                        .ForContext(nameof(result.LastServer), result.LastServer)
-                        .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.Errors), result.Errors)
-                        .Error(result.LastError, "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
-                            result.LastError?.Message, From, to, subject);
-                }
-            }
-
-            if (!sent && Options.Value.DnsDelivery)
-            {
-                type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
-                var result = await _mailGateway.SendDns(type, Options.Value, message);
-                errors = result.Errors;
-                sent = result.Success;
-
-                if (!result.Success)
-                {
-                    if (result.LastError != null)
-                        lastError = result.LastError;
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
-                        .ForContext("Success", sent).ForContext("Body", body)
-                        .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
-                        .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
-                            "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}", result.LastError?.Message, From, to, subject);
-                }
-            }
-
-            switch (sent)
-            {
-                case false when lastError != null:
-                    throw lastError;
-                case true:
-                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
-                        .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                        .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
-                    break;
-            }
+            await _mailGateway.SendAsync(
+                _options,
+                new MimeMessage(
+                    new List<InternetAddress> {MailboxAddress.Parse(From)},
+                    new List<InternetAddress> {MailboxAddress.Parse(to)},
+                    subject,
+                    new BodyBuilder {HtmlBody = body}.ToMessageBody()));
         }
 
-        public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        bool ShouldSuppress(Event<LogEventData> evt)
+        {
+            if (SuppressionMinutes == 0)
+                return false;
+
+            var now = _clock.UtcNow;
+            if (!_suppressions.TryGetValue(evt.EventType, out var suppressedSince) ||
+                suppressedSince.AddMinutes(SuppressionMinutes) < now)
+            {
+                // Not suppressed, or suppression expired
+
+                // Clean up old entries
+                var expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                while (expired.Value != default)
+                {
+                    _suppressions.Remove(expired.Key);
+                    expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                }
+
+                // Start suppression again
+                suppressedSince = now;
+                _suppressions[evt.EventType] = suppressedSince;
+                return false;
+            }
+
+            // Suppressed
+            return true;
+        }
+
+        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 

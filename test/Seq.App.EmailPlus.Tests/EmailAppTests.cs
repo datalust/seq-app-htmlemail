@@ -1,29 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using MimeKit;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Seq.App.EmailPlus.Tests
 {
-    public class EmailReactorTests
+    public class EmailAppTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        static EmailReactorTests()
+        static EmailAppTests()
         {
-            // Ensure the handlebars helpers are registered.
+            // Ensure the handlebars helpers are registered, since we test them before we're
+            // sure of having created an instance of the app.
             GC.KeepAlive(new EmailApp());
-        }
-
-        public EmailReactorTests(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -39,7 +30,7 @@ namespace Seq.App.EmailPlus.Tests
         public void PayloadPropertiesAreRenderedInTemplates()
         {
             var template = HandlebarsDotNet.Handlebars.Compile("See {{What}}");
-            var data = Some.LogEvent(new Dictionary<string, object> { { "What", 10 } });
+            var data = Some.LogEvent(includedProperties:new Dictionary<string, object> { { "What", 10 } });
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("See 10", result);
         }
@@ -123,84 +114,71 @@ namespace Seq.App.EmailPlus.Tests
         public async Task ToAddressesAreTemplated()
         {
             var mail = new CollectingMailGateway();
-            var reactor = new EmailApp(mail)
+            var app = new EmailApp(mail, new SystemClock())
             {
                 From = "from@example.com",
                 To = "{{Name}}@example.com",
                 Host = "example.com"
             };
 
-            reactor.Attach(new TestAppHost());
-            var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
-            await reactor.OnAsync(data);
-            var sent = mail.Sent.Single();
+            app.Attach(new TestAppHost());
+
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "Name", "test" } });
+            await app.OnAsync(data);
+
+            var sent = Assert.Single(mail.Sent);
             Assert.Equal("test@example.com", sent.Message.To.ToString());
         }
 
         [Fact]
-        public void SmtpOptionsCalculated()
+        public async Task EventsAreSuppressedWithinWindow()
         {
             var mail = new CollectingMailGateway();
-            var reactor = new EmailApp(mail)
+            var clock = new TestClock();
+            var app = new EmailApp(mail, clock)
             {
                 From = "from@example.com",
-                To = "{{Name}}@example.com",
-                Host = "example.com,example2.com"
+                To = "to@example.com",
+                Host = "example.com",
+                SuppressionMinutes = 10
             };
 
-            reactor.Attach(new TestAppHost());
-            Assert.True(reactor.Options.Value.ServerList.Count() == 2);
+            app.Attach(new TestAppHost());
+
+            await app.OnAsync(Some.LogEvent(eventType: 99));
+            clock.Advance(TimeSpan.FromMinutes(1));
+            await app.OnAsync(Some.LogEvent(eventType: 99));
+            await app.OnAsync(Some.LogEvent(eventType: 99));
+
+            Assert.Single(mail.Sent);
+            mail.Sent.Clear();
+
+            clock.Advance(TimeSpan.FromHours(1));
+
+            await app.OnAsync(Some.LogEvent(eventType: 99));
+
+            Assert.Single(mail.Sent);
         }
 
         [Fact]
-        public void ParseDomainTest()
+        public async Task EventsAreSuppressedByType()
         {
-            var mail = new DirectMailGateway();
-            var domains = DirectMailGateway.GetDomains(new MimeMessage(
-                new List<InternetAddress> {InternetAddress.Parse("test@example.com")},
-                new List<InternetAddress> {InternetAddress.Parse("test2@example.com"), InternetAddress.Parse("test3@example.com"), InternetAddress.Parse("test@example2.com")}, "Test",
-                (new BodyBuilder {HtmlBody = "test"}).ToMessageBody()));
-            Assert.True(domains.Count() == 2);
+            var mail = new CollectingMailGateway();
+            var app = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                To = "to@example.com",
+                Host = "example.com",
+                SuppressionMinutes = 10
+            };
+
+            app.Attach(new TestAppHost());
+
+            await app.OnAsync(Some.LogEvent(eventType: 1));
+            await app.OnAsync(Some.LogEvent(eventType: 2));
+            await app.OnAsync(Some.LogEvent(eventType: 1));
+
+            Assert.Equal(2, mail.Sent.Count);
         }
-
-        //[Fact]
-        //public async Task MailHostDeliveryTest()
-        //{
-        //    var reactor = new EmailApp()
-        //    {
-        //        Host = "fqdn",
-        //        EnableSsl = false,
-        //        From = "test@example.com",
-        //        To = "testdest@example.com",
-        //        BodyTemplate = "Test Body",
-        //        SubjectTemplate = "Test Email"
-        //    };
-
-        //    reactor.Attach(new TestAppHost());
-        //    var data = Some.LogEvent(new Dictionary<string, object> { { "Name", "test" } });
-        //    await reactor.OnAsync(data);
-
-        //}
-        
-        //[Fact]
-        //public async Task SmtpDnsDeliveryTest()
-        //{
-        //    var mail = new DirectMailGateway();
-        //    var reactor = new EmailApp(mail)
-        //    {
-        //        DeliverUsingDns = true,
-        //        EnableSsl = false,
-        //        From = "test@example.com",
-        //        To = "testdest@example.com",
-        //        BodyTemplate = "Test Body",
-        //        SubjectTemplate = "Test Email"
-        //    };
-
-        //    reactor.Attach(new TestAppHost());
-        //    var x = await mail.SendDns(DeliveryType.Dns, reactor.Options.Value, new MimeMessage(
-        //        new List<InternetAddress> {InternetAddress.Parse(reactor.From)},
-        //        new List<InternetAddress> {InternetAddress.Parse(reactor.To)}, reactor.SubjectTemplate, (new BodyBuilder {HtmlBody = reactor.BodyTemplate}).ToMessageBody()));
-        //    _testOutputHelper.WriteLine("{0}: {1}", x.Success, x.LastError);
-        //}
     }
 }
