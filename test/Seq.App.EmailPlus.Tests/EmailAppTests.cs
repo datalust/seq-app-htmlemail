@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MailKit.Security;
 using MimeKit;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
@@ -145,6 +146,10 @@ namespace Seq.App.EmailPlus.Tests
 
             reactor.Attach(new TestAppHost());
             Assert.True(reactor.Options.Value.ServerList.Count() == 2);
+            Assert.True(SmtpOptions.GetSocketOptions(true, false) == SecureSocketOptions.SslOnConnect);
+            Assert.True(SmtpOptions.GetSocketOptions(false, false) == SecureSocketOptions.None);
+            Assert.True(SmtpOptions.GetSocketOptions(false, true) == SecureSocketOptions.StartTlsWhenAvailable);
+            Assert.True(SmtpOptions.GetSocketOptions(null, false) == SecureSocketOptions.Auto);
         }
 
         [Fact]

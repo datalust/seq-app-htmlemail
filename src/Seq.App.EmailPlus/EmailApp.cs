@@ -174,7 +174,6 @@ namespace Seq.App.EmailPlus
                 new List<InternetAddress> {InternetAddress.Parse(From)},
                 toList, subject, (new BodyBuilder {HtmlBody = body}).ToMessageBody());
 
-            Exception lastError = null;
             var errors = new List<Exception>();
             if (Options.Value.Server != null && Options.Value.Server.Any())
             {
@@ -184,8 +183,6 @@ namespace Seq.App.EmailPlus
                 sent = result.Success;
                 if (!result.Success)
                 {
-                    if (result.LastError != null)
-                        lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.LastServer), result.LastServer)
@@ -206,8 +203,6 @@ namespace Seq.App.EmailPlus
 
                 if (!result.Success)
                 {
-                    if (result.LastError != null)
-                        lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
