@@ -5,6 +5,7 @@ namespace Seq.App.EmailPlus
 {
     interface IMailGateway
     {
-        Task SendAsync(SmtpOptions options, MimeMessage message);
+        Task<MailResult> SendAsync(SmtpOptions options, MimeMessage message);
+        Task<DnsMailResult> SendDnsAsync(DeliveryType deliveryType, SmtpOptions options, MimeMessage message);
     }
 }

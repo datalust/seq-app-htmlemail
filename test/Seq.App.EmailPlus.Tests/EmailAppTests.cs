@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using MimeKit;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -128,6 +130,32 @@ namespace Seq.App.EmailPlus.Tests
 
             var sent = Assert.Single(mail.Sent);
             Assert.Equal("test@example.com", sent.Message.To.ToString());
+        }
+
+        [Fact]
+        public void SmtpOptionsCalculated()
+        {
+            var mail = new CollectingMailGateway();
+            var reactor = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                To = "{{Name}}@example.com",
+                Host = "example.com,example2.com"
+            };
+
+            reactor.Attach(new TestAppHost());
+            Assert.True(reactor.Options.Value.ServerList.Count() == 2);
+        }
+
+        [Fact]
+        public void ParseDomainTest()
+        {
+            var mail = new DirectMailGateway();
+            var domains = DirectMailGateway.GetDomains(new MimeMessage(
+                new List<InternetAddress> {InternetAddress.Parse("test@example.com")},
+                new List<InternetAddress> {InternetAddress.Parse("test2@example.com"), InternetAddress.Parse("test3@example.com"), InternetAddress.Parse("test@example2.com")}, "Test",
+                (new BodyBuilder {HtmlBody = "test"}).ToMessageBody()));
+            Assert.True(domains.Count() == 2);
         }
 
         [Fact]
