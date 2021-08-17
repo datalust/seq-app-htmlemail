@@ -100,14 +100,14 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             DisplayName = "SMTP Mail Host(s)",
             HelpText =
-                "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string.",
+                "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string. If not specified, Deliver Using DNS should be enabled.",
             IsOptional = true)]
         public new string Host { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Deliver using DNS",
             HelpText =
-                "Deliver directly using DNS. If Host is configured, this will be used as a fallback delivery mechanism.")]
+                "Deliver directly using DNS. If SMTP Mail Host(s) is configured, this will be used as a fallback delivery mechanism. If not enabled, SMTP Mail Host(s) should be configured.")]
         public bool? DeliverUsingDns { get; set; }
 
         [SeqAppSetting(
@@ -119,13 +119,13 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Enable SSL",
-            HelpText = "Check this box if SSL is required to send email messages.")]
+            HelpText = "Check this box if SSL is required to send email messages. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
         public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Use Optional TLS if available",
-            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to negotiate using TLS.")]
+            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to negotiate using TLS. This has no effect if Enable SSL is enabled.")]
         public bool? UseTlsWhenAvailable { get; set; }
 
         [SeqAppSetting(
@@ -157,7 +157,7 @@ namespace Seq.App.EmailPlus
         protected override void OnAttached()
         {
             if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
-                throw new Exception("There are no delivery methods selected - you must specify at least one Host, or enable Deliver Using DNS");
+                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
         }
 
         public async Task OnAsync(Event<LogEventData> evt)
