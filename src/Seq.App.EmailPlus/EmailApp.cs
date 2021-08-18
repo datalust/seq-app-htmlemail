@@ -22,7 +22,7 @@ namespace Seq.App.EmailPlus
         readonly IClock _clock;
         readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        public readonly Lazy<SmtpOptions> Options;
+        readonly Lazy<SmtpOptions> _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -38,14 +38,13 @@ namespace Seq.App.EmailPlus
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
             // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
-            Options = new Lazy<SmtpOptions>(() => new SmtpOptions
-            {
-                Server = SmtpOptions.GetServerList(Host).ToList(),
-                DnsDelivery = DeliverUsingDns != null && (bool) DeliverUsingDns,
+            Options = new Lazy<SmtpOptions>(() => new SmtpOptions(
+                Host,
+                DeliverUsingDns != null && (bool) DeliverUsingDns,
                 Port = Port ?? 25,
-                SocketOptions = SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
-                Username = Username, Password = Password,
-                RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
+                SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
+                Username, 
+                Password
             });
             // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
 
@@ -182,7 +181,7 @@ namespace Seq.App.EmailPlus
                 toList, subject, new BodyBuilder {HtmlBody = body}.ToMessageBody());
 
             var errors = new List<Exception>();
-            if (Options.Value.Server != null && Options.Value.Server.Any())
+            if (Options.Value.Host != null && Options.Value.Host.Any())
             {
                 type = DeliveryType.MailHost;
                 var result = await _mailGateway.SendAsync(Options.Value, message);
