@@ -38,17 +38,14 @@ namespace Seq.App.EmailPlus
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-            _options = _options = new Lazy<SmtpOptions>(() => new SmtpOptions
-            {
-                Host = Host,
-                Port = Port ?? 25,
-                SocketOptions = EnableSsl ?? false
+            _options = _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
+                Host,
+                Port ?? 25, 
+                EnableSsl ?? false
                     ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.StartTlsWhenAvailable,
-                Username = Username,
-                Password = Password,
-                RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
-            });
+                    : SecureSocketOptions.StartTlsWhenAvailable, 
+                Username,
+                Password));
             
             _subjectTemplate = new Lazy<Template>(() =>
             {
