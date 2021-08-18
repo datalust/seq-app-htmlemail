@@ -25,7 +25,7 @@ namespace Seq.App.EmailPlus
             SocketOptions = socketOptions;
         }
       
-        public IEnumerable<string> GetServerList(string hostName)
+        IEnumerable<string> GetServerList(string hostName)
         {
             if (!string.IsNullOrEmpty(hostName))
                 return hostName.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
