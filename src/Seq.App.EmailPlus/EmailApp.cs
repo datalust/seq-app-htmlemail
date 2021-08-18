@@ -38,14 +38,13 @@ namespace Seq.App.EmailPlus
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
             // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
-            Options = new Lazy<SmtpOptions>(() => new SmtpOptions(
+            _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
                 Host,
                 DeliverUsingDns != null && (bool) DeliverUsingDns,
-                Port = Port ?? 25,
+                Port ?? 25,
                 SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
-                Username, 
-                Password
-            });
+                Username,
+                Password));
             // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
 
             _subjectTemplate = new Lazy<Template>(() =>
@@ -181,10 +180,10 @@ namespace Seq.App.EmailPlus
                 toList, subject, new BodyBuilder {HtmlBody = body}.ToMessageBody());
 
             var errors = new List<Exception>();
-            if (Options.Value.Host != null && Options.Value.Host.Any())
+            if (_options.Value.Host != null && _options.Value.Host.Any())
             {
                 type = DeliveryType.MailHost;
-                var result = await _mailGateway.SendAsync(Options.Value, message);
+                var result = await _mailGateway.SendAsync(_options.Value, message);
                 errors = result.Errors;
                 sent = result.Success;
                 if (!result.Success)
@@ -200,10 +199,10 @@ namespace Seq.App.EmailPlus
                 }
             }
 
-            if (!sent && Options.Value.DnsDelivery)
+            if (!sent && _options.Value.DnsDelivery)
             {
                 type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
-                var result = await _mailGateway.SendDnsAsync(type, Options.Value, message);
+                var result = await _mailGateway.SendDnsAsync(type, _options.Value, message);
                 errors = result.Errors;
                 sent = result.Success;
 
@@ -310,6 +309,11 @@ namespace Seq.App.EmailPlus
             }
 
             return o;
+        }
+
+        public SmtpOptions GetOptions()
+        {
+            return _options.Value;
         }
     }
 }

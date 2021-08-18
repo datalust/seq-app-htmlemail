@@ -17,7 +17,7 @@ namespace Seq.App.EmailPlus
 
         public SmtpOptions(string host, bool dnsDelivery, int port, SecureSocketOptions socketOptions, string username = null, string password = null)
         {
-            Host = GetServerList(host);
+            Host = GetServerList(host).ToList();
             DnsDelivery = dnsDelivery;
             Port = port;
             Username = username;
