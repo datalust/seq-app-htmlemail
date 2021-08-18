@@ -13,7 +13,7 @@ namespace Seq.App.EmailPlus
 
             var client = new SmtpClient();
                 
-            await client.ConnectAsync(options.Server, options.Port, options.SocketOptions);
+            await client.ConnectAsync(options.Host, options.Port, options.SocketOptions);
             if (options.RequiresAuthentication)
                 await client.AuthenticateAsync(options.Username, options.Password);
             await client.SendAsync(message);

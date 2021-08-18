@@ -23,7 +23,7 @@ namespace Seq.App.EmailPlus
         readonly IClock _clock;
         readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        readonly SmtpOptions _options;
+        readonly Lazy<SmtpOptions> _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -38,19 +38,14 @@ namespace Seq.App.EmailPlus
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-            // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
-            _options = _options = new SmtpOptions
-            {
-                Server = Host,
-                Port = Port ?? 25,
-                SocketOptions = EnableSsl ?? false
+            _options = _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
+                Host,
+                Port ?? 25, 
+                EnableSsl ?? false
                     ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.StartTlsWhenAvailable,
-                Username = Username,
-                Password = Password,
-                RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
-            };
-            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+                    : SecureSocketOptions.StartTlsWhenAvailable, 
+                Username,
+                Password));
             
             _subjectTemplate = new Lazy<Template>(() =>
             {
@@ -150,7 +145,7 @@ namespace Seq.App.EmailPlus
                 subject = subject.Substring(0, MaxSubjectLength);
 
             await _mailGateway.SendAsync(
-                _options,
+                _options.Value,
                 new MimeMessage(
                     new List<InternetAddress> {MailboxAddress.Parse(From)},
                     new List<InternetAddress> {MailboxAddress.Parse(to)},
