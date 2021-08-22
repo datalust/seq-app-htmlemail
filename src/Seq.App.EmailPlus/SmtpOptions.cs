@@ -1,24 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HandlebarsDotNet.MemberAccessors;
 using MailKit.Security;
-using MimeKit;
 
 namespace Seq.App.EmailPlus
 {
     public class SmtpOptions
     {
-        public List<string> Host { get; set; } = new List<string>();
+        public List<string> Host { get; set; }
         public bool DnsDelivery { get; set; }
-        public int Port { get; set; } = 25;
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public int Port { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
         public bool RequiresAuthentication => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
-        public EmailPriority Priority { get; set; } = EmailPriority.Normal;
-        public Dictionary<string, EmailPriority> PriorityMapping { get; set; } =
-            new Dictionary<string, EmailPriority>(StringComparer.OrdinalIgnoreCase);
-        public EmailPriority DefaultPriority { get; set; } = EmailPriority.Normal;
+        public EmailPriority Priority { get; set; }
+        public Dictionary<string, EmailPriority> PriorityMapping { get; set; }
+        public EmailPriority DefaultPriority { get; set; }
         public SecureSocketOptions SocketOptions { get; set; }
 
         public SmtpOptions(string host, bool dnsDelivery, int port, string priority, string defaultPriority, SecureSocketOptions socketOptions, string username = null, string password = null)
@@ -34,7 +31,7 @@ namespace Seq.App.EmailPlus
             SocketOptions = socketOptions;
         }
       
-        IEnumerable<string> GetServerList(string hostName)
+        static IEnumerable<string> GetServerList(string hostName)
         {
             if (!string.IsNullOrEmpty(hostName))
                 return hostName.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)

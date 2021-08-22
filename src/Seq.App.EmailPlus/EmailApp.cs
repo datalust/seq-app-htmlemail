@@ -20,7 +20,7 @@ namespace Seq.App.EmailPlus
     {
         readonly IMailGateway _mailGateway;
         readonly IClock _clock;
-        readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
+        readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _plainTextTemplate, _subjectTemplate, _toAddressesTemplate, _replyToAddressesTemplate, _ccAddressesTemplate, _bccAddressesTemplate;
         readonly Lazy<SmtpOptions> _options;
 
@@ -235,20 +235,20 @@ namespace Seq.App.EmailPlus
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
-            var replyTo = FormatTemplate(_replyToAddressesTemplate.Value, evt, base.Host)
+            var replyTo = string.IsNullOrEmpty(ReplyTo) ? new List<string>() : FormatTemplate(_replyToAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
-            var cc = FormatTemplate(_ccAddressesTemplate.Value, evt, base.Host)
+            var cc = string.IsNullOrEmpty(Cc) ? new List<string>() : FormatTemplate(_ccAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
-            var bcc = FormatTemplate(_bccAddressesTemplate.Value, evt, base.Host)
+            var bcc = string.IsNullOrEmpty(Bcc) ? new List<string>() : FormatTemplate(_bccAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
-            var textBody = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
+            var textBody = FormatTemplate(_plainTextTemplate.Value, evt, base.Host);
             var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
@@ -264,8 +264,8 @@ namespace Seq.App.EmailPlus
             var message = new MimeMessage(
                 new List<InternetAddress> {InternetAddress.Parse(From)},
                 toList, subject,
-                (new BodyBuilder
-                    {HtmlBody = body, TextBody = textBody == body ? string.Empty : textBody}).ToMessageBody());
+                new BodyBuilder
+                    {HtmlBody = body, TextBody = textBody == body ? string.Empty : textBody}.ToMessageBody());
 
             if (replyToList.Any())
                 message.ReplyTo.AddRange(replyToList);
@@ -277,21 +277,24 @@ namespace Seq.App.EmailPlus
                 message.Bcc.AddRange(bccList);
 
             var priority = EmailPriority.Normal;
-            switch (Options.Value.Priority)
+            switch (_options.Value.Priority)
             {
                 case EmailPriority.UseMapping:
-                    if (!string.IsNullOrEmpty(PriorityProperty) && Options.Value.PriorityMapping.Count > 0 &&
+                    if (!string.IsNullOrEmpty(PriorityProperty) && _options.Value.PriorityMapping.Count > 0 &&
                         TryGetPropertyValueCI(evt.Data.Properties, PriorityProperty, out var priorityProperty) &&
                         priorityProperty is string priorityValue &&
-                        Options.Value.PriorityMapping.TryGetValue(priorityValue, out var matchedPriority))
+                        _options.Value.PriorityMapping.TryGetValue(priorityValue, out var matchedPriority))
                         priority = matchedPriority;
                     else
-                        priority = Options.Value.DefaultPriority;
+                        priority = _options.Value.DefaultPriority;
                     break;
                 case EmailPriority.Low:
                 case EmailPriority.Normal:
                 case EmailPriority.High:
-                    priority = Options.Value.Priority;
+                    priority = _options.Value.Priority;
+                    break;
+                default:
+                    priority = EmailPriority.Normal;
                     break;
             }
 
@@ -331,7 +334,7 @@ namespace Seq.App.EmailPlus
                         .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                         .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
-                        .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
+                        .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", result.Errors)
                         .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
                             "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
@@ -345,14 +348,14 @@ namespace Seq.App.EmailPlus
                         .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                         .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                        .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
+                        .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
             }
             else if (!logged)
                 Log.ForContext("From", From).ForContext("To", to)                        
 				.ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                 .ForContext("Priority", priority).ForContext("Subject", subject)
                 .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}");
+                .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
         }
 
         bool ShouldSuppress(Event<LogEventData> evt)

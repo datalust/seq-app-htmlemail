@@ -134,6 +134,31 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Fact]
+        public async Task OptionalAddressesAreTemplated()
+        {
+            var mail = new CollectingMailGateway();
+            var app = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                ReplyTo = "{{Name}}@example.com",
+                To = "{{Name}}@example.com",
+                Cc = "{{Name}}@example.com",
+                Bcc = "{{Name}}@example.com",
+                Host = "example.com"
+            };
+
+            app.Attach(new TestAppHost());
+
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "Name", "test" } });
+            await app.OnAsync(data);
+
+            var sent = Assert.Single(mail.Sent);
+            Assert.Equal("test@example.com", sent.Message.ReplyTo.ToString());
+            Assert.Equal("test@example.com", sent.Message.Cc.ToString());
+            Assert.Equal("test@example.com", sent.Message.Bcc.ToString());
+        }
+
+        [Fact]
         public void SmtpOptionsCalculated()
         {
             var mail = new CollectingMailGateway();
