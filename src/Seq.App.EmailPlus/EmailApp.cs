@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
-using MailKit.Security;
 using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -20,10 +18,11 @@ namespace Seq.App.EmailPlus
         Description = "Uses a Handlebars template to send events as SMTP email.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
-        readonly IMailGateway _mailGateway = new DirectMailGateway();
+        readonly IMailGateway _mailGateway;
+        readonly IClock _clock;
         readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
         readonly Lazy<Template> _bodyTemplate, _plainTextTemplate, _subjectTemplate, _toAddressesTemplate, _replyToAddressesTemplate, _ccAddressesTemplate, _bccAddressesTemplate;
-        public readonly Lazy<SmtpOptions> Options;
+        readonly Lazy<SmtpOptions> _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -33,28 +32,22 @@ namespace Seq.App.EmailPlus
             HandlebarsHelpers.Register();
         }
 
-        internal EmailApp(IMailGateway mailGateway)
-            : this()
+        internal EmailApp(IMailGateway mailGateway, IClock clock)
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
-        }
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-        public EmailApp()
-        {
-            Options = new Lazy<SmtpOptions>(() => new SmtpOptions
-            {
-                Server = Host,
-                DnsDelivery = DeliverUsingDns != null && (bool) DeliverUsingDns,
-                Port = Port ?? 25,
-                Priority = SmtpOptions.ParsePriority(Priority, out var priorityMapping),
-                PriorityMapping = priorityMapping,
-                DefaultPriority = SmtpOptions.ParsePriority(DefaultPriority),
-                SocketOptions = EnableSsl != null && (bool) EnableSsl
-                    ? SecureSocketOptions.SslOnConnect
-                    : SecureSocketOptions.None,
-                User = Username, Password = Password,
-                RequiresAuthentication = !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password)
-            });
+            // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+            _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
+                Host,
+                DeliverUsingDns != null && (bool) DeliverUsingDns,
+                Port ?? 25,
+				Priority,				
+				DefaultPriority,
+                SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
+                Username,
+                Password));
+            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
 
             _subjectTemplate = new Lazy<Template>(() =>
             {
@@ -105,6 +98,11 @@ namespace Seq.App.EmailPlus
             });
         }
 
+        public EmailApp()
+            : this(new DirectMailGateway(), new SystemClock())
+        {
+        }
+
         [SeqAppSetting(
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
@@ -112,7 +110,8 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             DisplayName = "To address",
-            HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
+            HelpText =
+                "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
         public string To { get; set; }
 
         [SeqAppSetting(
@@ -136,35 +135,48 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Subject template",
-            HelpText = "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
+            HelpText =
+                "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
         public string SubjectTemplate { get; set; }
 
         [SeqAppSetting(
-            HelpText = "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string.",
+            DisplayName = "SMTP Mail Host(s)",
+            HelpText =
+                "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string. If not specified, Deliver Using DNS should be enabled.",
             IsOptional = true)]
         public new string Host { get; set; }
 
         [SeqAppSetting(
-            HelpText = "Deliver directly using DNS. If Host is configured, this will be used as a fallback delivery mechanism.")]
+            DisplayName = "Deliver using DNS",
+            HelpText =
+                "Deliver directly using DNS. If SMTP Mail Host(s) is configured, this will be used as a fallback delivery mechanism. If not enabled, SMTP Mail Host(s) should be configured.")]
         public bool? DeliverUsingDns { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
-            HelpText = "The port on the SMTP server machine to send mail to. Leave this blank to use the standard port (25).")]
+            HelpText =
+                "The port on the SMTP server machine to send mail to. Leave this blank to use the standard port (25).")]
         public int? Port { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Enable SSL",
-            HelpText = "Check this box if SSL is required to send email messages.")]
+            HelpText = "Check this box if SSL is required to send email messages. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
         public bool? EnableSsl { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
+            DisplayName = "Use Optional TLS if available",
+            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to negotiate using TLS. This has no effect if Enable SSL is enabled.")]
+        public bool? UseTlsWhenAvailable { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
-            HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
-                       "the default template that includes the message and properties (https://github.com/datalust/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
+            HelpText =
+                "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
+                "the default template that includes the message and properties (https://github.com/datalust/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
@@ -209,19 +221,15 @@ namespace Seq.App.EmailPlus
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string Password { get; set; }
 
+        protected override void OnAttached()
+        {
+            if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
+                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
+        }
+
         public async Task OnAsync(Event<LogEventData> evt)
         {
-            var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k =>
-            {
-                added = true;
-                return DateTime.UtcNow;
-            });
-            if (!added)
-            {
-                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
-                _lastSeen[evt.EventType] = DateTime.UtcNow;
-            }
+            if (ShouldSuppress(evt)) return;
 
             var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
@@ -250,8 +258,8 @@ namespace Seq.App.EmailPlus
             var toList = to.Select(MailboxAddress.Parse).ToList();
             var ccList = cc.Select(MailboxAddress.Parse).ToList();
             var bccList = bcc.Select(MailboxAddress.Parse).ToList();
-
             var sent = false;
+            var logged = false;
             var type = DeliveryType.None;
             var message = new MimeMessage(
                 new List<InternetAddress> {InternetAddress.Parse(From)},
@@ -288,19 +296,15 @@ namespace Seq.App.EmailPlus
             }
 
             message.Priority = (MessagePriority) priority;
-
-            Exception lastError = null;
             var errors = new List<Exception>();
-            if (Options.Value.Server != null && Options.Value.Server.Any())
+            if (_options.Value.Host != null && _options.Value.Host.Any())
             {
                 type = DeliveryType.MailHost;
-                var result = await _mailGateway.Send(Options.Value, message);
+                var result = await _mailGateway.SendAsync(_options.Value, message);
                 errors = result.Errors;
                 sent = result.Success;
                 if (!result.Success)
                 {
-                    if (result.LastError != null)
-                        lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to)
                         .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                         .ForContext("Priority", priority).ForContext("Subject", subject)
@@ -310,20 +314,19 @@ namespace Seq.App.EmailPlus
                         .Error(result.LastError,
                             "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
+                    logged = true;
                 }
             }
 
-            if (!sent && Options.Value.DnsDelivery)
+            if (!sent && _options.Value.DnsDelivery)
             {
                 type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
-                var result = await _mailGateway.SendDns(type, Options.Value, message);
+                var result = await _mailGateway.SendDnsAsync(type, _options.Value, message);
                 errors = result.Errors;
                 sent = result.Success;
 
                 if (!result.Success)
                 {
-                    if (result.LastError != null)
-                        lastError = result.LastError;
                     Log.ForContext("From", From).ForContext("To", to)
                         .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                         .ForContext("Priority", priority).ForContext("Subject", subject)
@@ -332,42 +335,78 @@ namespace Seq.App.EmailPlus
                         .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
                             "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
+                    logged = true;
                 }
             }
 
-            switch (sent)
+            if (sent)
             {
-                case false when lastError != null:
-                    throw lastError;
-                case true:
                     Log.ForContext("From", From).ForContext("To", to)
                         .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                         .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
                         .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
-                    break;
             }
+            else if (!logged)
+                Log.ForContext("From", From).ForContext("To", to)                        
+				.ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
+                .ForContext("Priority", priority).ForContext("Subject", subject)
+                .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
+                .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}");
         }
 
-        public static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        bool ShouldSuppress(Event<LogEventData> evt)
         {
-            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
+            if (SuppressionMinutes == 0)
+                return false;
 
-            var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
+            var now = _clock.UtcNow;
+            if (!_suppressions.TryGetValue(evt.EventType, out var suppressedSince) ||
+                suppressedSince.AddMinutes(SuppressionMinutes) < now)
             {
-                { "$Id",                  evt.Id },
-                { "$UtcTimestamp",        evt.TimestampUtc },
-                { "$LocalTimestamp",      evt.Data.LocalTimestamp },
-                { "$Level",               evt.Data.Level },
-                { "$MessageTemplate",     evt.Data.MessageTemplate },
-                { "$Message",             evt.Data.RenderedMessage },
-                { "$Exception",           evt.Data.Exception },
-                { "$Properties",          properties },
-                { "$EventType",           "$" + evt.EventType.ToString("X8") },
-                { "$Instance",            host.InstanceName },
-                { "$ServerUri",           host.BaseUri },
+                // Not suppressed, or suppression expired
+
+                // Clean up old entries
+                var expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                while (expired.Value != default)
+                {
+                    _suppressions.Remove(expired.Key);
+                    expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                }
+
+                // Start suppression again
+                suppressedSince = now;
+                _suppressions[evt.EventType] = suppressedSince;
+                return false;
+            }
+
+            // Suppressed
+            return true;
+        }
+
+        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        {
+            var properties =
+                (IDictionary<string, object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
+
+            var payload = (IDictionary<string, object>) ToDynamic(new Dictionary<string, object>
+            {
+                {"$Id", evt.Id},
+                {"$UtcTimestamp", evt.TimestampUtc},
+                {"$LocalTimestamp", evt.Data.LocalTimestamp},
+                {"$Level", evt.Data.Level},
+                {"$MessageTemplate", evt.Data.MessageTemplate},
+                {"$Message", evt.Data.RenderedMessage},
+                {"$Exception", evt.Data.Exception},
+                {"$Properties", properties},
+                {"$EventType", "$" + evt.EventType.ToString("X8")},
+                {"$Instance", host.InstanceName},
+                {"$ServerUri", host.BaseUri},
                 // Note, this will only be valid when events are streamed directly to the app, and not when the app is sending an alert notification.
-                { "$EventUri",            string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded") } 
+                {
+                    "$EventUri",
+                    string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded")
+                }
             });
 
             foreach (var property in properties)
@@ -409,6 +448,11 @@ namespace Seq.App.EmailPlus
 
             propertyValue = pair.Value;
             return true;
+		}
+		
+        public SmtpOptions GetOptions()
+        {
+            return _options.Value;
         }
     }
 }

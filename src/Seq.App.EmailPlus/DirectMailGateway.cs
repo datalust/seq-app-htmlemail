@@ -9,18 +9,18 @@ using MimeKit;
 
 namespace Seq.App.EmailPlus
 {
-    internal class DirectMailGateway : IMailGateway
+    class DirectMailGateway : IMailGateway
     {
         static readonly SmtpClient Client = new SmtpClient();
         static readonly LookupClient DnsClient = new LookupClient();
 
-        public async Task<MailResult> Send(SmtpOptions options, MimeMessage message)
+        public async Task<MailResult> SendAsync(SmtpOptions options, MimeMessage message)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
             var mailResult = new MailResult();
             var type = DeliveryType.MailHost;
             var errors = new List<Exception>();
-            foreach (var server in options.ServerList)
+            foreach (var server in options.Host)
             {
                 mailResult = await TryDeliver(server, options, message, type);
                 if (!mailResult.Success)
@@ -38,7 +38,8 @@ namespace Seq.App.EmailPlus
             return mailResult;
         }
 
-        public async Task<DnsMailResult> SendDns(DeliveryType deliveryType, SmtpOptions options, MimeMessage message)
+        public async Task<DnsMailResult> SendDnsAsync(DeliveryType deliveryType, SmtpOptions options,
+            MimeMessage message)
         {
             var dnsResult = new DnsMailResult();
             var resultList = new List<MailResult>();
@@ -49,7 +50,7 @@ namespace Seq.App.EmailPlus
 
             try
             {
-                var domains = GetDomains(message);
+                var domains = GetDomains(message).ToList();
 
                 foreach (var domain in domains)
                 {
@@ -85,7 +86,10 @@ namespace Seq.App.EmailPlus
 
                     if (mailResult.Success) continue;
                     dnsResult.Success = false;
-                    if (dnsResult.LastError == null) dnsResult.LastError = mxServers.Count == 0 ? new Exception("DNS delivery failed - no MX records detected for " + domain) : new Exception("DNS delivery failed - no error detected");
+                    if (dnsResult.LastError == null)
+                        dnsResult.LastError = mxServers.Count == 0
+                            ? new Exception("DNS delivery failed - no MX records detected for " + domain)
+                            : new Exception("DNS delivery failed - no error detected");
                     break;
                 }
 
@@ -123,7 +127,7 @@ namespace Seq.App.EmailPlus
             return domains;
         }
 
-        private async Task<MailResult> TryDeliver(string server, SmtpOptions options, MimeMessage message,
+        private static async Task<MailResult> TryDeliver(string server, SmtpOptions options, MimeMessage message,
             DeliveryType deliveryType)
         {
             if (string.IsNullOrEmpty(server))
@@ -132,12 +136,11 @@ namespace Seq.App.EmailPlus
             {
                 await Client.ConnectAsync(server, options.Port, options.SocketOptions);
                 if (options.RequiresAuthentication)
-                    await Client.AuthenticateAsync(options.User, options.Password);
+                    await Client.AuthenticateAsync(options.Username, options.Password);
 
 
                 await Client.SendAsync(message);
                 await Client.DisconnectAsync(true);
-
 
                 return new MailResult {Success = true, LastServer = server, Type = deliveryType};
             }
