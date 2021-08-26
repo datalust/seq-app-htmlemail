@@ -15,8 +15,8 @@ namespace Seq.App.EmailPlus
 {
     using Template = HandlebarsTemplate<object, object>;
 
-    [SeqApp("Email+",
-        Description = "Uses a Handlebars template to send events as SMTP email.")]
+    [SeqApp("HTML Email",
+        Description = "Uses Handlebars templates to format events and notifications into HTML email.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
         readonly IMailGateway _mailGateway;
@@ -137,7 +137,15 @@ namespace Seq.App.EmailPlus
         {
             if (ShouldSuppress(evt)) return;
 
-            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
+            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host)
+                .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
+
+            if (to.Length == 0)
+            {
+                Log.Warning("Email 'to' address template did not evaluate to one or more recipient addresses");
+                return;
+            }
+
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
             var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
@@ -147,8 +155,8 @@ namespace Seq.App.EmailPlus
             await _mailGateway.SendAsync(
                 _options.Value,
                 new MimeMessage(
-                    new List<InternetAddress> {MailboxAddress.Parse(From)},
-                    new List<InternetAddress> {MailboxAddress.Parse(to)},
+                    new[] {MailboxAddress.Parse(From)},
+                    to.Select(MailboxAddress.Parse),
                     subject,
                     new BodyBuilder {HtmlBody = body}.ToMessageBody()));
         }
