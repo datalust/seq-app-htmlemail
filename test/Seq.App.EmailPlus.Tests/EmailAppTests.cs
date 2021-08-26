@@ -194,7 +194,7 @@ namespace Seq.App.EmailPlus.Tests
 
             app.Attach(new TestAppHost());
 
-            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "To", "first@example.com,second@example.com, third@example.com" } });
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "To", ",first@example.com,,second@example.com, third@example.com," } });
             await app.OnAsync(data);
 
             var sent = Assert.Single(mail.Sent);
