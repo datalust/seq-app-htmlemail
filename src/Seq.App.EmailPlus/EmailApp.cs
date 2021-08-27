@@ -74,11 +74,6 @@ namespace Seq.App.EmailPlus
             });
         }
 
-        internal static SecureSocketOptions RequireSslForPort(int port)
-        {
-            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
-        }
-
         public EmailApp()
             : this(new DirectMailGateway(), new SystemClock())
         {
@@ -174,9 +169,9 @@ namespace Seq.App.EmailPlus
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
-            if (to.Length == 0)
+            if (to.Count == 0)
             {
-                Log.Warning("Email 'to' address template did not evaluate to one or more recipient addresses");
+                Log.Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
                 return;
             }
 
