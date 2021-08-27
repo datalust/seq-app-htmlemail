@@ -43,7 +43,7 @@ namespace Seq.App.EmailPlus
             _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
                 Host,
                 DeliverUsingDns != null && (bool) DeliverUsingDns,
-                Port ?? 25,
+                port,
                 SmtpOptions.GetSocketOptions(port, EnableSsl, UseTlsWhenAvailable),
                 Username,
                 Password));
