@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MailKit.Security;
-using MimeKit;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -111,8 +110,7 @@ namespace Seq.App.EmailPlus.Tests
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("t", result);
         }
-
-
+        
         [Fact]
         public async Task ToAddressesAreTemplated()
         {
@@ -130,7 +128,8 @@ namespace Seq.App.EmailPlus.Tests
             await app.OnAsync(data);
 
             var sent = Assert.Single(mail.Sent);
-            Assert.Equal("test@example.com", sent.Message.To.ToString());
+            var to = Assert.Single(sent.Message.To);
+            Assert.Equal("test@example.com", to.ToString());
         }
 
         [Fact]
@@ -212,6 +211,35 @@ namespace Seq.App.EmailPlus.Tests
             await app.OnAsync(Some.LogEvent(eventType: 1));
 
             Assert.Equal(2, mail.Sent.Count);
+        }
+        
+        [Fact]
+        public async Task ToAddressesCanBeCommaSeparated()
+        {
+            var mail = new CollectingMailGateway();
+            var app = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                To = "{{To}}",
+                Host = "example.com"
+            };
+
+            app.Attach(new TestAppHost());
+
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "To", ",first@example.com,,second@example.com, third@example.com," } });
+            await app.OnAsync(data);
+
+            var sent = Assert.Single(mail.Sent);
+            Assert.Equal(3, sent.Message.To.Count);
+        }
+
+        [Theory]
+        [InlineData(25, SecureSocketOptions.StartTls)]
+        [InlineData(587, SecureSocketOptions.StartTls)]
+        [InlineData(465, SecureSocketOptions.SslOnConnect)]
+        public void CorrectSecureSocketOptionsAreChosenForPort(int port, SecureSocketOptions expected)
+        {
+            Assert.Equal(expected, EmailApp.RequireSslForPort(port));
         }
     }
 }
