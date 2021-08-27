@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MailKit.Security;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -199,6 +200,15 @@ namespace Seq.App.EmailPlus.Tests
 
             var sent = Assert.Single(mail.Sent);
             Assert.Equal(3, sent.Message.To.Count);
+        }
+
+        [Theory]
+        [InlineData(25, SecureSocketOptions.StartTls)]
+        [InlineData(587, SecureSocketOptions.StartTls)]
+        [InlineData(465, SecureSocketOptions.SslOnConnect)]
+        public void CorrectSecureSocketOptionsAreChosenForPort(int port, SecureSocketOptions expected)
+        {
+            Assert.Equal(expected, EmailApp.RequireSslForPort(port));
         }
     }
 }

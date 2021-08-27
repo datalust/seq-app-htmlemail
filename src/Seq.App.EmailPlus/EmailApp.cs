@@ -27,6 +27,8 @@ namespace Seq.App.EmailPlus
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
+        const int DefaultPort = 25;
+        const int DefaultSslPort = 465;
 
         static EmailApp()
         {
@@ -38,11 +40,12 @@ namespace Seq.App.EmailPlus
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
+            var port = Port ?? DefaultPort;
             _options = _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
                 Host,
-                Port ?? 25, 
+                port, 
                 EnableSsl ?? false
-                    ? SecureSocketOptions.SslOnConnect
+                    ? RequireSslForPort(port)
                     : SecureSocketOptions.StartTlsWhenAvailable, 
                 Username,
                 Password));
@@ -70,6 +73,11 @@ namespace Seq.App.EmailPlus
                     return (_, __) => To;
                 return Handlebars.Compile(toAddressTemplate);
             });
+        }
+
+        internal static SecureSocketOptions RequireSslForPort(int port)
+        {
+            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
         }
 
         public EmailApp()
@@ -104,16 +112,18 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
-            DisplayName = "Enable SSL",
-            HelpText = "Check this box if SSL is required to send email messages.")]
+            DisplayName = "Require TLS",
+            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465," +
+                       "implicit SSL will be enabled; otherwise, the STARTTLS extension will be used.")]
         public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
-            HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
-                       "the default template that includes the message and properties (https://github.com/datalust/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
+            HelpText = "The template to use when generating the email body, using Handlebars syntax. Leave this blank to use " +
+                       "the default template that includes the message and " +
+                       "properties (https://github.com/datalust/seq-app-htmlemail/blob/main/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
