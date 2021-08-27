@@ -39,13 +39,15 @@ namespace Seq.App.EmailPlus
             return new List<string>();
         }
 
-        public static SecureSocketOptions GetSocketOptions(bool? enableSsl, bool? useTlsWhenAvailable)
+        public static SecureSocketOptions GetSocketOptions(int port, bool? enableSsl, bool? useTlsWhenAvailable)
         {
             if (enableSsl == null) return SecureSocketOptions.Auto;
             switch (enableSsl)
             {
-                case true:
+                case true when port == 465:
                     return SecureSocketOptions.SslOnConnect;
+                case true:
+                    return SecureSocketOptions.StartTls;
                 case false when useTlsWhenAvailable != null && !(bool) useTlsWhenAvailable:
                     return SecureSocketOptions.None;
                 case false when useTlsWhenAvailable != null && (bool) useTlsWhenAvailable:

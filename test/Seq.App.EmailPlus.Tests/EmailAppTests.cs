@@ -111,8 +111,7 @@ namespace Seq.App.EmailPlus.Tests
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("t", result);
         }
-
-
+        
         [Fact]
         public async Task ToAddressesAreTemplated()
         {
@@ -130,7 +129,8 @@ namespace Seq.App.EmailPlus.Tests
             await app.OnAsync(data);
 
             var sent = Assert.Single(mail.Sent);
-            Assert.Equal("test@example.com", sent.Message.To.ToString());
+            var to = Assert.Single(sent.Message.To);
+            Assert.Equal("test@example.com", to.ToString());
         }
 
         [Fact]
@@ -171,10 +171,10 @@ namespace Seq.App.EmailPlus.Tests
 
             reactor.Attach(new TestAppHost());
             Assert.True(reactor.GetOptions().Host.Count() == 2);
-            Assert.True(SmtpOptions.GetSocketOptions(true, false) == SecureSocketOptions.SslOnConnect);
-            Assert.True(SmtpOptions.GetSocketOptions(false, false) == SecureSocketOptions.None);
-            Assert.True(SmtpOptions.GetSocketOptions(false, true) == SecureSocketOptions.StartTlsWhenAvailable);
-            Assert.True(SmtpOptions.GetSocketOptions(null, false) == SecureSocketOptions.Auto);
+            Assert.True(SmtpOptions.GetSocketOptions(465, true, false) == SecureSocketOptions.SslOnConnect);
+            Assert.True(SmtpOptions.GetSocketOptions(25, false, false) == SecureSocketOptions.None);
+            Assert.True(SmtpOptions.GetSocketOptions(25, false, true) == SecureSocketOptions.StartTlsWhenAvailable);
+            Assert.True(SmtpOptions.GetSocketOptions(25, null, false) == SecureSocketOptions.Auto);
         }
 
         [Fact]
@@ -238,5 +238,26 @@ namespace Seq.App.EmailPlus.Tests
 
             Assert.Equal(2, mail.Sent.Count);
         }
+        
+        [Fact]
+        public async Task ToAddressesCanBeCommaSeparated()
+        {
+            var mail = new CollectingMailGateway();
+            var app = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                To = "{{To}}",
+                Host = "example.com"
+            };
+
+            app.Attach(new TestAppHost());
+
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object> { { "To", ",first@example.com,,second@example.com, third@example.com," } });
+            await app.OnAsync(data);
+
+            var sent = Assert.Single(mail.Sent);
+            Assert.Equal(3, sent.Message.To.Count);
+        }
+
     }
 }

@@ -14,8 +14,8 @@ namespace Seq.App.EmailPlus
 {
     using Template = HandlebarsTemplate<object, object>;
 
-    [SeqApp("Email+",
-        Description = "Uses a Handlebars template to send events as SMTP email.")]
+    [SeqApp("HTML Email",
+        Description = "Uses Handlebars templates to format events and notifications into HTML email.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
         readonly IMailGateway _mailGateway;
@@ -26,6 +26,8 @@ namespace Seq.App.EmailPlus
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
+        const int DefaultPort = 25;
+        const int DefaultSslPort = 465;
 
         static EmailApp()
         {
@@ -37,17 +39,16 @@ namespace Seq.App.EmailPlus
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-            // ReSharper disable ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
+            var port = Port ?? DefaultPort;
             _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
                 Host,
                 DeliverUsingDns != null && (bool) DeliverUsingDns,
-                Port ?? 25,
+                port,
 				Priority,				
 				DefaultPriority,
-                SmtpOptions.GetSocketOptions(EnableSsl, UseTlsWhenAvailable),
+                SmtpOptions.GetSocketOptions(port, EnableSsl, UseTlsWhenAvailable),
                 Username,
                 Password));
-            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
 
             _subjectTemplate = new Lazy<Template>(() =>
             {
@@ -160,8 +161,9 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
-            DisplayName = "Enable SSL",
-            HelpText = "Check this box if SSL is required to send email messages. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
+            DisplayName = "Require TLS",
+            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465," +
+                       "implicit SSL will be enabled; otherwise, the STARTTLS extension will be used. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
         public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
@@ -174,9 +176,9 @@ namespace Seq.App.EmailPlus
             IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
-            HelpText =
-                "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
-                "the default template that includes the message and properties (https://github.com/datalust/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
+            HelpText = "The template to use when generating the email body, using Handlebars syntax. Leave this blank to use " +
+                       "the default template that includes the message and " +
+                       "properties (https://github.com/datalust/seq-app-htmlemail/blob/main/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
         public string BodyTemplate { get; set; }
 
         [SeqAppSetting(
@@ -235,6 +237,12 @@ namespace Seq.App.EmailPlus
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
+            if (to.Count == 0)
+            {
+                Log.Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
+                return;
+            }
+
             var replyTo = string.IsNullOrEmpty(ReplyTo) ? new List<string>() : FormatTemplate(_replyToAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
@@ -246,6 +254,7 @@ namespace Seq.App.EmailPlus
             var bcc = string.IsNullOrEmpty(Bcc) ? new List<string>() : FormatTemplate(_bccAddressesTemplate.Value, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
+
 
             var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
             var textBody = FormatTemplate(_plainTextTemplate.Value, evt, base.Host);
