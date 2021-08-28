@@ -15,7 +15,7 @@ namespace Seq.App.EmailPlus
     using Template = HandlebarsTemplate<object, object>;
 
     [SeqApp("HTML Email",
-        Description = "Uses Handlebars templates to format events and notifications into HTML email.")]
+        Description = "Uses Handlebars templates to format events and notifications into HTML email, with optional alternate plain text body.")]
     public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
         readonly IMailGateway _mailGateway;
