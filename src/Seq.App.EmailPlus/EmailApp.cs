@@ -163,7 +163,7 @@ namespace Seq.App.EmailPlus
             IsOptional = true,
             DisplayName = "Require TLS",
             HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465," +
-                       "implicit SSL will be enabled; otherwise, the STARTTLS extension will be used. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
+                       "implicit SSL will ALWAYS be enabled; otherwise, the STARTTLS extension will be used if Require TLS is enabled. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
         public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
