@@ -171,7 +171,7 @@ namespace Seq.App.EmailPlus
 
             if (to.Count == 0)
             {
-                Log.Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
+                Log.ForContext("To", _toAddressesTemplate.Value).Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
                 return;
             }
 
@@ -190,12 +190,15 @@ namespace Seq.App.EmailPlus
                 toList, subject, new BodyBuilder {HtmlBody = body}.ToMessageBody());
 
             var errors = new List<Exception>();
+            var lastServer = string.Empty;
             if (_options.Value.Host != null && _options.Value.Host.Any())
             {
                 type = DeliveryType.MailHost;
                 var result = await _mailGateway.SendAsync(_options.Value, message);
                 errors = result.Errors;
                 sent = result.Success;
+                lastServer = result.LastServer;
+
                 if (!result.Success)
                 {
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
@@ -215,13 +218,16 @@ namespace Seq.App.EmailPlus
                 var result = await _mailGateway.SendDnsAsync(type, _options.Value, message);
                 errors = result.Errors;
                 sent = result.Success;
+                lastServer = result.LastServer;
+                type = result.Type;
 
                 if (!result.Success)
                 {
                     Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                         .ForContext("Success", sent).ForContext("Body", body)
                         .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
-                        .ForContext(nameof(result.LastServer), result.LastServer).Error(result.LastError,
+                        .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.LastServer), result.LastServer)
+                        .Error(result.LastError,
                             "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}",
                             result.LastError?.Message, From, to, subject);
                     logged = true;
@@ -231,13 +237,16 @@ namespace Seq.App.EmailPlus
             if (sent)
             {
                 Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
-                    .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                    .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}");
+                    .ForContext("Success", true).ForContext("Body", body)
+                    .ForContext("LastServer", lastServer).ForContext("Errors", errors)
+                    .ForContext("Type", type)
+                    .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
             }
             else if (!logged)
                 Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                     .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                    .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}");
+                    .ForContext("Type", type)
+                    .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
 
         }
 
