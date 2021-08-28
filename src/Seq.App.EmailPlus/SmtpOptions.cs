@@ -38,10 +38,12 @@ namespace Seq.App.EmailPlus
             if (enableSsl == null) return SecureSocketOptions.Auto;
             switch (enableSsl)
             {
-                case true when port == 465:
+                case true when port == 465: //Implicit TLS
                     return SecureSocketOptions.SslOnConnect;
                 case true:
                     return SecureSocketOptions.StartTls;
+                case false when port == 465: //Implicit TLS
+                    return SecureSocketOptions.SslOnConnect;
                 case false when useTlsWhenAvailable != null && !(bool) useTlsWhenAvailable:
                     return SecureSocketOptions.None;
                 case false when useTlsWhenAvailable != null && (bool) useTlsWhenAvailable:
