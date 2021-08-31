@@ -156,6 +156,23 @@ namespace Seq.App.EmailPlus
                     domains.Add(toDomain);
             }
 
+            foreach (var cc in message.Cc)
+            {
+                var ccDomain = cc.ToString().Split('@')[1];
+                if (string.IsNullOrEmpty(ccDomain)) continue;
+                if (!domains.Any(domain => domain.Equals(ccDomain, StringComparison.OrdinalIgnoreCase)))
+                    domains.Add(ccDomain);
+            }
+
+            
+            foreach (var bcc in message.Bcc)
+            {
+                var bccDomain = bcc.ToString().Split('@')[1];
+                if (string.IsNullOrEmpty(bccDomain)) continue;
+                if (!domains.Any(domain => domain.Equals(bccDomain, StringComparison.OrdinalIgnoreCase)))
+                    domains.Add(bccDomain);
+            }
+
             return domains;
         }
 
