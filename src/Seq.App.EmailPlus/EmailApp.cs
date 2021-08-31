@@ -565,9 +565,6 @@ namespace Seq.App.EmailPlus
             return priority;
         }
 
-
-
-
         bool ShouldSuppress(Event<LogEventData> evt)
         {
             if (SuppressionMinutes == 0)
