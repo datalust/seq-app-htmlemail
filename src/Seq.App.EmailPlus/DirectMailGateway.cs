@@ -51,6 +51,7 @@ namespace Seq.App.EmailPlus
             try
             {
                 var domains = GetDomains(message).ToList();
+                var successCount = 0;
 
                 foreach (var domain in domains)
                 {
@@ -59,8 +60,8 @@ namespace Seq.App.EmailPlus
                     var mx = await DnsClient.QueryAsync(domain, QueryType.MX);
                     var mxServers =
                         (from mxServer in mx.Answers
-                            where !string.IsNullOrEmpty(((MxRecord) mxServer).Exchange)
-                            select ((MxRecord) mxServer).Exchange).Select(dummy => (string) dummy).ToList();
+                            where !string.IsNullOrEmpty(((MxRecord)mxServer).Exchange)
+                            select ((MxRecord)mxServer).Exchange).Select(dummy => (string)dummy).ToList();
                     var mailResult = new MailResult();
                     foreach (var server in mxServers)
                     {
@@ -74,7 +75,6 @@ namespace Seq.App.EmailPlus
                             LastServer = server,
                             LastError = mailResult.LastError ?? lastError,
                             Type = type,
-                            Success = mailResult.Success
                         };
 
                         resultList.Add(mailResult);
@@ -84,17 +84,49 @@ namespace Seq.App.EmailPlus
                         type = DeliveryType.DnsFallback;
                     }
 
-                    if (mailResult.Success) continue;
-                    dnsResult.Success = false;
+                    if (mailResult.Success)
+                    {
+                        successCount++;
+                        continue;
+                    }
+
                     if (dnsResult.LastError == null)
+                    {
                         dnsResult.LastError = mxServers.Count == 0
                             ? new Exception("DNS delivery failed - no MX records detected for " + domain)
                             : new Exception("DNS delivery failed - no error detected");
-                    break;
+
+                        dnsResult.Errors.Add(dnsResult.LastError);
+                    }
                 }
 
                 if (!domains.Any())
-                    dnsResult.LastError = new Exception("DNS delivery failed - no domains parsed from To addresses");
+                {
+                    dnsResult.Success = false;
+                    dnsResult.LastError =
+                        new Exception("DNS delivery failed - no domains parsed from recipient addresses");
+                }
+
+                if (successCount < domains.Count)
+                {
+                    if (successCount == 0)
+                    {
+                        dnsResult.Success = false;
+                        dnsResult.LastError =
+                            new Exception("DNS delivery failure - no domains could be successfully delivered.");
+                    }
+                    else
+                    {
+                        dnsResult.Success = true; // A qualified success ...
+                        dnsResult.LastError =
+                            new Exception(
+                                $"DNS delivery partial failure - {domains.Count - successCount} of {successCount} domains could not be delivered.");
+                    }
+                }
+                else
+                {
+                    dnsResult.Success = true;
+                }
             }
             catch (Exception ex)
             {
@@ -122,6 +154,23 @@ namespace Seq.App.EmailPlus
                 if (string.IsNullOrEmpty(toDomain)) continue;
                 if (!domains.Any(domain => domain.Equals(toDomain, StringComparison.OrdinalIgnoreCase)))
                     domains.Add(toDomain);
+            }
+
+            foreach (var cc in message.Cc)
+            {
+                var ccDomain = cc.ToString().Split('@')[1];
+                if (string.IsNullOrEmpty(ccDomain)) continue;
+                if (!domains.Any(domain => domain.Equals(ccDomain, StringComparison.OrdinalIgnoreCase)))
+                    domains.Add(ccDomain);
+            }
+
+            
+            foreach (var bcc in message.Bcc)
+            {
+                var bccDomain = bcc.ToString().Split('@')[1];
+                if (string.IsNullOrEmpty(bccDomain)) continue;
+                if (!domains.Any(domain => domain.Equals(bccDomain, StringComparison.OrdinalIgnoreCase)))
+                    domains.Add(bccDomain);
             }
 
             return domains;
