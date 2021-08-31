@@ -363,7 +363,7 @@ namespace Seq.App.EmailPlus
                         .ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                         .ForContext("Priority", priority).ForContext("Subject", subject)
                         .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                        .ForContext("Type", type)
+                        .ForContext("Type", type).ForContext("LastServer", lastServer)
                         .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
             }
             else if (!logged)
@@ -371,7 +371,7 @@ namespace Seq.App.EmailPlus
 				.ForContext("ReplyTo", replyTo).ForContext("CC", cc).ForContext("BCC", bcc)
                 .ForContext("Priority", priority).ForContext("Subject", subject)
                 .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                .ForContext("Type", type)
+                .ForContext("Type", type).ForContext("LastServer", lastServer)
                 .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
         }
 
