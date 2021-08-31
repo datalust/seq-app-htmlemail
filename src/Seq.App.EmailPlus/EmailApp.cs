@@ -245,7 +245,7 @@ namespace Seq.App.EmailPlus
             else if (!logged)
                 Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
                     .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
-                    .ForContext("Type", type)
+                    .ForContext("Type", type).ForContext("LastServer", lastServer)
                     .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
 
         }
