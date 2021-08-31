@@ -19,10 +19,10 @@ namespace Seq.App.EmailPlus {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Seq.App.EmailPlus {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Seq.App.EmailPlus.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace Seq.App.EmailPlus {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -72,9 +72,33 @@ namespace Seq.App.EmailPlus {
         ///    &lt;tr&gt;
         ///         [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string DefaultBodyTemplate {
+        public static string DefaultBodyTemplate {
             get {
                 return ResourceManager.GetString("DefaultBodyTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;&gt;
+        ///&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+        ///&lt;head&gt;
+        ///  &lt;title&gt;{{$Subject}}&lt;/title&gt;
+        ///  &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+        ///  &lt;style&gt;
+        ///    .email-body {
+        ///      margin: 10px;
+        ///      font-family: &quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;
+        ///      font-size: 14px;
+        ///      line-height: 20px;
+        ///      color: #333;
+        ///      background-color: #fff;
+        ///    }
+        ///
+        ///    .s [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string DigestBodyTemplate {
+            get {
+                return ResourceManager.GetString("DigestBodyTemplate", resourceCulture);
             }
         }
     }
