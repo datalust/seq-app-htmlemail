@@ -90,14 +90,12 @@ namespace Seq.App.EmailPlus
                         continue;
                     }
 
-                    if (dnsResult.LastError == null)
-                    {
-                        dnsResult.LastError = mxServers.Count == 0
-                            ? new Exception("DNS delivery failed - no MX records detected for " + domain)
-                            : new Exception("DNS delivery failed - no error detected");
-
-                        dnsResult.Errors.Add(dnsResult.LastError);
-                    }
+                    if (dnsResult.LastError != null) continue;
+                    dnsResult.LastError = mxServers.Count == 0
+                        ? new Exception("DNS delivery failed - no MX records detected for " + domain)
+                        : new Exception("DNS delivery failed - no error detected");
+                    dnsResult.Success = false;
+                    dnsResult.Errors.Add(dnsResult.LastError);
                 }
 
                 if (!domains.Any())
@@ -122,6 +120,8 @@ namespace Seq.App.EmailPlus
                             new Exception(
                                 $"DNS delivery partial failure - {domains.Count - successCount} of {successCount} domains could not be delivered.");
                     }
+
+                    dnsResult.Errors.Add(dnsResult.LastError);
                 }
                 else
                 {
