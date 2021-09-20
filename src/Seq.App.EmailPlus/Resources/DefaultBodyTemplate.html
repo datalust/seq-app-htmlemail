@@ -140,8 +140,8 @@
                         {{#if_eq @index 0}}
                         {{else}}
                         <tr>
-                            <td style="text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;padding:5px;">{{pretty this.1}}</td>
-                            <td style="text-align:left;padding:5px;padding-left:0;">
+                            <th scope="row" style="text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;padding:5px;padding-left:0;font-weight:bold;">{{pretty this.1}}</td>
+                            <td style="text-align:left;padding:5px;padding-left:10px;">
                                 <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{this.0}}'&amp;show=expanded" style="color:#356dba;text-decoration:none;border-bottom:2px solid;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this.2}}</a>
                             </td>
                         </tr>
