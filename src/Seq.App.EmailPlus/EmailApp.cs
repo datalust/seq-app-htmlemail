@@ -46,7 +46,7 @@ namespace Seq.App.EmailPlus
                 port,
 				Priority,				
 				DefaultPriority,
-                SmtpOptions.GetSocketOptions(port, EnableSsl, UseTlsWhenAvailable),
+                SmtpOptions.GetSocketOptions(port, EnableSsl, EnableTls),
                 Username,
                 Password));
 
@@ -159,18 +159,14 @@ namespace Seq.App.EmailPlus
                 "The port on the SMTP server machine to send mail to. Leave this blank to use the standard port (25).")]
         public int? Port { get; set; }
 
-        [SeqAppSetting(
-            IsOptional = true,
-            DisplayName = "Require TLS",
-            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465," +
-                       "implicit SSL will ALWAYS be enabled; otherwise, the STARTTLS extension will be used if Require TLS is enabled. If this is disabled, Use Optional TLS If Available can be configured to allow TLS to be used when offered.")]
+        //EnableSSL has been retired but is preserved for migration purposes
         public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
-            DisplayName = "Use Optional TLS if available",
-            HelpText = "If Enable SSL is disabled but the host supports TLS, allow Seq to negotiate using TLS. This has no effect if Enable SSL is enabled.")]
-        public bool? UseTlsWhenAvailable { get; set; }
+            DisplayName = "Require TLS",
+            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465, StartTls (implicit TLS) will ALWAYS be used.")]
+        public TlsOptions? EnableTls { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
