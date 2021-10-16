@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 
 namespace Seq.App.EmailPlus
@@ -166,7 +167,7 @@ namespace Seq.App.EmailPlus
                 return new MailResult {Success = false, LastServer = server, Type = deliveryType};
             try
             {
-                await Client.ConnectAsync(server, options.Port, options.SocketOptions);
+                await Client.ConnectAsync(server, options.Port, (SecureSocketOptions)options.SocketOptions);
                 if (options.RequiresAuthentication)
                     await Client.AuthenticateAsync(options.Username, options.Password);
 

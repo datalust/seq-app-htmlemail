@@ -231,19 +231,19 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Theory]
-        [InlineData(25, null, null, SecureSocketOptions.Auto)]
-        [InlineData(25, true, false, SecureSocketOptions.StartTls)]
-        [InlineData(25, false, false, SecureSocketOptions.None)]
-        [InlineData(25, false, true, SecureSocketOptions.StartTlsWhenAvailable)]
-        [InlineData(587, true, false, SecureSocketOptions.StartTls)]
-        [InlineData(587, false, false, SecureSocketOptions.None)]
-        [InlineData(587, false, true, SecureSocketOptions.StartTlsWhenAvailable)]
-        [InlineData(465, true, false, SecureSocketOptions.SslOnConnect)]
-        [InlineData(465, false, false, SecureSocketOptions.SslOnConnect)]
-        [InlineData(465, false, true, SecureSocketOptions.SslOnConnect)]
-        public void CorrectSecureSocketOptionsAreChosenForPort(int port, bool? enableSsl, bool? optionalTls, SecureSocketOptions expected)
+        [InlineData(25, null, null, TlsOptions.Auto)]
+        [InlineData(25, true, null, TlsOptions.StartTls)]
+        [InlineData(25, false, TlsOptions.None, TlsOptions.None)]
+        [InlineData(25, false, TlsOptions.StartTlsWhenAvailable, TlsOptions.StartTlsWhenAvailable)]
+        [InlineData(587, true, TlsOptions.StartTls, TlsOptions.StartTls)]
+        [InlineData(587, false, TlsOptions.None, TlsOptions.None)]
+        [InlineData(587, false, TlsOptions.StartTlsWhenAvailable, TlsOptions.StartTlsWhenAvailable)]
+        [InlineData(465, true, TlsOptions.None, TlsOptions.SslOnConnect)]
+        [InlineData(465, false, TlsOptions.Auto, TlsOptions.SslOnConnect)]
+        [InlineData(465, false, TlsOptions.SslOnConnect, TlsOptions.SslOnConnect)]
+        public void CorrectSecureSocketOptionsAreChosenForPort(int port, bool? enableSsl, TlsOptions? enableTls, TlsOptions expected)
         {
-            Assert.Equal(expected, SmtpOptions.GetSocketOptions(port, enableSsl, optionalTls));
+            Assert.Equal(expected, SmtpOptions.GetSocketOptions(port, enableSsl, enableTls));
         }
     }
 }

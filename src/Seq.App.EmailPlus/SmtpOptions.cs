@@ -13,9 +13,9 @@ namespace Seq.App.EmailPlus
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public bool RequiresAuthentication => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
-        public SecureSocketOptions SocketOptions { get; set; }
+        public TlsOptions SocketOptions { get; set; }
 
-        public SmtpOptions(string host, bool dnsDelivery, int port, SecureSocketOptions socketOptions, string username = null, string password = null)
+        public SmtpOptions(string host, bool dnsDelivery, int port, TlsOptions socketOptions, string username = null, string password = null)
         {
             Host = GetServerList(host).ToList();
             DnsDelivery = dnsDelivery;
@@ -33,24 +33,24 @@ namespace Seq.App.EmailPlus
             return new List<string>();
         }
 
-        public static SecureSocketOptions GetSocketOptions(int port, bool? enableSsl, bool? useTlsWhenAvailable)
+        public static TlsOptions GetSocketOptions(int port, bool? enableSsl, TlsOptions? enableTls)
         {
-            if (enableSsl == null) return SecureSocketOptions.Auto;
-            switch (enableSsl)
-            {
-                case true when port == 465: //Implicit TLS
-                    return SecureSocketOptions.SslOnConnect;
-                case true:
-                    return SecureSocketOptions.StartTls;
-                case false when port == 465: //Implicit TLS
-                    return SecureSocketOptions.SslOnConnect;
-                case false when useTlsWhenAvailable != null && !(bool) useTlsWhenAvailable:
-                    return SecureSocketOptions.None;
-                case false when useTlsWhenAvailable != null && (bool) useTlsWhenAvailable:
-                    return SecureSocketOptions.StartTlsWhenAvailable;
-            }
+            if (enableSsl == null && enableTls == null) return TlsOptions.Auto;
 
-            return SecureSocketOptions.Auto;
+            switch (enableTls)
+            {
+                case null when (bool)enableSsl && port == 465: //Implicit TLS
+                case TlsOptions.None when port == 465:
+                case TlsOptions.Auto when port == 465:
+                case TlsOptions.StartTlsWhenAvailable when port == 465:
+                    return TlsOptions.SslOnConnect;
+                case null when (bool)enableSsl:
+                    return TlsOptions.StartTls; //Explicit TLS
+                case null:
+                    return TlsOptions.Auto;
+                default:
+                    return (TlsOptions)enableTls;
+            }
         }
     }
 }
