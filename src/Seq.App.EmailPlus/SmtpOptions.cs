@@ -18,7 +18,7 @@ namespace Seq.App.EmailPlus
         public EmailPriority DefaultPriority { get; set; }
         public TlsOptions SocketOptions { get; set; }
 
-        public SmtpOptions(string host, bool dnsDelivery, int port, TlsOptions socketOptions, string username = null, string password = null)
+        public SmtpOptions(string host, bool dnsDelivery, int port, string priority, string defaultPriority, TlsOptions socketOptions, string username = null, string password = null)
         {
             Host = GetServerList(host).ToList();
             DnsDelivery = dnsDelivery;
