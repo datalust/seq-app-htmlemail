@@ -3,7 +3,7 @@ skip_tags: true
 image: Visual Studio 2019
 install:
 build_script:
-  - ps: ./Build.ps1
+  - pwsh: ./Build.ps1
 test: off
 artifacts:
   - path: artifacts/Seq.App.*.nupkg
