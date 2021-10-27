@@ -22,8 +22,8 @@ namespace Seq.App.EmailPlus
         readonly IMailGateway _mailGateway;
         readonly IClock _clock;
         readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
-        readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        readonly Lazy<SmtpOptions> _options;
+        Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        Lazy<SmtpOptions> _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -39,17 +39,19 @@ namespace Seq.App.EmailPlus
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
+        }
 
-            var port = Port ?? DefaultPort;
+        protected override void OnAttached()
+        {
             _options = _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
                 Host,
-                port, 
+                Port ?? DefaultPort,
                 EnableSsl ?? false
-                    ? RequireSslForPort(port)
-                    : SecureSocketOptions.StartTlsWhenAvailable, 
+                    ? RequireSslForPort(Port ?? DefaultPort)
+                    : SecureSocketOptions.StartTlsWhenAvailable,
                 Username,
                 Password));
-            
+
             _subjectTemplate = new Lazy<Template>(() =>
             {
                 var subjectTemplate = SubjectTemplate;
