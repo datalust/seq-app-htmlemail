@@ -106,11 +106,12 @@ namespace Seq.App.EmailPlus
         
         protected override void OnAttached()
         {
+            var port = Port ?? DefaultPort;
             _options = _options = new SmtpOptions(
                 Host,
-                Port ?? DefaultPort,
+                port,
                 EnableSsl ?? false
-                    ? RequireSslForPort(Port ?? DefaultPort)
+                    ? RequireSslForPort(port)
                     : SecureSocketOptions.StartTlsWhenAvailable,
                 Username,
                 Password);
