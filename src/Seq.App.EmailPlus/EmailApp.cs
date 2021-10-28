@@ -23,7 +23,7 @@ namespace Seq.App.EmailPlus
         readonly IClock _clock;
         readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
         Template _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        internal SmtpOptions _options;
+        SmtpOptions _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
