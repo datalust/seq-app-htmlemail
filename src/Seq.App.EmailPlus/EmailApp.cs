@@ -21,8 +21,8 @@ namespace Seq.App.EmailPlus
         readonly IMailGateway _mailGateway;
         readonly IClock _clock;
         readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
-        readonly Lazy<Template> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        readonly Lazy<SmtpOptions> _options;
+        Template _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        SmtpOptions _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -38,40 +38,6 @@ namespace Seq.App.EmailPlus
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
-
-            var port = Port ?? DefaultPort;
-            _options = new Lazy<SmtpOptions>(() => new SmtpOptions(
-                Host,
-                DeliverUsingDns != null && (bool) DeliverUsingDns,
-                port,
-                SmtpOptions.GetSocketOptions(port, EnableSsl, EnableTls),
-                Username,
-                Password));
-            // ReSharper restore ExpressionIsAlwaysNull ConditionIsAlwaysTrueOrFalse
-
-            _subjectTemplate = new Lazy<Template>(() =>
-            {
-                var subjectTemplate = SubjectTemplate;
-                if (string.IsNullOrEmpty(subjectTemplate))
-                    subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Compile(subjectTemplate);
-            });
-
-            _bodyTemplate = new Lazy<Template>(() =>
-            {
-                var bodyTemplate = BodyTemplate;
-                if (string.IsNullOrEmpty(bodyTemplate))
-                    bodyTemplate = Resources.DefaultBodyTemplate;
-                return Handlebars.Compile(bodyTemplate);
-            });
-
-            _toAddressesTemplate = new Lazy<Template>(() =>
-            {
-                var toAddressTemplate = To;
-                if (string.IsNullOrEmpty(toAddressTemplate))
-                    return (_, __) => To;
-                return Handlebars.Compile(toAddressTemplate);
-            });
         }
 
         public EmailApp()
@@ -122,7 +88,8 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Require TLS",
-            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465, StartTls (implicit TLS) will ALWAYS be used.")]
+            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465, " +
+                       "implicit SSL will be enabled; otherwise, the STARTTLS extension will be used.")]
         public TlsOptions? EnableTls { get; set; }
 
         [SeqAppSetting(
@@ -150,6 +117,27 @@ namespace Seq.App.EmailPlus
             InputType = SettingInputType.Password,
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string Password { get; set; }
+        
+        protected override void OnAttached()
+        {
+            var port = Port ?? DefaultPort;
+            _options = _options = new SmtpOptions(
+                Host,
+                port,
+                EnableSsl ?? false
+                    ? RequireSslForPort(port)
+                    : SecureSocketOptions.StartTlsWhenAvailable,
+                Username,
+                Password);
+
+            _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
+                ? DefaultSubjectTemplate 
+                : SubjectTemplate);
+            _bodyTemplate = Handlebars.Compile(string.IsNullOrEmpty(BodyTemplate) 
+                ? Resources.DefaultBodyTemplate 
+                : BodyTemplate);
+            _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, __) => To : Handlebars.Compile(To);
+        }
 
         protected override void OnAttached()
         {
@@ -171,8 +159,8 @@ namespace Seq.App.EmailPlus
                 return;
             }
 
-            var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
+            var body = FormatTemplate(_bodyTemplate, evt, base.Host);
+            var subject = FormatTemplate(_subjectTemplate, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
@@ -275,6 +263,11 @@ namespace Seq.App.EmailPlus
             return true;
         }
 
+        internal static SecureSocketOptions RequireSslForPort(int port)
+        {
+            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
+        }
+        
         internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             var properties =
