@@ -1,80 +1,86 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>{{$Message}} (via Seq)</title>
+    <title>{{$Message}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<table cellpadding="0" cellspacing="0" border="0" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;color:#333;background-color:#fff;" >
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#222;background-color:#fff;width:100%;" >
     <tr>
         {{#if_eq $Level "Fatal"}}
-        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;margin:0;background-color:#e03836;" >
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;margin:0;background-color:#222;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Critical"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;margin:0;background-color:#222;" >
         {{/if_eq}}
         {{#if_eq $Level "Error"}}
-        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;margin:0;background-color:#e03836;" >
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;margin:0;background-color:#921b3c;" >
         {{/if_eq}}
         {{#if_eq $Level "Warning"}}
-        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px; background-color:#f9c019;" >
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px; background-color:#ffb748;" >
         {{/if_eq}}
         {{#if_eq $Level "Information"}}
-        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;background-color:#0098ff;" >
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;background-color:#016DA9;" >
         {{/if_eq}}
         {{#if_eq $Level "Debug"}}
-        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;background-color:#aaa;" >
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;background-color:#777;" >
+        {{/if_eq}}
+        {{#if_eq $Level "Trace"}}
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;background-color:#777;" >
         {{/if_eq}}
         {{#if_eq $Level "Verbose"}}
-        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;background-color:#aaa;" >
+        <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;background-color:#777;" >
             {{/if_eq}}
-            <div style="font-size:32px;line-height:40px;font-weight:bold;" >{{$Level}}</div>
+            <div style="font-size:28px;line-height:20px;font-weight:bold;" >{{$Level}}</div>
             <div title="{{$UtcTimestamp}}">{{$LocalTimestamp}}</div>
         </td>
     </tr>
     <tr>
         {{#if_eq $EventType "$A1E77000"}}
-        <td style="text-align:left;padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
-            <div style="font-weight:bold;" >Alert condition <span class="seq-condition" style="font-family:monospace;background-color:#fffbdd;" >{{Condition}}</span> detected on
-                <a href="{{{DashboardUrl}}}" style="color:#007acc;text-decoration:none;" >{{DashboardTitle}}/{{ChartTitle}}</a></div>
+        <td style="text-align:left;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;" >
+            <div style="font-weight:bold;" >Alert condition <span style="font-family:monospace;background-color:#f0f0f0;" >{{Condition}}</span> detected on
+                <a href="{{{DashboardUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >{{DashboardTitle}}/{{ChartTitle}}</a></div>
             <div style="font-size:12px;margin-top:20px;" >
-                <a href="{{{ResultsUrl}}}" style="color:#007acc;text-decoration:none;" >Explore detected results in Seq</a>                
+                <a href="{{{ResultsUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >Explore detected results in Seq</a>                
             </div>
             <div style="margin-top:20px;" >
                 <div style="margin-top:10px;" >
-                    <div style="font-family:monospace;font-weight:bold;" >Query</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{Query}}</div>
+                    <div style="font-family:monospace;font-weight:bold;">Query</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{Query}}</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Measurement window</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{MeasurementWindow}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{MeasurementWindow}}</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Suppression time</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{SuppressionTime}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{SuppressionTime}}</div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Detected range start</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{AlertRangeStart}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{AlertRangeStart}}</div>
                 </div>
                 <div style="margin-top:10px;" >
-                    <div style="font-family:monospace;font-weight:bold;" >Detected range end</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
+                    <div style="font-family:monospace;font-weight:bold;">Detected range end</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{AlertRangeEnd}}</div>
                 </div>
                 <div style="margin-top:10px;">
                   <div style="font-family:monospace;font-weight:bold;">Signal</div>
                   {{#if SignalTitles}} <!-- 4.0 and 4.1 -->
-                  <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{pretty SignalTitles}}</div>
+                  <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{pretty SignalTitles}}</div>
                   {{else}} <!-- 4.2+ -->
-                  <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{pretty SignalExpression}}</div>
+                  <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{pretty SignalExpression}}</div>
                   {{/if}}
                 </div>
                 {{#if OwnerUsername}}
                 <div style="margin-top:10px;" >
-                    <div style="font-family:monospace;font-weight:bold;" >Owner</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{OwnerUsername}}</div>
+                    <div style="font-family:monospace;font-weight:bold;">Owner</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{OwnerUsername}}</div>
                 </div>
                 {{/if}}
                 {{#if Errors}}
                 <div style="margin-top:10px;" >
-                    <div style="font-family:monospace;font-weight:bold;" >Error</div>
+                    <div style="font-family:monospace;font-weight:bold;">Error</div>
                     {{#each Errors}}
                     <div style="overflow:hidden;font-family:monospace;white-space:pre;white-space:pre-wrap;" >{{this}}</div>
                     {{/each}}
@@ -88,7 +94,7 @@
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
                     {{#each Slices}}
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span class="seq-slice-start" style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span style="font-weight:bold;" >{{SliceStart}}</span> {{pretty Rowset}}</div>
                     {{/each}}
                 </div>
                 {{/each}}
@@ -96,31 +102,90 @@
             {{/if}}
         </td>
         {{else}}
-        <td style="text-align:left;padding-top:30px;padding-bottom:40px;padding-right:40px;padding-left:40px;border-left-width:1px;border-left-style:solid;border-left-color:#eee;border-right-width:1px;border-right-style:solid;border-right-color:#eee;" >
-            <div style="font-weight:bold;" >{{$Message}}</div>
-            <div style="font-size:12px;margin-top:20px;" >
-                <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'&amp;show=expanded" style="color:#007acc;text-decoration:none;" >Open this event in Seq</a>                
-            </div>
-            <div style="margin-top:20px;" >
-                {{#each $Properties}}
-                <div style="margin-top:10px;" >
-                    <div title="{{@key}}" style="font-family:monospace;font-weight:bold;" >{{@key}}</div>
-                    <div style="font-family:monospace;word-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this}}</div>
+            {{#if_eq $EventType "$A1E77001"}}
+            <td style="text-align:left;padding-top:40px;padding-bottom:20px;padding-right:20px;padding-left:20px;" >
+                <div style="font-weight:bold;" >Alert condition triggered by
+                    <a href="{{{Alert.Url}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >{{NamespacedAlertTitle}}</a>
                 </div>
-                {{/each}}
-                {{#if $Exception}}
-                <div style="margin-top:10px;" >
-                    <div style="font-family:monospace;font-weight:bold;" >Exception</div>
-                    <div style="overflow:hidden;font-family:monospace;white-space:pre;white-space:pre-wrap;" >{{$Exception}}</div>
+                {{#if Source.Results}}
+                <div style="margin-top:40px;">
+                    <div style="font-weight:bold;">Results</div>
+                    <table cellpadding="o" cellspacing="0" style="border-collapse:collapse;font-family:monospace;">
+                        {{#each Source.Results}}
+                        {{#if_eq @index 0}}
+                        <tr>
+                            {{#each this}}
+                            <th scope="col" style="font-weight:bold;text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;border:1px solid #ddd;padding:5px">{{pretty this}}</th>
+                            {{/each}}
+                        </tr>
+                        {{else}}
+                        <tr>
+                            {{#each this}}
+                            <td style="text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;border:1px solid #ddd;padding:5px">{{pretty this}}</td>
+                            {{/each}}
+                        </tr>
+                        {{/if_eq}}
+                        {{/each}}
+                    </table>
+                </div>
+                <div style="font-size:12px;margin-top:10px;" >
+                    <a href="{{{Source.ResultsUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >Explore detected results in Seq</a>                
                 </div>
                 {{/if}}
-            </div>
-        </td>
+                {{#if Source.ContributingEvents}}
+                <div style="margin-top:40px;">
+                    <div style="font-weight:bold;">Contributing events</div>
+                    <table cellpadding="o" cellspacing="0" border="0" style="border-collapse:collapse;font-family:monospace;">
+                        {{#each Source.ContributingEvents}}
+                        {{#if_eq @index 0}}
+                        {{else}}
+                        <tr>
+                            <th scope="row" style="text-align:left;font-weight:bold;white-space:nowrap;">{{pretty this.1}}</td>
+                            <td style="text-align:left;padding-left:20px;">
+                                <a href="{{{../../$ServerUri}}}#/events?filter=@Id%20%3D%20'{{this.0}}'&amp;show=expanded" style="color:#356dba;text-decoration:none;border-bottom:2px solid;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this.2}}</a>
+                            </td>
+                        </tr>
+                        {{/if_eq}}
+                        {{/each}}
+                    </table>
+                </div>
+                {{/if}}
+                {{#if Failures}}
+                <div style="margin-top:20px;font-family:monospace;font-weight:bold;">Alert processing failed</div>
+                {{#each Failures}}
+                    <div style="overflow:hidden;font-family:monospace;white-space:pre;white-space:pre-wrap;" >{{this}}</div>
+                {{/each}}
+                {{/if}}
+            </td>
+            {{else}}
+            <td style="text-align:left;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;" >
+                <div style="font-weight:bold;" >{{$Message}}</div>
+                <div style="font-size:12px;margin-top:20px;" >
+                    <a href="{{{$ServerUri}}}#/events?filter=@Id%20%3D%20'{{$Id}}'&amp;show=expanded" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >View this event in Seq</a>
+                </div>
+                <div style="margin-top:20px;" >
+                    {{#each $Properties}}
+                    <div style="margin-top:10px;" >
+                        <div title="{{@key}}" style="font-family:monospace;font-weight:bold;" >{{@key}}</div>
+                        <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this}}</div>
+                    </div>
+                    {{/each}}
+                    {{#if $Exception}}
+                    <div style="margin-top:10px;" >
+                        <div style="font-family:monospace;font-weight:bold;" >Exception</div>
+                        <div style="overflow:hidden;font-family:monospace;white-space:pre;white-space:pre-wrap;" >{{$Exception}}</div>
+                    </div>
+                    {{/if}}
+                </div>
+            </td>
+            {{/if_eq}}
         {{/if_eq}}
     </tr>
     <tr>
-        <td style="text-align:left;padding-top:20px;padding-bottom:20px;padding-right:40px;padding-left:40px;font-size:12px;background-color:#eee;">
-            Sent by Seq installed at <a href='{{{$ServerUri}}}' style="color:#007acc;text-decoration:none;" >{{$ServerUri}}</a>.
+        <td>
+            <div style="margin-top:20px;text-align:left;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;font-size:12px;background-color:#f0f0f0;">
+                Sent by Seq installed at <a href='{{{$ServerUri}}}' style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >{{$ServerUri}}</a>.
+            </div>
         </td>
     </tr>
 </table>
