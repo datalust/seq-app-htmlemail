@@ -163,61 +163,71 @@ namespace Seq.App.EmailPlus
         
         protected override void OnAttached()
         {
+            if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
+                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
+
             var port = Port ?? DefaultPort;
             _options = _options = new SmtpOptions(
                 Host,
+                DeliverUsingDns != null && (bool)DeliverUsingDns,
                 port,
-                EnableSsl ?? false
-                    ? RequireSslForPort(port)
-                    : SecureSocketOptions.StartTlsWhenAvailable,
+                Priority,
+                DefaultPriority,
+                SmtpOptions.GetSocketOptions(port, EnableSsl, EnableTls),
                 Username,
                 Password);
 
             _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
                 ? DefaultSubjectTemplate 
                 : SubjectTemplate);
+
             _bodyTemplate = Handlebars.Compile(string.IsNullOrEmpty(BodyTemplate) 
                 ? Resources.DefaultBodyTemplate 
                 : BodyTemplate);
-            _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, __) => To : Handlebars.Compile(To);
-        }
 
-        protected override void OnAttached()
-        {
-            if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
-                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
+            _plainTextTemplate = Handlebars.Compile(string.IsNullOrEmpty(PlainTextTemplate)
+                ? Resources.DefaultBodyTemplate
+                : PlainTextTemplate);
+            
+            _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, __) => To : Handlebars.Compile(To);
+
+            _replyToAddressesTemplate = string.IsNullOrEmpty(ReplyTo) ? (_, __) => ReplyTo : Handlebars.Compile(ReplyTo);
+
+            _ccAddressesTemplate = string.IsNullOrEmpty(Cc) ? (_, __) => Cc : Handlebars.Compile(Cc);
+
+            _bccAddressesTemplate = string.IsNullOrEmpty(Bcc) ? (_, __) => Bcc : Handlebars.Compile(Bcc);
         }
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
             if (ShouldSuppress(evt)) return;
 
-            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host)
+            var to = FormatTemplate(_toAddressesTemplate, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
             if (to.Count == 0)
             {
-                Log.ForContext("To", _toAddressesTemplate.Value).Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
+                Log.ForContext("To", _toAddressesTemplate).Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
                 return;
             }
 
-            var replyTo = string.IsNullOrEmpty(ReplyTo) ? new List<string>() : FormatTemplate(_replyToAddressesTemplate.Value, evt, base.Host)
+            var replyTo = string.IsNullOrEmpty(ReplyTo) ? new List<string>() : FormatTemplate(_replyToAddressesTemplate, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
-            var cc = string.IsNullOrEmpty(Cc) ? new List<string>() : FormatTemplate(_ccAddressesTemplate.Value, evt, base.Host)
+            var cc = string.IsNullOrEmpty(Cc) ? new List<string>() : FormatTemplate(_ccAddressesTemplate, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
-            var bcc = string.IsNullOrEmpty(Bcc) ? new List<string>() : FormatTemplate(_bccAddressesTemplate.Value, evt, base.Host)
+            var bcc = string.IsNullOrEmpty(Bcc) ? new List<string>() : FormatTemplate(_bccAddressesTemplate, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
 
-            var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
-            var textBody = FormatTemplate(_plainTextTemplate.Value, evt, base.Host);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "")
+            var body = FormatTemplate(_bodyTemplate, evt, base.Host);
+            var textBody = FormatTemplate(_plainTextTemplate, evt, base.Host);
+            var subject = FormatTemplate(_subjectTemplate, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
@@ -245,21 +255,21 @@ namespace Seq.App.EmailPlus
                 message.Bcc.AddRange(bccList);
 
             var priority = EmailPriority.Normal;
-            switch (_options.Value.Priority)
+            switch (_options.Priority)
             {
                 case EmailPriority.UseMapping:
-                    if (!string.IsNullOrEmpty(PriorityProperty) && _options.Value.PriorityMapping.Count > 0 &&
+                    if (!string.IsNullOrEmpty(PriorityProperty) && _options.PriorityMapping.Count > 0 &&
                         TryGetPropertyValueCI(evt.Data.Properties, PriorityProperty, out var priorityProperty) &&
                         priorityProperty is string priorityValue &&
-                        _options.Value.PriorityMapping.TryGetValue(priorityValue, out var matchedPriority))
+                        _options.PriorityMapping.TryGetValue(priorityValue, out var matchedPriority))
                         priority = matchedPriority;
                     else
-                        priority = _options.Value.DefaultPriority;
+                        priority = _options.DefaultPriority;
                     break;
                 case EmailPriority.Low:
                 case EmailPriority.Normal:
                 case EmailPriority.High:
-                    priority = _options.Value.Priority;
+                    priority = _options.Priority;
                     break;
                 default:
                     priority = EmailPriority.Normal;
@@ -269,10 +279,10 @@ namespace Seq.App.EmailPlus
             message.Priority = (MessagePriority) priority;
             var errors = new List<Exception>();
             var lastServer = string.Empty;
-            if (_options.Value.Host != null && _options.Value.Host.Any())
+            if (_options.Host != null && _options.Host.Any())
             {
                 type = DeliveryType.MailHost;
-                var result = await _mailGateway.SendAsync(_options.Value, message);
+                var result = await _mailGateway.SendAsync(_options, message);
                 errors = result.Errors;
                 sent = result.Success;
                 lastServer = result.LastServer;
@@ -292,10 +302,10 @@ namespace Seq.App.EmailPlus
                 }
             }
 
-            if (!sent && _options.Value.DnsDelivery)
+            if (!sent && _options.DnsDelivery)
             {
                 type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
-                var result = await _mailGateway.SendDnsAsync(type, _options.Value, message);
+                var result = await _mailGateway.SendDnsAsync(type, _options, message);
                 errors = result.Errors;
                 sent = result.Success;
                 lastServer = result.LastServer;
@@ -361,11 +371,6 @@ namespace Seq.App.EmailPlus
 
             // Suppressed
             return true;
-        }
-
-        internal static SecureSocketOptions RequireSslForPort(int port)
-        {
-            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
         }
         
         internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
@@ -436,7 +441,7 @@ namespace Seq.App.EmailPlus
 		
         public SmtpOptions GetOptions()
         {
-            return _options.Value;
+            return _options;
         }
     }
 }
