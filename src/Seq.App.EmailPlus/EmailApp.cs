@@ -120,15 +120,17 @@ namespace Seq.App.EmailPlus
         
         protected override void OnAttached()
         {
+                        if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
+                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
+
             var port = Port ?? DefaultPort;
             _options = _options = new SmtpOptions(
                 Host,
+                DeliverUsingDns != null && (bool)DeliverUsingDns,
                 port,
-                EnableSsl ?? false
-                    ? RequireSslForPort(port)
-                    : SecureSocketOptions.StartTlsWhenAvailable,
+                SmtpOptions.GetSocketOptions(port, EnableSsl, EnableTls),
                 Username,
-                Password);
+                Password);;
 
             _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
                 ? DefaultSubjectTemplate 
@@ -139,23 +141,18 @@ namespace Seq.App.EmailPlus
             _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, __) => To : Handlebars.Compile(To);
         }
 
-        protected override void OnAttached()
-        {
-            if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
-                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
-        }
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
             if (ShouldSuppress(evt)) return;
 
-            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host)
+            var to = FormatTemplate(_toAddressesTemplate, evt, base.Host)
                 .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim()).ToList();
 
             if (to.Count == 0)
             {
-                Log.ForContext("To", _toAddressesTemplate.Value).Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
+                Log.ForContext("To", _toAddressesTemplate).Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
                 return;
             }
 
@@ -175,10 +172,10 @@ namespace Seq.App.EmailPlus
 
             var errors = new List<Exception>();
             var lastServer = string.Empty;
-            if (_options.Value.Host != null && _options.Value.Host.Any())
+            if (_options.Host != null && _options.Host.Any())
             {
                 type = DeliveryType.MailHost;
-                var result = await _mailGateway.SendAsync(_options.Value, message);
+                var result = await _mailGateway.SendAsync(_options, message);
                 errors = result.Errors;
                 sent = result.Success;
                 lastServer = result.LastServer;
@@ -196,10 +193,10 @@ namespace Seq.App.EmailPlus
                 }
             }
 
-            if (!sent && _options.Value.DnsDelivery)
+            if (!sent && _options.DnsDelivery)
             {
                 type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
-                var result = await _mailGateway.SendDnsAsync(type, _options.Value, message);
+                var result = await _mailGateway.SendDnsAsync(type, _options, message);
                 errors = result.Errors;
                 sent = result.Success;
                 lastServer = result.LastServer;
@@ -263,11 +260,6 @@ namespace Seq.App.EmailPlus
             return true;
         }
 
-        internal static SecureSocketOptions RequireSslForPort(int port)
-        {
-            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
-        }
-        
         internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             var properties =
@@ -322,7 +314,7 @@ namespace Seq.App.EmailPlus
 
         public SmtpOptions GetOptions()
         {
-            return _options.Value;
+            return _options;
         }
     }
 }
