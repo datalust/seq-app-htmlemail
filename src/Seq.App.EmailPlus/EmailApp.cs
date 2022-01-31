@@ -175,7 +175,7 @@ namespace Seq.App.EmailPlus
                 DefaultPriority,
                 SmtpOptions.GetSocketOptions(port, EnableSsl, EnableTls),
                 Username,
-                Password);
+                Password);;
 
             _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
                 ? DefaultSubjectTemplate 
