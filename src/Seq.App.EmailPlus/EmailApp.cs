@@ -80,6 +80,12 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "Skip Server Certificate Validation",
+            HelpText = "Check this box to skip Server Certificate validation")]
+        public bool? SkipServerCertificateValidation { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars syntax. Leave this blank to use " +
@@ -113,6 +119,7 @@ namespace Seq.App.EmailPlus
                 EnableSsl ?? false
                     ? RequireSslForPort(port)
                     : SecureSocketOptions.StartTlsWhenAvailable,
+                SkipServerCertificateValidation ?? false,
                 Username,
                 Password);
 

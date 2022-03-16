@@ -10,16 +10,24 @@ namespace Seq.App.EmailPlus
         public string Username { get; }
         public string Password { get; }
         public SecureSocketOptions SocketOptions { get; }
+        public bool SkipServerCertificateValidation { get; }
 
         public bool RequiresAuthentication => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
 
-        public SmtpOptions(string host, int port, SecureSocketOptions socketOptions, string username = null, string password = null)
+        public SmtpOptions(
+            string host,
+            int port,
+            SecureSocketOptions socketOptions,
+            bool skipServerCertificateValidation,
+            string username = null,
+            string password = null)
         {
             Host = host ?? throw new ArgumentNullException(nameof(host));
             Port = port;
             Username = username;
             Password = password;
             SocketOptions = socketOptions;
+            SkipServerCertificateValidation = skipServerCertificateValidation;
         }
     }
 }
