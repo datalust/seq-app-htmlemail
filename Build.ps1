@@ -30,7 +30,7 @@ foreach ($src in ls src/*) {
         & dotnet publish -c Release -o ./obj/publish
         & dotnet pack -c Release -o ..\..\artifacts --no-build
     }
-    if($LASTEXITCODE -ne 0) { exit 1 }    
+    if($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }    
 
     Pop-Location
 }
@@ -41,7 +41,7 @@ foreach ($test in ls test/*.Tests) {
     echo "build: Testing project in $test"
 
     & dotnet test -c Release
-    if($LASTEXITCODE -ne 0) { exit 3 }
+    if($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
     Pop-Location
 }
