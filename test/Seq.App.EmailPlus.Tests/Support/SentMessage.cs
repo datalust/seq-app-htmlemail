@@ -1,6 +1,4 @@
-﻿
-using MailKit.Net.Smtp;
-using MimeKit;
+﻿using MimeKit;
 
 namespace Seq.App.EmailPlus.Tests.Support
 {

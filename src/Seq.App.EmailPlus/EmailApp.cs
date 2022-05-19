@@ -4,7 +4,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
-using MailKit.Security;
 using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -53,30 +52,45 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             DisplayName = "To address",
-            HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
+            HelpText =
+                "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
         public string To { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Subject template",
-            HelpText = "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
+            HelpText =
+                "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
         public string SubjectTemplate { get; set; }
 
         [SeqAppSetting(
-            HelpText = "The name of the SMTP server machine.")]
+            DisplayName = "SMTP Mail Host(s)",
+            HelpText =
+                "The name of the SMTP server machine. Optionally specify fallback hosts as comma-delimited string. If not specified, Deliver Using DNS should be enabled.",
+            IsOptional = true)]
         public new string Host { get; set; }
 
         [SeqAppSetting(
+            DisplayName = "Deliver using DNS",
+            HelpText =
+                "Deliver directly using DNS. If SMTP Mail Host(s) is configured, this will be used as a fallback delivery mechanism. If not enabled, SMTP Mail Host(s) should be configured.")]
+        public bool? DeliverUsingDns { get; set; }
+
+        [SeqAppSetting(
             IsOptional = true,
-            HelpText = "The port on the SMTP server machine to send mail to. Leave this blank to use the standard port (25).")]
+            HelpText =
+                "The port on the SMTP server machine to send mail to. Leave this blank to use the standard port (25).")]
         public int? Port { get; set; }
+
+        //EnableSSL has been retired but is preserved for migration purposes
+        public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Require TLS",
             HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465, " +
                        "implicit SSL will be enabled; otherwise, the STARTTLS extension will be used.")]
-        public bool? EnableSsl { get; set; }
+        public TlsOptions? EnableTls { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -106,15 +120,17 @@ namespace Seq.App.EmailPlus
         
         protected override void OnAttached()
         {
+                        if (string.IsNullOrEmpty(Host) && (DeliverUsingDns == null || !(bool) DeliverUsingDns))
+                throw new Exception("There are no delivery methods selected - you must specify at least one SMTP Mail Host, or enable Deliver Using DNS");
+
             var port = Port ?? DefaultPort;
             _options = _options = new SmtpOptions(
                 Host,
+                DeliverUsingDns != null && (bool)DeliverUsingDns,
                 port,
-                EnableSsl ?? false
-                    ? RequireSslForPort(port)
-                    : SecureSocketOptions.StartTlsWhenAvailable,
+                SmtpOptions.GetSocketOptions(port, EnableSsl, EnableTls),
                 Username,
-                Password);
+                Password);;
 
             _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
                 ? DefaultSubjectTemplate 
@@ -125,16 +141,18 @@ namespace Seq.App.EmailPlus
             _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, __) => To : Handlebars.Compile(To);
         }
 
+
         public async Task OnAsync(Event<LogEventData> evt)
         {
             if (ShouldSuppress(evt)) return;
 
             var to = FormatTemplate(_toAddressesTemplate, evt, base.Host)
-                .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
+                .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim()).ToList();
 
-            if (to.Length == 0)
+            if (to.Count == 0)
             {
-                Log.Warning("Email 'to' address template did not evaluate to one or more recipient addresses");
+                Log.ForContext("To", _toAddressesTemplate).Error("Email 'to' address template did not evaluate to one or more recipient addresses - email cannot be sent!");
                 return;
             }
 
@@ -144,13 +162,73 @@ namespace Seq.App.EmailPlus
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            await _mailGateway.SendAsync(
-                _options,
-                new MimeMessage(
-                    new[] {MailboxAddress.Parse(From)},
-                    to.Select(MailboxAddress.Parse),
-                    subject,
-                    new BodyBuilder {HtmlBody = body}.ToMessageBody()));
+            var toList = to.Select(MailboxAddress.Parse).ToList();
+            var sent = false;
+            var logged = false;
+            var type = DeliveryType.None;
+            var message = new MimeMessage(
+                new List<InternetAddress> {InternetAddress.Parse(From)},
+                toList, subject, new BodyBuilder {HtmlBody = body}.ToMessageBody());
+
+            var errors = new List<Exception>();
+            var lastServer = string.Empty;
+            if (_options.Host != null && _options.Host.Any())
+            {
+                type = DeliveryType.MailHost;
+                var result = await _mailGateway.SendAsync(_options, message);
+                errors = result.Errors;
+                sent = result.Success;
+                lastServer = result.LastServer;
+
+                if (!result.Success)
+                {
+                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                        .ForContext("Success", sent).ForContext("Body", body)
+                        .ForContext(nameof(result.LastServer), result.LastServer)
+                        .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.Errors), result.Errors)
+                        .Error(result.LastError,
+                            "Error sending mail: {Message}, From: {From}, To: {To}, Subject: {Subject}",
+                            result.LastError?.Message, From, to, subject);
+                    logged = true;
+                }
+            }
+
+            if (!sent && _options.DnsDelivery)
+            {
+                type = type == DeliveryType.None ? DeliveryType.Dns : DeliveryType.HostDnsFallback;
+                var result = await _mailGateway.SendDnsAsync(type, _options, message);
+                errors = result.Errors;
+                sent = result.Success;
+                lastServer = result.LastServer;
+                type = result.Type;
+
+                if (!result.Success)
+                {
+                    Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                        .ForContext("Success", sent).ForContext("Body", body)
+                        .ForContext(nameof(result.Results), result.Results, true).ForContext("Errors", errors)
+                        .ForContext(nameof(result.Type), result.Type).ForContext(nameof(result.LastServer), result.LastServer)
+                        .Error(result.LastError,
+                            "Error sending mail via DNS: {Message}, From: {From}, To: {To}, Subject: {Subject}",
+                            result.LastError?.Message, From, to, subject);
+                    logged = true;
+                }
+            }
+
+            if (sent)
+            {
+                Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    .ForContext("Success", true).ForContext("Body", body)
+                    .ForContext("LastServer", lastServer).ForContext("Errors", errors)
+                    .ForContext("Type", type)
+                    .Information("Mail Sent, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
+            }
+            else if (!logged)
+                Log.ForContext("From", From).ForContext("To", to).ForContext("Subject", subject)
+                    .ForContext("Success", true).ForContext("Body", body).ForContext("Errors", errors)
+                    .ForContext("Type", type).ForContext("LastServer", lastServer)
+                    .Error("Unhandled mail error, From: {From}, To: {To}, Subject: {Subject}", From, to, subject);
+
         }
 
         bool ShouldSuppress(Event<LogEventData> evt)
@@ -182,30 +260,29 @@ namespace Seq.App.EmailPlus
             return true;
         }
 
-        internal static SecureSocketOptions RequireSslForPort(int port)
-        {
-            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
-        }
-        
         internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
-            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
+            var properties =
+                (IDictionary<string, object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
+            var payload = (IDictionary<string, object>) ToDynamic(new Dictionary<string, object>
             {
-                { "$Id",                  evt.Id },
-                { "$UtcTimestamp",        evt.TimestampUtc },
-                { "$LocalTimestamp",      evt.Data.LocalTimestamp },
-                { "$Level",               evt.Data.Level },
-                { "$MessageTemplate",     evt.Data.MessageTemplate },
-                { "$Message",             evt.Data.RenderedMessage },
-                { "$Exception",           evt.Data.Exception },
-                { "$Properties",          properties },
-                { "$EventType",           "$" + evt.EventType.ToString("X8") },
-                { "$Instance",            host.InstanceName },
-                { "$ServerUri",           host.BaseUri },
+                {"$Id", evt.Id},
+                {"$UtcTimestamp", evt.TimestampUtc},
+                {"$LocalTimestamp", evt.Data.LocalTimestamp},
+                {"$Level", evt.Data.Level},
+                {"$MessageTemplate", evt.Data.MessageTemplate},
+                {"$Message", evt.Data.RenderedMessage},
+                {"$Exception", evt.Data.Exception},
+                {"$Properties", properties},
+                {"$EventType", "$" + evt.EventType.ToString("X8")},
+                {"$Instance", host.InstanceName},
+                {"$ServerUri", host.BaseUri},
                 // Note, this will only be valid when events are streamed directly to the app, and not when the app is sending an alert notification.
-                { "$EventUri",            string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded") } 
+                {
+                    "$EventUri",
+                    string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded")
+                }
             });
 
             foreach (var property in properties)
@@ -233,6 +310,11 @@ namespace Seq.App.EmailPlus
             }
 
             return o;
+        }
+
+        public SmtpOptions GetOptions()
+        {
+            return _options;
         }
     }
 }

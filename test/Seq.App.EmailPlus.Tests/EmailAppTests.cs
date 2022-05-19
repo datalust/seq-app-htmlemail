@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MailKit.Security;
+using MimeKit;
 using Seq.App.EmailPlus.Tests.Support;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
@@ -132,6 +134,32 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Fact]
+        public void FallbackHostsCalculated()
+        {
+            var mail = new CollectingMailGateway();
+            var reactor = new EmailApp(mail, new SystemClock())
+            {
+                From = "from@example.com",
+                To = "{{Name}}@example.com",
+                Host = "example.com,example2.com"
+            };
+
+            reactor.Attach(new TestAppHost());
+            Assert.True(reactor.GetOptions().Host.Count() == 2);
+        }
+
+        [Fact]
+        public void ParseDomainTest()
+        {
+            var mail = new DirectMailGateway();
+            var domains = DirectMailGateway.GetDomains(new MimeMessage(
+                new List<InternetAddress> {InternetAddress.Parse("test@example.com")},
+                new List<InternetAddress> {InternetAddress.Parse("test2@example.com"), InternetAddress.Parse("test3@example.com"), InternetAddress.Parse("test@example2.com")}, "Test",
+                (new BodyBuilder {HtmlBody = "test"}).ToMessageBody()));
+            Assert.True(domains.Count() == 2);
+        }
+
+        [Fact]
         public async Task EventsAreSuppressedWithinWindow()
         {
             var mail = new CollectingMailGateway();
@@ -203,12 +231,19 @@ namespace Seq.App.EmailPlus.Tests
         }
 
         [Theory]
-        [InlineData(25, SecureSocketOptions.StartTls)]
-        [InlineData(587, SecureSocketOptions.StartTls)]
-        [InlineData(465, SecureSocketOptions.SslOnConnect)]
-        public void CorrectSecureSocketOptionsAreChosenForPort(int port, SecureSocketOptions expected)
+        [InlineData(25, null, null, TlsOptions.Auto)]
+        [InlineData(25, true, null, TlsOptions.StartTls)]
+        [InlineData(25, false, TlsOptions.None, TlsOptions.None)]
+        [InlineData(25, false, TlsOptions.StartTlsWhenAvailable, TlsOptions.StartTlsWhenAvailable)]
+        [InlineData(587, true, TlsOptions.StartTls, TlsOptions.StartTls)]
+        [InlineData(587, false, TlsOptions.None, TlsOptions.None)]
+        [InlineData(587, false, TlsOptions.StartTlsWhenAvailable, TlsOptions.StartTlsWhenAvailable)]
+        [InlineData(465, true, TlsOptions.None, TlsOptions.SslOnConnect)]
+        [InlineData(465, false, TlsOptions.Auto, TlsOptions.SslOnConnect)]
+        [InlineData(465, false, TlsOptions.SslOnConnect, TlsOptions.SslOnConnect)]
+        public void CorrectSecureSocketOptionsAreChosenForPort(int port, bool? enableSsl, TlsOptions? enableTls, TlsOptions expected)
         {
-            Assert.Equal(expected, EmailApp.RequireSslForPort(port));
+            Assert.Equal(expected, SmtpOptions.GetSocketOptions(port, enableSsl, enableTls));
         }
     }
 }
