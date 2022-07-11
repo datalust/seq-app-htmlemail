@@ -9,6 +9,7 @@ using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
+#nullable enable
 // ReSharper disable UnusedAutoPropertyAccessor.Global, MemberCanBePrivate.Global
 
 namespace Seq.App.EmailPlus
@@ -21,9 +22,9 @@ namespace Seq.App.EmailPlus
     {
         readonly IMailGateway _mailGateway;
         readonly IClock _clock;
-        readonly Dictionary<uint, DateTime> _suppressions = new Dictionary<uint, DateTime>();
-        Template _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
-        SmtpOptions _options;
+        readonly Dictionary<uint, DateTime> _suppressions = new();
+        Template? _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        SmtpOptions? _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
@@ -49,22 +50,22 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
-        public string From { get; set; }
+        public string? From { get; set; }
 
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
-        public string To { get; set; }
+        public string? To { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Subject template",
             HelpText = "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
-        public string SubjectTemplate { get; set; }
+        public string? SubjectTemplate { get; set; }
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
-        public new string Host { get; set; }
+        public new string? Host { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -85,7 +86,7 @@ namespace Seq.App.EmailPlus
             HelpText = "The template to use when generating the email body, using Handlebars syntax. Leave this blank to use " +
                        "the default template that includes the message and " +
                        "properties (https://github.com/datalust/seq-app-htmlemail/blob/main/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
-        public string BodyTemplate { get; set; }
+        public string? BodyTemplate { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Suppression time (minutes)",
@@ -96,13 +97,25 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             HelpText = "The username to use when authenticating to the SMTP server, if required.")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             InputType = SettingInputType.Password,
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
+        
+        [SeqAppSetting(
+            DisplayName = "Time zone name",
+            IsOptional = true,
+            HelpText = "The IANA name of the time zone to use when formatting dates and times. The default is `Etc/UTC`.")]
+        public string? TimeZoneName { get; set; }
+        
+        [SeqAppSetting(
+            DisplayName = "Date/time format",
+            IsOptional = true,
+            HelpText = "A format string controlling how dates and times are formatted. Supports .NET date/time formatting syntax. The default is `o`, producing ISO-8601.")]
+        public string? DateTimeFormat { get; set; }
         
         protected override void OnAttached()
         {
@@ -122,14 +135,14 @@ namespace Seq.App.EmailPlus
             _bodyTemplate = Handlebars.Compile(string.IsNullOrEmpty(BodyTemplate) 
                 ? Resources.DefaultBodyTemplate 
                 : BodyTemplate);
-            _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, __) => To : Handlebars.Compile(To);
+            _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, _) => To : Handlebars.Compile(To);
         }
 
         public async Task OnAsync(Event<LogEventData> evt)
         {
             if (ShouldSuppress(evt)) return;
 
-            var to = FormatTemplate(_toAddressesTemplate, evt, base.Host)
+            var to = FormatTemplate(_toAddressesTemplate!, evt, base.Host)
                 .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
 
             if (to.Length == 0)
@@ -138,8 +151,8 @@ namespace Seq.App.EmailPlus
                 return;
             }
 
-            var body = FormatTemplate(_bodyTemplate, evt, base.Host);
-            var subject = FormatTemplate(_subjectTemplate, evt, base.Host).Trim().Replace("\r", "")
+            var body = FormatTemplate(_bodyTemplate!, evt, base.Host);
+            var subject = FormatTemplate(_subjectTemplate!, evt, base.Host).Trim().Replace("\r", "")
                 .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
@@ -184,14 +197,17 @@ namespace Seq.App.EmailPlus
 
         internal static SecureSocketOptions RequireSslForPort(int port)
         {
-            return (port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
+            return port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
         }
-        
-        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
-        {
-            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
 
-            var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
+        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host, string dateTimeFormat, string timeZoneName)
+        {
+            if (template == null) throw new ArgumentNullException(nameof(template));
+            if (evt == null) throw new ArgumentNullException(nameof(evt));
+            
+            var properties = (IDictionary<string,object?>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object?>());
+
+            var payload = (IDictionary<string,object?>) ToDynamic(new Dictionary<string, object?>
             {
                 { "$Id",                  evt.Id },
                 { "$UtcTimestamp",        evt.TimestampUtc },
@@ -205,7 +221,9 @@ namespace Seq.App.EmailPlus
                 { "$Instance",            host.InstanceName },
                 { "$ServerUri",           host.BaseUri },
                 // Note, this will only be valid when events are streamed directly to the app, and not when the app is sending an alert notification.
-                { "$EventUri",            string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded") } 
+                { "$EventUri",            string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded") },
+                { "$DateTimeFormat",      dateTimeFormat },
+                { "$TimeZoneName",        timeZoneName }
             });
 
             foreach (var property in properties)
@@ -215,13 +233,33 @@ namespace Seq.App.EmailPlus
 
             return template(payload);
         }
+        
+        string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        {
+            return FormatTemplate(
+                template,
+                evt,
+                host,
+                string.IsNullOrEmpty(DateTimeFormat) ? "o" : DateTimeFormat!.Trim(),
+                string.IsNullOrEmpty(TimeZoneName) ? "Etc/UTC" : TimeZoneName!.Trim());
+        }
+        
+        internal static string TestFormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        {
+            return FormatTemplate(
+                template,
+                evt,
+                host,
+                "o",
+                "Australia/Brisbane");
+        }
 
         static object ToDynamic(object o)
         {
             if (o is IEnumerable<KeyValuePair<string, object>> dictionary)
             {
                 var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object>) result;
+                var asDict = (IDictionary<string, object?>) result;
                 foreach (var kvp in dictionary)
                     asDict.Add(kvp.Key, ToDynamic(kvp.Value));
                 return result;
