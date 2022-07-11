@@ -20,6 +20,7 @@ ProjectSection(SolutionItems) = preProject
 	LICENSE = LICENSE
 	Build.ps1 = Build.ps1
 	global.json = global.json
+	Run.ps1 = Run.ps1
 EndProjectSection
 EndProject
 Global

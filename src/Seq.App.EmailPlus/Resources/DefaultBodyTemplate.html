@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
     <title>{{$Message}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -32,7 +32,7 @@
         <td style="text-align:left;color:#fff;padding-top:20px;padding-bottom:20px;padding-right:20px;padding-left:20px;background-color:#777;" >
             {{/if_eq}}
             <div style="font-size:28px;line-height:20px;font-weight:bold;" >{{$Level}}</div>
-            <div title="{{datetime $UtcTimestamp 'G' 'Coordinated Universal Time'}}">{{$LocalTimestamp}}</div>
+            <div title="{{datetime $UtcTimestamp 'o' 'Etc/UTC'}}">{{datetime $UtcTimestamp 'o' 'Etc/UTC'}}</div>
         </td>
     </tr>
     <tr>
@@ -58,11 +58,11 @@
                 </div>
                 <div style="margin-top:10px;">
                     <div style="font-family:monospace;font-weight:bold;">Detected range start</div>
-                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{datetime AlertRangeStart 'G' 'Coordinated Universal Time'}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;">{{datetime AlertRangeStart 'o' 'Etc/UTC'}}</div>
                 </div>
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;">Detected range end</div>
-                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{datetime AlertRangeEnd 'G' 'Coordinated Universal Time'}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{datetime AlertRangeEnd 'o' 'Etc/UTC'}}</div>
                 </div>
                 <div style="margin-top:10px;">
                   <div style="font-family:monospace;font-weight:bold;">Signal</div>
@@ -94,7 +94,7 @@
                 <div style="margin-top:10px;" >
                     <div style="font-family:monospace;font-weight:bold;" >{{pretty this.Key}}</div>
                     {{#each Slices}}
-                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span style="font-weight:bold;" >{{datetime SliceStart 'G' 'Coordinated Universal Time'}}</span> {{pretty Rowset}}</div>
+                    <div style="font-family:monospace;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" ><span style="font-weight:bold;" >{{datetime SliceStart 'o' 'Etc/UTC'}}</span> {{pretty Rowset}}</div>
                     {{/each}}
                 </div>
                 {{/each}}
@@ -121,7 +121,11 @@
                         {{else}}
                         <tr>
                             {{#each this}}
-                            <td style="text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;border:1px solid #ddd;padding:5px">{{pretty this}}</td>
+                            {{#if_eq @index 0}}
+                                <td style="text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;border:1px solid #ddd;padding:5px">{{datetime this 'o' 'Etc/UTC'}}</td>
+                            {{else}}
+                                <td style="text-align:left;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;border:1px solid #ddd;padding:5px">{{pretty this}}</td>
+                            {{/if_eq}}
                             {{/each}}
                         </tr>
                         {{/if_eq}}
@@ -140,7 +144,7 @@
                         {{#if_eq @index 0}}
                         {{else}}
                         <tr>
-                            <th scope="row" style="text-align:left;font-weight:bold;white-space:nowrap;">{{pretty this.1}}</td>
+                            <th scope="row" style="text-align:left;font-weight:bold;white-space:nowrap;">{{datetime this.1 'o' 'Etc/UTC'}}</td>
                             <td style="text-align:left;padding-left:20px;">
                                 <a href="{{{../../$ServerUri}}}#/events?filter=@Id%20%3D%20'{{this.0}}'&amp;show=expanded" style="color:#356dba;text-decoration:none;border-bottom:2px solid;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this.2}}</a>
                             </td>

@@ -1,10 +1,11 @@
-﻿using HandlebarsDotNet;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
+using HandlebarsDotNet;
+using Newtonsoft.Json;
 using Serilog;
+using TimeZoneConverter;
 
 namespace Seq.App.EmailPlus
 {
@@ -129,11 +130,20 @@ namespace Seq.App.EmailPlus
             // Using `DateTimeOffset` avoids ending up with `DateTimeKind.Unspecified` after time zone conversion.
             DateTimeOffset dt;
             if (arguments[0] is DateTimeOffset dto)
+            {
                 dt = dto;
+            }
             else if (arguments[0] is DateTime rdt)
+            {
                 dt = rdt.Kind == DateTimeKind.Unspecified ? new DateTime(rdt.Ticks, DateTimeKind.Utc) : rdt;
+            }
+            else if (arguments[0] is string str && DateTimeOffset.TryParse(str, out dt))
+            {
+            }
             else
+            {
                 return null;
+            }
 
             string format = null;
             if (arguments.Length >= 2 && arguments[1] is string f)
@@ -145,12 +155,12 @@ namespace Seq.App.EmailPlus
             {
                 try
                 {
-                    var tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                    var tzi = TZConvert.GetTimeZoneInfo(timeZoneId);
                     dt = TimeZoneInfo.ConvertTime(dt, tzi);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "A time zone with id {TimeZoneId} was not found; falling back to UTC");
+                    Log.Error(ex, "A time zone with id {TimeZoneId} was not found; falling back to UTC", timeZoneId);
                 }
             }
 
