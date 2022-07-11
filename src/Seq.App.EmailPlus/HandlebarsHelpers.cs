@@ -121,10 +121,10 @@ namespace Seq.App.EmailPlus
             return value.ToString().Substring(start, end);
         }
 
-        static void DateTimeHelper(TextWriter output, object context, object[] arguments)
+        static object DateTimeHelper(Context context, Arguments arguments)
         {
             if (arguments.Length < 1)
-                return;
+                return null;
 
             // Using `DateTimeOffset` avoids ending up with `DateTimeKind.Unspecified` after time zone conversion.
             DateTimeOffset dt;
@@ -133,7 +133,7 @@ namespace Seq.App.EmailPlus
             else if (arguments[0] is DateTime rdt)
                 dt = rdt.Kind == DateTimeKind.Unspecified ? new DateTime(rdt.Ticks, DateTimeKind.Utc) : rdt;
             else
-                return;
+                return null;
 
             string format = null;
             if (arguments.Length >= 2 && arguments[1] is string f)
@@ -153,12 +153,14 @@ namespace Seq.App.EmailPlus
                     Log.Error(ex, "A time zone with id {TimeZoneId} was not found; falling back to UTC");
                 }
             }
-            
+
             if (dt.Offset == TimeSpan.Zero)
+            {
                 // Use the idiomatic trailing `Z` formatting for ISO-8601 in UTC.
-                output.Write(dt.UtcDateTime.ToString(format));
-            else
-                output.Write(dt.ToString(format));
+                return dt.UtcDateTime.ToString(format);
+            }
+
+            return dt.ToString(format);
         }
     }
 }

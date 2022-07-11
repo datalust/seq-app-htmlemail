@@ -215,7 +215,7 @@ namespace Seq.App.EmailPlus.Tests
         public void DateTimeHelperAppliesFormatting()
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'R'}}");
-            var data = Some.LogEvent(new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("Mon, 01 Mar 2021 17:30:11 GMT", result);
         }
@@ -224,7 +224,7 @@ namespace Seq.App.EmailPlus.Tests
         public void DateTimeHelperSwitchesTimeZone()
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'o' 'Vladivostok Standard Time'}}");
-            var data = Some.LogEvent(new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("2021-03-02T03:30:11.0000000+10:00", result);
         }   
@@ -233,7 +233,7 @@ namespace Seq.App.EmailPlus.Tests
         public void UtcFormatsWithZNotation()
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'o' 'Coordinated Universal Time'}}");
-            var data = Some.LogEvent(new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Equal("2021-03-01T17:30:11.0000000Z", result);
         }
@@ -243,7 +243,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             // `G` is dependent on the server's current culture; maintained for backwards-compatibility
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'G' 'Coordinated Universal Time'}}");
-            var data = Some.LogEvent(new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
             var result = EmailApp.FormatTemplate(template, data, Some.Host());
             Assert.Contains("2021", result);
         }
