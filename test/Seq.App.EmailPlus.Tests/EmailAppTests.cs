@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using MailKit.Security;
 using Seq.App.EmailPlus.Tests.Support;
@@ -23,7 +24,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{$Level}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal(data.Data.Level.ToString(), result);
         }
 
@@ -32,7 +33,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("See {{What}}");
             var data = Some.LogEvent(includedProperties:new Dictionary<string, object> { { "What", 10 } });
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("See 10", result);
         }
 
@@ -52,7 +53,7 @@ namespace Seq.App.EmailPlus.Tests
                 RenderedMessage = "Some text",
                 Properties = null
             });
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("No properties", result);
         }
 
@@ -61,7 +62,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{#if_eq $Level \"Fatal\"}}True{{/if_eq}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("True", result);
         }
 
@@ -70,7 +71,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{#if_eq $Level \"Warning\"}}True{{/if_eq}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("", result);
         }
 
@@ -79,7 +80,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("", result);
         }
 
@@ -88,7 +89,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("Fatal", result);
         }
 
@@ -97,7 +98,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level 2}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("tal", result);
         }
 
@@ -106,7 +107,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{substring $Level 2 1}}");
             var data = Some.LogEvent();
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("t", result);
         }
         
@@ -216,7 +217,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'R'}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("Mon, 01 Mar 2021 17:30:11 GMT", result);
         }
         
@@ -225,7 +226,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'R'}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc).ToString("o")});
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("Mon, 01 Mar 2021 17:30:11 GMT", result);
         }
         
@@ -234,7 +235,16 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'o' 'Australia/Brisbane'}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
+            Assert.Equal("2021-03-02T03:30:11.0000000+10:00", result);
+        }   
+        
+        [Fact]
+        public void DateTimeHelperAcceptsDefaultTemplateVariables()
+        {
+            var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When $DateTimeFormat $TimeZoneName}}");
+            var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("2021-03-02T03:30:11.0000000+10:00", result);
         }   
         
@@ -243,7 +253,7 @@ namespace Seq.App.EmailPlus.Tests
         {
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'o' 'Etc/UTC'}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("2021-03-01T17:30:11.0000000Z", result);
         }
         
@@ -253,7 +263,7 @@ namespace Seq.App.EmailPlus.Tests
             // `G` is dependent on the server's current culture; maintained for backwards-compatibility
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'G' 'Etc/UTC'}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
-            var result = EmailApp.FormatTemplate(template, data, Some.Host());
+            var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Contains("2021", result);
         }
     }

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using HandlebarsDotNet;
 using Newtonsoft.Json;
-using Serilog;
 using TimeZoneConverter;
 
 namespace Seq.App.EmailPlus
@@ -81,8 +80,9 @@ namespace Seq.App.EmailPlus
             //{{ substring value 0 30 }}
             var value = arguments.FirstOrDefault();
 
-            if (value == null)
-                return null;
+            var toString = value?.ToString();
+            if (toString == null)
+                return value;
 
             if (arguments.Length < 2)
             {
@@ -94,39 +94,38 @@ namespace Seq.App.EmailPlus
             if (arguments.Length < 3)
             {
                 // just a start position provided
-                int.TryParse(arguments[1].ToString(), out start);
-                if (start > value.ToString().Length)
+                if (!int.TryParse(arguments[1].ToString(), out start) || start > toString.Length)
                 {
                     // start of substring after end of string.
-                    return null;
+                    return "";
                 }
                 
-                return value.ToString().Substring(start);
+                return toString.Substring(start);
             }
             
             // Start & length provided.
             int.TryParse(arguments[1].ToString(), out start);
             int.TryParse(arguments[2].ToString(), out var end);
 
-            if (start > value.ToString().Length)
+            if (start > toString.Length)
             {
                 // start of substring after end of string.
-                return null;
+                return "";
             }
             // ensure the length is still in the string to avoid ArgumentOutOfRangeException
-            if (end > value.ToString().Length - start)
+            if (end > toString.Length - start)
             {
-                end = value.ToString().Length - start;
+                end = toString.Length - start;
             }
 
-            return value.ToString().Substring(start, end);
+            return toString.Substring(start, end);
         }
 
         static object DateTimeHelper(Context context, Arguments arguments)
         {
             if (arguments.Length < 1)
                 return null;
-
+            
             // Using `DateTimeOffset` avoids ending up with `DateTimeKind.Unspecified` after time zone conversion.
             DateTimeOffset dt;
             if (arguments[0] is DateTimeOffset dto)
@@ -137,10 +136,7 @@ namespace Seq.App.EmailPlus
             {
                 dt = rdt.Kind == DateTimeKind.Unspecified ? new DateTime(rdt.Ticks, DateTimeKind.Utc) : rdt;
             }
-            else if (arguments[0] is string str && DateTimeOffset.TryParse(str, out dt))
-            {
-            }
-            else
+            else if (arguments[0] is not string str || !DateTimeOffset.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
             {
                 return null;
             }
@@ -153,15 +149,8 @@ namespace Seq.App.EmailPlus
 
             if (arguments.Length >= 3 && arguments[2] is string timeZoneId)
             {
-                try
-                {
-                    var tzi = TZConvert.GetTimeZoneInfo(timeZoneId);
-                    dt = TimeZoneInfo.ConvertTime(dt, tzi);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "A time zone with id {TimeZoneId} was not found; falling back to UTC", timeZoneId);
-                }
+                var tzi = TZConvert.GetTimeZoneInfo(timeZoneId);
+                dt = TimeZoneInfo.ConvertTime(dt, tzi);
             }
 
             if (dt.Offset == TimeSpan.Zero)

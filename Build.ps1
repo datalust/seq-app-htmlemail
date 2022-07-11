@@ -22,12 +22,19 @@ foreach ($src in ls src/*) {
     Push-Location $src
 
     echo "build: Packaging project in $src"
+    
+    foreach ($tfm in @("netstandard2.0", "net6.0")) {
+        if ($suffix) {
+            & dotnet publish -c Release -o "./obj/publish/$tfm" -f $tfm --version-suffix=$suffix
+        } else {
+            & dotnet publish -c Release -o "./obj/publish/$tfm" -f $tfm
+        }
+        if($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }    
+    }
 
     if ($suffix) {
-        & dotnet publish -c Release -o ./obj/publish --version-suffix=$suffix
         & dotnet pack -c Release -o ..\..\artifacts --no-build --version-suffix=$suffix
     } else {
-        & dotnet publish -c Release -o ./obj/publish
         & dotnet pack -c Release -o ..\..\artifacts --no-build
     }
     if($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }    
