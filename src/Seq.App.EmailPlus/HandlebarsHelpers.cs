@@ -1,9 +1,10 @@
-﻿using HandlebarsDotNet;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
+using HandlebarsDotNet;
+using Newtonsoft.Json;
+using TimeZoneConverter;
 
 namespace Seq.App.EmailPlus
 {
@@ -14,9 +15,10 @@ namespace Seq.App.EmailPlus
             Handlebars.RegisterHelper("pretty", PrettyPrintHelper);
             Handlebars.RegisterHelper("if_eq", IfEqHelper);
             Handlebars.RegisterHelper("substring", SubstringHelper);
+            Handlebars.RegisterHelper("datetime", DateTimeHelper);
         }
 
-        static void PrettyPrintHelper(TextWriter output, object context, object[] arguments)
+        static void PrettyPrintHelper(EncodedTextWriter output, Context context, Arguments arguments)
         {
             var value = arguments.FirstOrDefault();
             if (value == null)
@@ -37,9 +39,9 @@ namespace Seq.App.EmailPlus
             }
         }
 
-        static void IfEqHelper(TextWriter output, HelperOptions options, dynamic context, object[] arguments)
+        static void IfEqHelper(EncodedTextWriter output, BlockHelperOptions options, Context context, Arguments arguments)
         {
-            if (arguments?.Length != 2)
+            if (arguments.Length != 2)
             {
                 options.Inverse(output, context);
                 return;
@@ -73,49 +75,91 @@ namespace Seq.App.EmailPlus
             return o;
         }
 
-        static void SubstringHelper(TextWriter output, object context, object[] arguments)
+        static object SubstringHelper(Context context, Arguments arguments)
         {
             //{{ substring value 0 30 }}
             var value = arguments.FirstOrDefault();
 
-            if (value == null)
-                return;
+            var toString = value?.ToString();
+            if (toString == null)
+                return value;
 
             if (arguments.Length < 2)
             {
                 // No start or length arguments provided
-                output.Write(value);
+                return value;
             }
-            else if (arguments.Length < 3)
+
+            int start;
+            if (arguments.Length < 3)
             {
                 // just a start position provided
-                int.TryParse(arguments[1].ToString(), out var start);
-                if (start > value.ToString().Length)
+                if (!int.TryParse(arguments[1].ToString(), out start) || start > toString.Length)
                 {
                     // start of substring after end of string.
-                    return;
+                    return "";
                 }
-                output.Write(value.ToString().Substring(start));
+                
+                return toString.Substring(start);
             }
-            else
+            
+            // Start & length provided.
+            int.TryParse(arguments[1].ToString(), out start);
+            int.TryParse(arguments[2].ToString(), out var end);
+
+            if (start > toString.Length)
             {
-                // Start & length provided.
-                int.TryParse(arguments[1].ToString(), out var start);
-                int.TryParse(arguments[2].ToString(), out var end);
-
-                if (start > value.ToString().Length)
-                {
-                    // start of substring after end of string.
-                    return;
-                }
-                // ensure the length is still in the string to avoid ArgumentOutOfRangeException
-                if (end > value.ToString().Length - start)
-                {
-                    end = value.ToString().Length - start;
-                }
-
-                output.Write(value.ToString().Substring(start, end));
+                // start of substring after end of string.
+                return "";
             }
+            // ensure the length is still in the string to avoid ArgumentOutOfRangeException
+            if (end > toString.Length - start)
+            {
+                end = toString.Length - start;
+            }
+
+            return toString.Substring(start, end);
+        }
+
+        static object DateTimeHelper(Context context, Arguments arguments)
+        {
+            if (arguments.Length < 1)
+                return null;
+            
+            // Using `DateTimeOffset` avoids ending up with `DateTimeKind.Unspecified` after time zone conversion.
+            DateTimeOffset dt;
+            if (arguments[0] is DateTimeOffset dto)
+            {
+                dt = dto;
+            }
+            else if (arguments[0] is DateTime rdt)
+            {
+                dt = rdt.Kind == DateTimeKind.Unspecified ? new DateTime(rdt.Ticks, DateTimeKind.Utc) : rdt;
+            }
+            else if (arguments[0] is not string str || !DateTimeOffset.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+            {
+                return null;
+            }
+
+            string format = null;
+            if (arguments.Length >= 2 && arguments[1] is string f)
+            {
+                format = f;
+            }
+
+            if (arguments.Length >= 3 && arguments[2] is string timeZoneId)
+            {
+                var tzi = TZConvert.GetTimeZoneInfo(timeZoneId);
+                dt = TimeZoneInfo.ConvertTime(dt, tzi);
+            }
+
+            if (dt.Offset == TimeSpan.Zero)
+            {
+                // Use the idiomatic trailing `Z` formatting for ISO-8601 in UTC.
+                return dt.UtcDateTime.ToString(format);
+            }
+
+            return dt.ToString(format);
         }
     }
 }

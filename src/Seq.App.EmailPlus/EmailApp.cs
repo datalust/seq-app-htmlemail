@@ -1,86 +1,71 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Net;
-using System.Net.Mail;
+using System.Threading.Tasks;
 using HandlebarsDotNet;
+using MailKit.Security;
+using MimeKit;
 using Seq.Apps;
 using Seq.Apps.LogEvents;
 
-// ReSharper disable MemberCanBePrivate.Global
+#nullable enable
+// ReSharper disable UnusedAutoPropertyAccessor.Global, MemberCanBePrivate.Global
 
 namespace Seq.App.EmailPlus
 {
-    [SeqApp("Email+",
-        Description = "Uses a Handlebars template to send events as SMTP email.")]
-    public class EmailApp : SeqApp, ISubscribeTo<LogEventData>
+    using Template = HandlebarsTemplate<object, object>;
+
+    [SeqApp("HTML Email",
+        Description = "Uses Handlebars templates to format events and notifications into HTML email.")]
+    public class EmailApp : SeqApp, ISubscribeToAsync<LogEventData>
     {
-        readonly IMailGateway _mailGateway = new DirectMailGateway();
-        readonly ConcurrentDictionary<uint, DateTime> _lastSeen = new ConcurrentDictionary<uint, DateTime>();
-        readonly Lazy<Func<object,string>> _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        readonly IMailGateway _mailGateway;
+        readonly IClock _clock;
+        readonly Dictionary<uint, DateTime> _suppressions = new();
+        Template? _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
+        SmtpOptions? _options;
 
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
+        const int DefaultPort = 25;
+        const int DefaultSslPort = 465;
 
         static EmailApp()
         {
             HandlebarsHelpers.Register();
         }
 
-        internal EmailApp(IMailGateway mailGateway)
-            : this()
+        internal EmailApp(IMailGateway mailGateway, IClock clock)
         {
             _mailGateway = mailGateway ?? throw new ArgumentNullException(nameof(mailGateway));
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
         }
 
         public EmailApp()
+            : this(new DirectMailGateway(), new SystemClock())
         {
-            _subjectTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var subjectTemplate = SubjectTemplate;
-                if (string.IsNullOrEmpty(subjectTemplate))
-                    subjectTemplate = DefaultSubjectTemplate;
-                return Handlebars.Compile(subjectTemplate);
-            });
-
-            _bodyTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var bodyTemplate = BodyTemplate;
-                if (string.IsNullOrEmpty(bodyTemplate))
-                    bodyTemplate = Resources.DefaultBodyTemplate;
-                return Handlebars.Compile(bodyTemplate);
-            });
-
-            _toAddressesTemplate = new Lazy<Func<object, string>>(() =>
-            {
-                var toAddressTemplate = To;
-                if (string.IsNullOrEmpty(toAddressTemplate))
-                    return o => To;
-                return Handlebars.Compile(toAddressTemplate);
-            });
         }
 
         [SeqAppSetting(
             DisplayName = "From address",
             HelpText = "The account from which the email is being sent.")]
-        public string From { get; set; }
+        public string? From { get; set; }
 
         [SeqAppSetting(
             DisplayName = "To address",
             HelpText = "The account to which the email is being sent. Multiple addresses are separated by a comma. Handlebars syntax is supported.")]
-        public string To { get; set; }
+        public string? To { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             DisplayName = "Subject template",
             HelpText = "The subject of the email, using Handlebars syntax. If blank, a default subject will be generated.")]
-        public string SubjectTemplate { get; set; }
+        public string? SubjectTemplate { get; set; }
 
         [SeqAppSetting(
             HelpText = "The name of the SMTP server machine.")]
-        public new string Host { get; set; }
+        public new string? Host { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
@@ -89,17 +74,19 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
-            DisplayName = "Enable SSL",
-            HelpText = "Check this box if SSL is required to send email messages.")]
+            DisplayName = "Require TLS",
+            HelpText = "Check this box to require that the server supports SSL/TLS for sending messages. If the port used is 465, " +
+                       "implicit SSL will be enabled; otherwise, the STARTTLS extension will be used.")]
         public bool? EnableSsl { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
-            HelpText = "The template to use when generating the email body, using Handlebars.NET syntax. Leave this blank to use " +
-                       "the default template that includes the message and properties (https://github.com/datalust/seq-apps/tree/master/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
-        public string BodyTemplate { get; set; }
+            HelpText = "The template to use when generating the email body, using Handlebars syntax. Leave this blank to use " +
+                       "the default template that includes the message and " +
+                       "properties (https://github.com/datalust/seq-app-htmlemail/blob/main/src/Seq.App.EmailPlus/Resources/DefaultBodyTemplate.html).")]
+        public string? BodyTemplate { get; set; }
 
         [SeqAppSetting(
             DisplayName = "Suppression time (minutes)",
@@ -110,45 +97,117 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             IsOptional = true,
             HelpText = "The username to use when authenticating to the SMTP server, if required.")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [SeqAppSetting(
             IsOptional = true,
             InputType = SettingInputType.Password,
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
-        public string Password { get; set; }
-
-        public void On(Event<LogEventData> evt)
+        public string? Password { get; set; }
+        
+        [SeqAppSetting(
+            DisplayName = "Time zone name",
+            IsOptional = true,
+            HelpText = "The IANA name of the time zone to use when formatting dates and times. The default is `Etc/UTC`.")]
+        public string? TimeZoneName { get; set; }
+        
+        [SeqAppSetting(
+            DisplayName = "Date/time format",
+            IsOptional = true,
+            HelpText = "A format string controlling how dates and times are formatted. Supports .NET date/time formatting syntax. The default is `o`, producing ISO-8601.")]
+        public string? DateTimeFormat { get; set; }
+        
+        protected override void OnAttached()
         {
-            var added = false;
-            var lastSeen = _lastSeen.GetOrAdd(evt.EventType, k => { added = true; return DateTime.UtcNow; });
-            if (!added)
+            var port = Port ?? DefaultPort;
+            _options = _options = new SmtpOptions(
+                Host,
+                port,
+                EnableSsl ?? false
+                    ? RequireSslForPort(port)
+                    : SecureSocketOptions.StartTlsWhenAvailable,
+                Username,
+                Password);
+
+            _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
+                ? DefaultSubjectTemplate 
+                : SubjectTemplate);
+            _bodyTemplate = Handlebars.Compile(string.IsNullOrEmpty(BodyTemplate) 
+                ? Resources.DefaultBodyTemplate 
+                : BodyTemplate);
+            _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, _) => To : Handlebars.Compile(To);
+        }
+
+        public async Task OnAsync(Event<LogEventData> evt)
+        {
+            if (ShouldSuppress(evt)) return;
+
+            var to = FormatTemplate(_toAddressesTemplate!, evt, base.Host)
+                .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
+
+            if (to.Length == 0)
             {
-                if (lastSeen > DateTime.UtcNow.AddMinutes(-SuppressionMinutes)) return;
-                _lastSeen[evt.EventType] = DateTime.UtcNow;
+                Log.Warning("Email 'to' address template did not evaluate to one or more recipient addresses");
+                return;
             }
 
-            var to = FormatTemplate(_toAddressesTemplate.Value, evt, base.Host);
-            var body = FormatTemplate(_bodyTemplate.Value, evt, base.Host);
-            var subject = FormatTemplate(_subjectTemplate.Value, evt, base.Host).Trim().Replace("\r", "").Replace("\n", "");
+            var body = FormatTemplate(_bodyTemplate!, evt, base.Host);
+            var subject = FormatTemplate(_subjectTemplate!, evt, base.Host).Trim().Replace("\r", "")
+                .Replace("\n", "");
             if (subject.Length > MaxSubjectLength)
                 subject = subject.Substring(0, MaxSubjectLength);
 
-            var client = new SmtpClient(Host, Port ?? 25) {EnableSsl = EnableSsl ?? false};
-            if (!string.IsNullOrWhiteSpace(Username))
-                client.Credentials = new NetworkCredential(Username, Password);
-
-            using (var message = new MailMessage(From, to, subject, body) {IsBodyHtml = true})
-            {
-                _mailGateway.Send(client, message);
-            }
+            await _mailGateway.SendAsync(
+                _options,
+                new MimeMessage(
+                    new[] {MailboxAddress.Parse(From)},
+                    to.Select(MailboxAddress.Parse),
+                    subject,
+                    new BodyBuilder {HtmlBody = body}.ToMessageBody()));
         }
 
-        public static string FormatTemplate(Func<object, string> template, Event<LogEventData> evt, Host host)
+        bool ShouldSuppress(Event<LogEventData> evt)
         {
-            var properties = (IDictionary<string,object>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object>());
+            if (SuppressionMinutes == 0)
+                return false;
 
-            var payload = (IDictionary<string,object>) ToDynamic(new Dictionary<string, object>
+            var now = _clock.UtcNow;
+            if (!_suppressions.TryGetValue(evt.EventType, out var suppressedSince) ||
+                suppressedSince.AddMinutes(SuppressionMinutes) < now)
+            {
+                // Not suppressed, or suppression expired
+
+                // Clean up old entries
+                var expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                while (expired.Value != default)
+                {
+                    _suppressions.Remove(expired.Key);
+                    expired = _suppressions.FirstOrDefault(kvp => kvp.Value.AddMinutes(SuppressionMinutes) < now);
+                }
+
+                // Start suppression again
+                suppressedSince = now;
+                _suppressions[evt.EventType] = suppressedSince;
+                return false;
+            }
+
+            // Suppressed
+            return true;
+        }
+
+        internal static SecureSocketOptions RequireSslForPort(int port)
+        {
+            return port == DefaultSslPort ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
+        }
+
+        internal static string FormatTemplate(Template template, Event<LogEventData> evt, Host host, string dateTimeFormat, string timeZoneName)
+        {
+            if (template == null) throw new ArgumentNullException(nameof(template));
+            if (evt == null) throw new ArgumentNullException(nameof(evt));
+            
+            var properties = (IDictionary<string,object?>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object?>());
+
+            var payload = (IDictionary<string,object?>) ToDynamic(new Dictionary<string, object?>
             {
                 { "$Id",                  evt.Id },
                 { "$UtcTimestamp",        evt.TimestampUtc },
@@ -160,7 +219,11 @@ namespace Seq.App.EmailPlus
                 { "$Properties",          properties },
                 { "$EventType",           "$" + evt.EventType.ToString("X8") },
                 { "$Instance",            host.InstanceName },
-                { "$ServerUri",           host.BaseUri }
+                { "$ServerUri",           host.BaseUri },
+                // Note, this will only be valid when events are streamed directly to the app, and not when the app is sending an alert notification.
+                { "$EventUri",            string.Concat(host.BaseUri, "#/events?filter=@Id%20%3D%20'", evt.Id, "'&amp;show=expanded") },
+                { "$DateTimeFormat",      dateTimeFormat },
+                { "$TimeZoneName",        timeZoneName }
             });
 
             foreach (var property in properties)
@@ -170,13 +233,33 @@ namespace Seq.App.EmailPlus
 
             return template(payload);
         }
+        
+        string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        {
+            return FormatTemplate(
+                template,
+                evt,
+                host,
+                string.IsNullOrEmpty(DateTimeFormat) ? "o" : DateTimeFormat!.Trim(),
+                string.IsNullOrEmpty(TimeZoneName) ? "Etc/UTC" : TimeZoneName!.Trim());
+        }
+        
+        internal static string TestFormatTemplate(Template template, Event<LogEventData> evt, Host host)
+        {
+            return FormatTemplate(
+                template,
+                evt,
+                host,
+                "o",
+                "Australia/Brisbane");
+        }
 
         static object ToDynamic(object o)
         {
             if (o is IEnumerable<KeyValuePair<string, object>> dictionary)
             {
                 var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object>) result;
+                var asDict = (IDictionary<string, object?>) result;
                 foreach (var kvp in dictionary)
                     asDict.Add(kvp.Key, ToDynamic(kvp.Value));
                 return result;
