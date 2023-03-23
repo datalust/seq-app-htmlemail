@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using HandlebarsDotNet;
 using Newtonsoft.Json;
-using TimeZoneConverter;
 
 namespace Seq.App.EmailPlus
 {
@@ -149,7 +148,7 @@ namespace Seq.App.EmailPlus
 
             if (arguments.Length >= 3 && arguments[2] is string timeZoneId)
             {
-                var tzi = TZConvert.GetTimeZoneInfo(timeZoneId);
+                var tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                 dt = TimeZoneInfo.ConvertTime(dt, tzi);
             }
 
