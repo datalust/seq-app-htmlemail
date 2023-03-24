@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using HandlebarsDotNet;
 using Newtonsoft.Json;
 
@@ -148,7 +149,17 @@ namespace Seq.App.EmailPlus
 
             if (arguments.Length >= 3 && arguments[2] is string timeZoneId)
             {
-                var tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                TimeZoneInfo tzi;
+                if (IsUsingNlsOnWindows() && timeZoneId == EmailApp.UtcTimeZoneName)
+                {
+                    // Etc/UTC is the default; this keeps the default template working even without ICU.
+                    tzi = TimeZoneInfo.Utc;
+                }
+                else
+                {
+                    tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                }
+                
                 dt = TimeZoneInfo.ConvertTime(dt, tzi);
             }
 
@@ -159,6 +170,24 @@ namespace Seq.App.EmailPlus
             }
 
             return dt.ToString(format);
+        }
+        
+        static bool IsUsingNlsOnWindows()
+        {
+            // Whether ICU is used on Windows depends on both the Windows version and the .NET version. When ICU is
+            // unavailable, .NET falls back to NLS, which is only aware of Windows time zone names.
+            // See: https://github.com/dotnet/docs/issues/30319
+            
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return false;
+            
+            // https://learn.microsoft.com/en-us/dotnet/core/extensions/globalization-icu#determine-if-your-app-is-using-icu
+            var sortVersion = CultureInfo.InvariantCulture.CompareInfo.Version;
+            var bytes = sortVersion.SortId.ToByteArray();
+            var version = bytes[3] << 24 | bytes[2] << 16 | bytes[1] << 8 | bytes[0];
+            var isIcu = version != 0 && version == sortVersion.FullVersion;
+
+            return !isIcu;
         }
     }
 }

@@ -26,6 +26,7 @@ namespace Seq.App.EmailPlus
         Template? _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
         SmtpOptions? _options;
 
+        public const string UtcTimeZoneName = "Etc/UTC";
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
         const int DefaultPort = 25;
@@ -108,13 +109,16 @@ namespace Seq.App.EmailPlus
         [SeqAppSetting(
             DisplayName = "Time zone name",
             IsOptional = true,
-            HelpText = "The IANA name of the time zone to use when formatting dates and times. The default is `Etc/UTC`.")]
+            HelpText = "The IANA name of the time zone to use when formatting dates and times. The default is `Etc/UTC`. " +
+                       "On Windows versions before Server 2019, and Seq versions before 2023.1, only Windows time zone " +
+                       "names are accepted.")]
         public string? TimeZoneName { get; set; }
         
         [SeqAppSetting(
             DisplayName = "Date/time format",
             IsOptional = true,
-            HelpText = "A format string controlling how dates and times are formatted. Supports .NET date/time formatting syntax. The default is `o`, producing ISO-8601.")]
+            HelpText = "A format string controlling how dates and times are formatted. Supports .NET date/time formatting " +
+                       "syntax. The default is `o`, producing ISO-8601.")]
         public string? DateTimeFormat { get; set; }
         
         protected override void OnAttached()
@@ -241,7 +245,7 @@ namespace Seq.App.EmailPlus
                 evt,
                 host,
                 string.IsNullOrEmpty(DateTimeFormat) ? "o" : DateTimeFormat!.Trim(),
-                string.IsNullOrEmpty(TimeZoneName) ? "Etc/UTC" : TimeZoneName!.Trim());
+                string.IsNullOrEmpty(TimeZoneName) ? UtcTimeZoneName : TimeZoneName!.Trim());
         }
         
         internal static string TestFormatTemplate(Template template, Event<LogEventData> evt, Host host)
