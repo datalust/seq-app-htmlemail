@@ -26,7 +26,6 @@ namespace Seq.App.EmailPlus
         Template? _bodyTemplate, _subjectTemplate, _toAddressesTemplate;
         SmtpOptions? _options;
 
-        public const string UtcTimeZoneName = "Etc/UTC";
         const string DefaultSubjectTemplate = @"[{{$Level}}] {{{$Message}}} (via Seq)";
         const int MaxSubjectLength = 130;
         const int DefaultPort = 25;
@@ -245,7 +244,7 @@ namespace Seq.App.EmailPlus
                 evt,
                 host,
                 string.IsNullOrEmpty(DateTimeFormat) ? "o" : DateTimeFormat!.Trim(),
-                string.IsNullOrEmpty(TimeZoneName) ? UtcTimeZoneName : TimeZoneName!.Trim());
+                string.IsNullOrEmpty(TimeZoneName) ? PortableTimeZoneInfo.UtcTimeZoneName : TimeZoneName!.Trim());
         }
         
         internal static string TestFormatTemplate(Template template, Event<LogEventData> evt, Host host)
