@@ -23,7 +23,7 @@ foreach ($src in ls src/*) {
 
     echo "build: Packaging project in $src"
     
-    foreach ($tfm in @("netstandard2.0", "net6.0")) {
+    foreach ($tfm in @("net6.0", "netstandard2.0")) {
         if ($suffix) {
             & dotnet publish -c Release -o "./obj/publish/$tfm" -f $tfm --version-suffix=$suffix
         } else {
