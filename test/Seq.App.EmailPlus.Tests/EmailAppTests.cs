@@ -233,15 +233,20 @@ namespace Seq.App.EmailPlus.Tests
         [Fact]
         public void DateTimeHelperSwitchesTimeZone()
         {
-            var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'o' 'Australia/Brisbane'}}");
+            var australiaBrisbane = IanaTimeZonesSupported() ? "Australia/Brisbane" : "E. Australia Standard Time";
+                
+            var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When 'o' '" + australiaBrisbane + "'}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
             var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Equal("2021-03-02T03:30:11.0000000+10:00", result);
-        }   
-        
+        }
+
         [Fact]
         public void DateTimeHelperAcceptsDefaultTemplateVariables()
         {
+            if (!IanaTimeZonesSupported())
+                return;
+                
             var template = HandlebarsDotNet.Handlebars.Compile("{{datetime When $DateTimeFormat $TimeZoneName}}");
             var data = Some.LogEvent(includedProperties: new Dictionary<string, object>{["When"] = new DateTime(2021, 3, 1, 17, 30, 11, DateTimeKind.Utc)});
             var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
@@ -266,5 +271,14 @@ namespace Seq.App.EmailPlus.Tests
             var result = EmailApp.TestFormatTemplate(template, data, Some.Host());
             Assert.Contains("2021", result);
         }
+
+        static bool IanaTimeZonesSupported() =>
+#if NET6_0
+            // Only Windows 10, despite Server 2019 having icu.dll 
+            !PortableTimeZoneInfo.IsUsingNlsOnWindows();
+#else
+            // All recent Windows platforms; ensures that we test IANA names on at least one Windows build in CI.
+            true;
+#endif
     }
 }

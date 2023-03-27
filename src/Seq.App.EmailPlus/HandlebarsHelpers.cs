@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using HandlebarsDotNet;
 using Newtonsoft.Json;
-using TimeZoneConverter;
 
 namespace Seq.App.EmailPlus
 {
@@ -149,7 +149,7 @@ namespace Seq.App.EmailPlus
 
             if (arguments.Length >= 3 && arguments[2] is string timeZoneId)
             {
-                var tzi = TZConvert.GetTimeZoneInfo(timeZoneId);
+                var tzi = PortableTimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                 dt = TimeZoneInfo.ConvertTime(dt, tzi);
             }
 
