@@ -41,7 +41,7 @@
             <div style="font-weight:bold;" >Alert condition <span style="font-family:monospace;background-color:#f0f0f0;" >{{Condition}}</span> detected on
                 <a href="{{{DashboardUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >{{DashboardTitle}}/{{ChartTitle}}</a></div>
             <div style="font-size:12px;margin-top:20px;" >
-                <a href="{{{ResultsUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >Explore detected results in Seq</a>                
+                <a href="{{{ResultsUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >Explore detected results in Seq</a>
             </div>
             <div style="margin-top:20px;" >
                 <div style="margin-top:10px;" >
@@ -88,7 +88,7 @@
                 {{/if}}
             </div>
             {{#if Results}}
-            <div style="margin-top:20px;" >                    
+            <div style="margin-top:20px;" >
                 <div style="font-weight:bold;" >Results</div>
                 {{#each Results}}
                 <div style="margin-top:10px;" >
@@ -133,7 +133,7 @@
                     </table>
                 </div>
                 <div style="font-size:12px;margin-top:10px;" >
-                    <a href="{{{Source.ResultsUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >Explore detected results in Seq</a>                
+                    <a href="{{{Source.ResultsUrl}}}" style="color:#356dba;text-decoration:none;border-bottom:2px solid;" >Explore detected results in Seq</a>
                 </div>
                 {{/if}}
                 {{#if Source.ContributingEvents}}
@@ -144,7 +144,7 @@
                         {{#if_eq @index 0}}
                         {{else}}
                         <tr>
-                            <th scope="row" style="text-align:left;font-weight:bold;white-space:nowrap;">{{datetime this.1 @root.$DateTimeFormat @root.$TimeZoneName}}</td>
+                            <th scope="row" style="text-align:left;font-weight:bold;white-space:nowrap;">{{datetime this.1 @root.$DateTimeFormat @root.$TimeZoneName}}</th>
                             <td style="text-align:left;padding-left:20px;">
                                 <a href="{{{../../$ServerUri}}}#/events?filter=@Id%20%3D%20'{{this.0}}'&amp;show=expanded" style="color:#356dba;text-decoration:none;border-bottom:2px solid;overflow-wrap:break-word;white-space:pre;white-space:pre-wrap;" >{{pretty this.2}}</a>
                             </td>
