@@ -81,6 +81,13 @@ namespace Seq.App.EmailPlus
 
         [SeqAppSetting(
             IsOptional = true,
+            DisplayName = "Skip CertificateValidation",
+            HelpText = "This option allows you to have TLS enabled, but with an invalid certificate " +
+                       "(expired, for another hostname, ...). Never use this in production.")]
+        public bool? SkipCertificateValidation { get; set; }
+
+        [SeqAppSetting(
+            IsOptional = true,
             InputType = SettingInputType.LongText,
             DisplayName = "Body template",
             HelpText = "The template to use when generating the email body, using Handlebars syntax. Leave this blank to use " +
@@ -104,7 +111,7 @@ namespace Seq.App.EmailPlus
             InputType = SettingInputType.Password,
             HelpText = "The password to use when authenticating to the SMTP server, if required.")]
         public string? Password { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "Time zone name",
             IsOptional = true,
@@ -112,14 +119,14 @@ namespace Seq.App.EmailPlus
                        "On Windows versions before Server 2019, and Seq versions before 2023.1, only Windows time zone " +
                        "names are accepted.")]
         public string? TimeZoneName { get; set; }
-        
+
         [SeqAppSetting(
             DisplayName = "Date/time format",
             IsOptional = true,
             HelpText = "A format string controlling how dates and times are formatted. Supports .NET date/time formatting " +
                        "syntax. The default is `o`, producing ISO-8601.")]
         public string? DateTimeFormat { get; set; }
-        
+
         protected override void OnAttached()
         {
             var port = Port ?? DefaultPort;
@@ -130,13 +137,16 @@ namespace Seq.App.EmailPlus
                     ? RequireSslForPort(port)
                     : SecureSocketOptions.StartTlsWhenAvailable,
                 Username,
-                Password);
+                Password)
+            {
+                SkipCertificateValidation = SkipCertificateValidation ?? false,
+            };
 
-            _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate) 
-                ? DefaultSubjectTemplate 
+            _subjectTemplate = Handlebars.Compile(string.IsNullOrEmpty(SubjectTemplate)
+                ? DefaultSubjectTemplate
                 : SubjectTemplate);
-            _bodyTemplate = Handlebars.Compile(string.IsNullOrEmpty(BodyTemplate) 
-                ? Resources.DefaultBodyTemplate 
+            _bodyTemplate = Handlebars.Compile(string.IsNullOrEmpty(BodyTemplate)
+                ? Resources.DefaultBodyTemplate
                 : BodyTemplate);
             _toAddressesTemplate = string.IsNullOrEmpty(To) ? (_, _) => To : Handlebars.Compile(To);
         }
@@ -146,7 +156,7 @@ namespace Seq.App.EmailPlus
             if (ShouldSuppress(evt)) return;
 
             var to = FormatTemplate(_toAddressesTemplate!, evt, base.Host)
-                .Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (to.Length == 0)
             {
@@ -163,10 +173,10 @@ namespace Seq.App.EmailPlus
             await _mailGateway.SendAsync(
                 _options,
                 new MimeMessage(
-                    new[] {MailboxAddress.Parse(From)},
+                    new[] { MailboxAddress.Parse(From) },
                     to.Select(MailboxAddress.Parse),
                     subject,
-                    new BodyBuilder {HtmlBody = body}.ToMessageBody()));
+                    new BodyBuilder { HtmlBody = body }.ToMessageBody()));
         }
 
         bool ShouldSuppress(Event<LogEventData> evt)
@@ -207,10 +217,10 @@ namespace Seq.App.EmailPlus
         {
             if (template == null) throw new ArgumentNullException(nameof(template));
             if (evt == null) throw new ArgumentNullException(nameof(evt));
-            
-            var properties = (IDictionary<string,object?>) ToDynamic(evt.Data.Properties ?? new Dictionary<string, object?>());
 
-            var payload = (IDictionary<string,object?>) ToDynamic(new Dictionary<string, object?>
+            var properties = (IDictionary<string, object?>)ToDynamic(evt.Data.Properties ?? new Dictionary<string, object?>());
+
+            var payload = (IDictionary<string, object?>)ToDynamic(new Dictionary<string, object?>
             {
                 { "$Id",                  evt.Id },
                 { "$UtcTimestamp",        evt.TimestampUtc },
@@ -236,7 +246,7 @@ namespace Seq.App.EmailPlus
 
             return template(payload);
         }
-        
+
         string FormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             return FormatTemplate(
@@ -246,7 +256,7 @@ namespace Seq.App.EmailPlus
                 string.IsNullOrEmpty(DateTimeFormat) ? "o" : DateTimeFormat!.Trim(),
                 string.IsNullOrEmpty(TimeZoneName) ? PortableTimeZoneInfo.UtcTimeZoneName : TimeZoneName!.Trim());
         }
-        
+
         internal static string TestFormatTemplate(Template template, Event<LogEventData> evt, Host host)
         {
             return FormatTemplate(
@@ -262,7 +272,7 @@ namespace Seq.App.EmailPlus
             if (o is IEnumerable<KeyValuePair<string, object>> dictionary)
             {
                 var result = new ExpandoObject();
-                var asDict = (IDictionary<string, object?>) result;
+                var asDict = (IDictionary<string, object?>)result;
                 foreach (var kvp in dictionary)
                     asDict.Add(kvp.Key, ToDynamic(kvp.Value));
                 return result;

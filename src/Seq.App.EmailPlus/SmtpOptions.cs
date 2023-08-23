@@ -10,6 +10,7 @@ namespace Seq.App.EmailPlus
         public string Username { get; }
         public string Password { get; }
         public SecureSocketOptions SocketOptions { get; }
+        public bool? SkipCertificateValidation { get; set; }
 
         public bool RequiresAuthentication => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
 
