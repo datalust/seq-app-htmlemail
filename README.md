@@ -2,6 +2,9 @@
 
 [Send log events and alerts as HTML email messages](https://docs.datalust.co/docs/formatting-html-email) when they arrive at [Seq](https://datalust.co/seq).
 
+> [!IMPORTANT]
+> This app has been superseded by [`Seq.App.Mail.Smtp`](https://github.com/datalust/seq-app-mail), which supports both plain text and HTML email templating with an improved syntax and modern SMTP defaults.
+
 ![HTML email app icon](https://raw.githubusercontent.com/datalust/seq-app-htmlemail/dev/asset/seq-app-email-plus.png)
 
 ## HTML email templates
