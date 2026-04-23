@@ -16,7 +16,6 @@ ProjectSection(SolutionItems) = preProject
 	README.md = README.md
 	.gitattributes = .gitattributes
 	.gitignore = .gitignore
-	appveyor.yml = appveyor.yml
 	LICENSE = LICENSE
 	Build.ps1 = Build.ps1
 	global.json = global.json
