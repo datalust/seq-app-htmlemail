@@ -163,7 +163,7 @@ namespace Seq.App.EmailPlus
             await _mailGateway.SendAsync(
                 _options,
                 new MimeMessage(
-                    new[] {MailboxAddress.Parse(From)},
+                    [MailboxAddress.Parse(From!)],
                     to.Select(MailboxAddress.Parse),
                     subject,
                     new BodyBuilder {HtmlBody = body}.ToMessageBody()));
